@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+message CapturedAppResponse {
+  string bundle_id = 1;
+  string name = 2;
+}
+
+message ActivateRequest {
+  string bundle_id = 1;
+}
+
+message ActivateResult {
+  bool success = 1;
+  string error_code = 2;
+}
+
+service PasteService {
+  rpc CaptureFrontmostApp(google.protobuf.Empty) returns (CapturedAppResponse);
+  rpc ActivateAndPaste(ActivateRequest) returns (ActivateResult);
+}

@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+import "error.proto";
+
+enum RecordingState {
+  IDLE = 0;
+  RECORDING = 1;
+  PROCESSING = 2;
+}
+
+message RecordingStatusResponse {
+  RecordingState state = 1;
+  Error error = 2;
+}
+
+message SubmitAudioRequest {
+  // Raw Float32 PCM samples, 16 kHz mono, resampled in the renderer.
+  // Transmitted as little-endian bytes (4 bytes per sample).
+  bytes pcm = 1;
+}
+
+service RecordingService {
+  rpc GetStatus(google.protobuf.Empty) returns (RecordingStatusResponse);
+  rpc CancelRecording(google.protobuf.Empty) returns (google.protobuf.Empty);
+  rpc SubmitAudio(SubmitAudioRequest) returns (google.protobuf.Empty);
+}

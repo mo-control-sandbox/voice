@@ -1,0 +1,65 @@
+{
+  "extends": ["stylelint-config-standard"],
+  "rules": {
+    "at-rule-no-unknown": [
+      true,
+      {
+        "ignoreAtRules": [
+          "tailwind",
+          "apply",
+          "config",
+          "layer",
+          "source",
+          "theme",
+          "utility",
+          "variant"
+        ]
+      }
+    ],
+
+    "custom-property-no-missing-var-function": true,
+    "declaration-block-no-duplicate-properties": true,
+    "no-descending-specificity": true,
+    "no-duplicate-selectors": true,
+    "color-no-invalid-hex": true,
+    "declaration-no-important": true,
+    "selector-max-id": [0],
+    "shorthand-property-no-redundant-values": true,
+
+    "value-no-vendor-prefix": [
+      true,
+      {
+        "ignoreValues": ["app-region"]
+      }
+    ],
+    "property-no-vendor-prefix": true,
+    "selector-no-vendor-prefix": true,
+
+    "import-notation": "string",
+
+    "custom-property-empty-line-before": null,
+
+    "at-rule-empty-line-before": [
+      "always",
+      {
+        "except": ["blockless-after-same-name-blockless", "first-nested"],
+        "ignore": ["after-comment", "blockless-after-blockless"]
+      }
+    ],
+
+    "rule-empty-line-before": [
+      "always-multi-line",
+      {
+        "except": ["first-nested"],
+        "ignore": ["after-comment", "inside-block"]
+      }
+    ]
+  },
+  "ignoreFiles": [
+    "node_modules/**",
+    "out/**",
+    "build/**",
+    "temp/**",
+    "dist/**"
+  ]
+}

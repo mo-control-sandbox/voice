@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+/** All user-configurable preferences, mirroring the Preferences interface in shared types. */
+message PreferencesProto {
+  string shortcut_key = 1;
+  string shortcut_mode = 2;
+  bool hide_dock_icon = 3;
+  bool launch_at_login = 4;
+  bool dont_save_transcripts = 5;
+  bool dont_save_audio = 6;
+  string active_model_id = 7;
+  string primary_language = 8;
+  string model_storage_path = 9;
+}
+
+message PreferencesResponse {
+  PreferencesProto preferences = 1;
+}
+
+message SetPreferenceRequest {
+  string key = 1;
+  // JSON-encoded value for the given key's type.
+  string value = 2;
+}
+
+service SettingsService {
+  rpc GetPreferences(google.protobuf.Empty) returns (PreferencesResponse);
+  rpc SetPreference(SetPreferenceRequest) returns (google.protobuf.Empty);
+}

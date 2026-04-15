@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+message PermissionStatusProto {
+  string type = 1;
+  string status = 2;
+}
+
+message PermissionsStatusResponse {
+  repeated PermissionStatusProto permissions = 1;
+}
+
+message PermissionTypeRequest {
+  string type = 1;
+}
+
+service SystemPermissionsService {
+  rpc GetPermissionsStatus(google.protobuf.Empty) returns (PermissionsStatusResponse);
+  rpc OpenSystemSettings(PermissionTypeRequest) returns (google.protobuf.Empty);
+  rpc RequestPermission(PermissionTypeRequest) returns (google.protobuf.Empty);
+}

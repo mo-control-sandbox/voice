@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+enum PermissionType {
+  MICROPHONE = 0;
+  SPEECH_RECOGNITION = 1;
+  ACCESSIBILITY = 2;
+}
+
+/** Status for a single macOS permission required by the application. */
+message PermissionStatusProto {
+  string type = 1;
+  string status = 2;
+  string description = 3;
+}
+
+message PermissionsResponse {
+  repeated PermissionStatusProto permissions = 1;
+}
+
+message PermissionTypeRequest {
+  string type = 1;
+}
+
+service PermissionsService {
+  rpc GetPermissions(google.protobuf.Empty) returns (PermissionsResponse);
+  rpc OpenSystemSettings(PermissionTypeRequest) returns (google.protobuf.Empty);
+  rpc RefreshPermissions(google.protobuf.Empty) returns (PermissionsResponse);
+  rpc RequestPermission(PermissionTypeRequest) returns (PermissionsResponse);
+}

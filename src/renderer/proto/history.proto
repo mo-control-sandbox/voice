@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+import "error.proto";
+
+/** A completed recording session record persisted to history. */
+message SessionRecordProto {
+  string id = 1;
+  // Unix epoch milliseconds.
+  double timestamp = 2;
+  string transcription_text = 3;
+  // Empty string when audio was not saved.
+  string audio_path = 4;
+  // Empty string when transcript was not saved.
+  string transcript_path = 5;
+  string model_id = 6;
+  // Empty string when auto-detect was selected.
+  string language = 7;
+  // Empty string when not reported by the model.
+  string detected_language = 8;
+  double audio_duration_seconds = 9;
+  double transcription_duration_ms = 10;
+  string target_app_name = 11;
+  bool audio_saved = 12;
+  bool transcript_saved = 13;
+}
+
+message SessionListResponse {
+  repeated SessionRecordProto sessions = 1;
+}
+
+message SessionIdRequest {
+  string session_id = 1;
+}
+
+service HistoryService {
+  rpc GetSessions(google.protobuf.Empty) returns (SessionListResponse);
+  rpc DeleteSession(SessionIdRequest) returns (google.protobuf.Empty);
+  rpc RevealAudioFile(SessionIdRequest) returns (google.protobuf.Empty);
+  rpc RevealTranscriptFile(SessionIdRequest) returns (google.protobuf.Empty);
+  rpc GetAudioUrl(SessionIdRequest) returns (StringResponse);
+}
