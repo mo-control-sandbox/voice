@@ -7,8 +7,8 @@ message GetSessionsRequest {}
 /**
  * Wire representation of a single transcription session record.
  *
- * `has_transcription_text` is false when transcript saving was disabled
- * for the session; in that case `transcription_text` is the empty string.
+ * `transcription_text` is the empty string when no transcript was saved
+ * for the session.
  */
 message SessionRecordProto {
   string id                          = 1;

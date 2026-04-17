@@ -37,8 +37,7 @@ function formatAudioDuration(seconds: number): string {
  * session metadata, and action buttons.
  */
 export function SessionDetail({ session, onDelete }: SessionDetailProps): React.JSX.Element {
-  const audioSaved = !session.dontSaveAudio;
-  const transcriptSaved = !session.dontSaveTranscripts && session.transcriptionText !== '';
+  const transcriptSaved = session.transcriptionText !== '';
 
   async function handleDelete(): Promise<void> {
     await ipc.history.DeleteSession({ id: session.id });
@@ -76,7 +75,7 @@ export function SessionDetail({ session, onDelete }: SessionDetailProps): React.
         <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">
           Audio
         </h2>
-        <AudioPlayer sessionId={session.id} disabled={!audioSaved} />
+        <AudioPlayer sessionId={session.id} />
       </section>
 
       {/* Metadata */}
@@ -109,8 +108,7 @@ export function SessionDetail({ session, onDelete }: SessionDetailProps): React.
       <section className="flex flex-wrap gap-2">
         <button
           onClick={handleRevealAudio}
-          disabled={!audioSaved}
-          className="rounded-md border border-input bg-background px-3 py-1.5 text-sm hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          className="rounded-md border border-input bg-background px-3 py-1.5 text-sm hover:bg-muted transition-colors"
         >
           Reveal Audio in Finder
         </button>

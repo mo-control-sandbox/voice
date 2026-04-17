@@ -1,6 +1,7 @@
 import { ipc } from '@mobrowser/api';
 import type { SystemPermissionsService } from '../gen/native/permissions';
 import { PermissionsService as createPermissionsService, type PermissionsService as PermissionsServiceInterface } from '../gen/ipc_service';
+import type { PermissionTypeRequest } from '../gen/permissions';
 
 /**
  * Registers the Permissions IPC service in the main process, delegating all
@@ -26,7 +27,7 @@ class PermissionsService implements PermissionsServiceInterface {
   /**
    * Opens the appropriate System Settings privacy pane for the given permission type.
    */
-  async OpenSystemSettings(request: { type: string }) {
+  async OpenSystemSettings(request: PermissionTypeRequest) {
     await this.systemPermissions.OpenSystemSettings({ type: request.type });
     return {};
   }
@@ -42,7 +43,7 @@ class PermissionsService implements PermissionsServiceInterface {
   /**
    * Triggers the OS permission prompt; for already-denied permissions opens System Settings.
    */
-  async RequestPermission(request: { type: string }) {
+  async RequestPermission(request: PermissionTypeRequest) {
     await this.systemPermissions.RequestPermission({ type: request.type });
     return {};
   }

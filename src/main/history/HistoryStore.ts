@@ -144,7 +144,7 @@ class HistoryService implements HistoryServiceInterface {
 
   async GetAudioData(request: SessionIdRequest) {
     const bytes = await this.sessionStorage.readAudioBytes(request.id);
-    return { audioData: bytes ?? new Uint8Array(0) };
+    return { audioData: Buffer.from(bytes ?? new Uint8Array(0)) };
   }
 
   RevealAudioFile(request: SessionIdRequest) {

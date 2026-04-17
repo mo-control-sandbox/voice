@@ -3,26 +3,26 @@ import { ipc } from '../../gen/ipc';
 
 interface AudioPlayerProps {
   readonly sessionId: string;
-  readonly disabled: boolean;
 }
 
 /**
  * Loads the audio for a session and renders an HTML audio element.
  *
- * When `disabled` is true the player is rendered but non-functional,
- * indicating that no audio was saved for the session (§4.15).
- *
+ * Shows a "not saved" placeholder when the session has no associated audio.
  * A blob URL is created on mount and revoked on unmount to avoid leaks.
  */
-export function AudioPlayer({ sessionId, disabled }: AudioPlayerProps): React.JSX.Element {
+export function AudioPlayer({ sessionId }: AudioPlayerProps): React.JSX.Element {
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
+  const [notSaved, setNotSaved] = useState(false);
   const blobUrlRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (disabled) return;
-
     void ipc.history.GetAudioData({ id: sessionId }).then((response) => {
-      const blob = new Blob([response.audioData], { type: 'audio/wav' });
+      if (response.audioData.length === 0) {
+        setNotSaved(true);
+        return;
+      }
+      const blob = new Blob([new Uint8Array(response.audioData)], { type: 'audio/wav' });
       const url = URL.createObjectURL(blob);
       blobUrlRef.current = url;
       setBlobUrl(url);
@@ -34,9 +34,9 @@ export function AudioPlayer({ sessionId, disabled }: AudioPlayerProps): React.JS
         blobUrlRef.current = null;
       }
     };
-  }, [sessionId, disabled]);
+  }, [sessionId]);
 
-  if (disabled) {
+  if (notSaved) {
     return (
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <span>Audio not saved for this session.</span>

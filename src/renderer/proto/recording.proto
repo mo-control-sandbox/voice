@@ -4,6 +4,7 @@ import "google/protobuf/empty.proto";
 
 message CancelRecordingRequest {
   string session_id = 1;
+  string reason     = 2;
 }
 
 message SubmitTranscriptionRequest {
