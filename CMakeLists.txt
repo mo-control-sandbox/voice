@@ -1,7 +1,11 @@
 cmake_minimum_required(VERSION 3.21)
 
 # Configures your project.
-project(native LANGUAGES CXX OBJCXX)
+if(APPLE)
+    project(native LANGUAGES CXX OBJCXX)
+else()
+    project(native LANGUAGES CXX)
+endif()
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -14,7 +18,9 @@ cmake_path(ABSOLUTE_PATH PROJECT_ROOT_DIR NORMALIZE)
 include(${PROJECT_ROOT_DIR}/node_modules/@mobrowser/native/cmake/MoBrowser.cmake)
 
 # The source files of your app.
-set(APP_SOURCES src/native/main.mm)
+if(APPLE)
+    set(APP_SOURCES src/native/main.mm)
+endif()
 
 # Defines the main target of the application.
 add_library(mobrowser_lib STATIC ${APP_SOURCES} ${GENERATED_SOURCES})
@@ -27,10 +33,12 @@ target_include_directories(mobrowser_lib PUBLIC
         ${absl_SOURCE_DIR})
 
 # macOS frameworks required by the native services.
-target_link_libraries(mobrowser_lib PRIVATE
-        "-framework AVFoundation"
-        "-framework AppKit"
-        "-framework ApplicationServices"
-        "-framework CoreGraphics"
-        "-framework ServiceManagement"
-        "-framework Speech")
+if(APPLE)
+    target_link_libraries(mobrowser_lib PRIVATE
+            "-framework AVFoundation"
+            "-framework AppKit"
+            "-framework ApplicationServices"
+            "-framework CoreGraphics"
+            "-framework ServiceManagement"
+            "-framework Speech")
+endif()
