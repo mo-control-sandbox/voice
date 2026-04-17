@@ -1,0 +1,40 @@
+name: Static Analysis
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  lint:
+    name: Typecheck & Lint
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate proto types
+        run: node node_modules/@mobrowser/cli/proto.js
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint TypeScript
+        run: npm run lint:ts
+
+      - name: Lint CSS
+        run: npm run lint:css
+
+      - name: Configure CMake (generate compile_commands.json for clang-tidy)
+        run: cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -B build -S .
+
+      - name: Lint C++
+        run: npm run lint:cpp

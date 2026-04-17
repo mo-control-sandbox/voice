@@ -6,20 +6,19 @@
       "minor": "0",
       "patch": "0"
     },
-    "author": "",
-    "copyright": "",
-    "description": "",
-    "locales": ["en-US"],
-    "trustedOrigins": [],
+    "author": "Vlad Lubenskyi",
+    "copyright": "Copyright © 2026 TeamDev",
+    "description": "A productivity tool for converting voice to text",
     "bundle": {
       "macOS": {
         "icon": "assets/app.icns",
-        "bundleID": "com.company.moVoice",
-        "codesignIdentity": "",
+        "bundleID": "com.teamdev.moVoice",
+        "codesignIdentity": "${MACOS_CODESIGN_IDENTITY}",
+        "codesignKeychain": "${KEYCHAIN_PATH}",
         "codesignEntitlements": "assets/entitlements.plist",
-        "teamID": "",
-        "appleID": "",
-        "password": "",
+        "teamID": "${MACOS_TEAM_ID}",
+        "appleID": "${MACOS_APPLE_ID}",
+        "password": "${MACOS_APP_PASSWORD}",
         "installer": {
           "dmg": {
             "name": "",

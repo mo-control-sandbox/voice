@@ -27,11 +27,7 @@ function defineMainConfig(): UserConfig {
       },
       rollupOptions: {
         external: [
-          "mobrowser",
-          "onnxruntime-node",
-          "sharp",
-          // Externalize all Node.js built-in modules
-          /^node:.*/,
+          "mobrowser"
         ],
       },
     },
