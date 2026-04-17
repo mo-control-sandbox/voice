@@ -22,7 +22,7 @@ jobs:
         run: npm ci
 
       - name: Generate proto types
-        run: node node_modules/@mobrowser/cli/proto.js
+        run: npm run gen
 
       - name: Typecheck
         run: npm run typecheck
