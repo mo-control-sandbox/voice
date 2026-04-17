@@ -1,28 +1,24 @@
 syntax = "proto3";
 
 import "google/protobuf/empty.proto";
-import "error.proto";
 
-/** A completed recording session record persisted to history. */
+message GetSessionsRequest {}
+
+/**
+ * Wire representation of a single transcription session record.
+ *
+ * `has_transcription_text` is false when transcript saving was disabled
+ * for the session; in that case `transcription_text` is the empty string.
+ */
 message SessionRecordProto {
-  string id = 1;
-  // Unix epoch milliseconds.
-  double timestamp = 2;
-  string transcription_text = 3;
-  // Empty string when audio was not saved.
-  string audio_path = 4;
-  // Empty string when transcript was not saved.
-  string transcript_path = 5;
-  string model_id = 6;
-  // Empty string when auto-detect was selected.
-  string language = 7;
-  // Empty string when not reported by the model.
-  string detected_language = 8;
-  double audio_duration_seconds = 9;
-  double transcription_duration_ms = 10;
-  string target_app_name = 11;
-  bool audio_saved = 12;
-  bool transcript_saved = 13;
+  string id                          = 1;
+  int64  started_at                  = 2;
+  string transcription_engine_label  = 3;
+  double audio_duration_seconds      = 4;
+  double transcription_duration_ms   = 5;
+  int32  word_count                  = 6;
+  string transcription_text          = 7;
+  string detected_language           = 9;
 }
 
 message SessionListResponse {
@@ -30,13 +26,21 @@ message SessionListResponse {
 }
 
 message SessionIdRequest {
-  string session_id = 1;
+  string id = 1;
+}
+
+message AudioDataResponse {
+  bytes audio_data = 1;
+}
+
+message DeleteSessionRequest {
+  string id = 1;
 }
 
 service HistoryService {
-  rpc GetSessions(google.protobuf.Empty) returns (SessionListResponse);
-  rpc DeleteSession(SessionIdRequest) returns (google.protobuf.Empty);
-  rpc RevealAudioFile(SessionIdRequest) returns (google.protobuf.Empty);
-  rpc RevealTranscriptFile(SessionIdRequest) returns (google.protobuf.Empty);
-  rpc GetAudioUrl(SessionIdRequest) returns (StringResponse);
+  rpc GetSessions(GetSessionsRequest)              returns (SessionListResponse);
+  rpc DeleteSession(DeleteSessionRequest)          returns (google.protobuf.Empty);
+  rpc GetAudioData(SessionIdRequest)               returns (AudioDataResponse);
+  rpc RevealAudioFile(SessionIdRequest)            returns (google.protobuf.Empty);
+  rpc RevealTranscriptFile(SessionIdRequest)       returns (google.protobuf.Empty);
 }

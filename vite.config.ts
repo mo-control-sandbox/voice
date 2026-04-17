@@ -44,7 +44,7 @@ function defineMainConfig(): UserConfig {
     server: {
       forwardConsole: {
         unhandledErrors: true,
-        logLevels: ['warn', 'error'],
+        logLevels: ['warn', 'error', 'log'],
       },
     },
   }
@@ -63,6 +63,12 @@ function defineRendererConfig(): UserConfig {
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src/renderer"),
+      },
+    },
+    server: {
+      forwardConsole: {
+        unhandledErrors: true,
+        logLevels: ['warn', 'error', 'log'],
       },
     },
   }

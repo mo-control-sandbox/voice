@@ -2,9 +2,23 @@ syntax = "proto3";
 
 import "google/protobuf/empty.proto";
 
+enum PermissionType {
+  PERMISSION_TYPE_UNSPECIFIED = 0;
+  PERMISSION_TYPE_MICROPHONE = 1;
+  PERMISSION_TYPE_SPEECH_RECOGNITION = 2;
+  PERMISSION_TYPE_ACCESSIBILITY = 3;
+}
+
+enum PermissionStatus {
+  PERMISSION_STATUS_UNSPECIFIED = 0;
+  PERMISSION_STATUS_GRANTED = 1;
+  PERMISSION_STATUS_DENIED = 2;
+  PERMISSION_STATUS_NOT_DETERMINED = 3;
+}
+
 message PermissionStatusProto {
-  string type = 1;
-  string status = 2;
+  PermissionType   type   = 1;
+  PermissionStatus status = 2;
 }
 
 message PermissionsStatusResponse {
@@ -12,7 +26,7 @@ message PermissionsStatusResponse {
 }
 
 message PermissionTypeRequest {
-  string type = 1;
+  PermissionType type = 1;
 }
 
 service SystemPermissionsService {

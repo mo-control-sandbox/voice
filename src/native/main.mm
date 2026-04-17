@@ -2,210 +2,179 @@
 #import <AppKit/AppKit.h>
 #import <ApplicationServices/ApplicationServices.h>
 #import <CoreGraphics/CoreGraphics.h>
-#import <ServiceManagement/ServiceManagement.h>
 #import <Speech/Speech.h>
 
 #include <string>
 
 #include "rpc.h"
-#include "gen/permissions.rpc.h"
-#include "gen/paste.rpc.h"
-#include "gen/login_item.rpc.h"
 #include "gen/builtin_speech.rpc.h"
+#include "gen/clipboard.rpc.h"
+#include "gen/permissions.rpc.h"
 
 using mo::rpc::Callback;
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+static PermissionStatus avAuthStatus(AVAuthorizationStatus s) {
+  switch (s) {
+    case AVAuthorizationStatusAuthorized:    return PERMISSION_STATUS_GRANTED;
+    case AVAuthorizationStatusDenied:        return PERMISSION_STATUS_DENIED;
+    case AVAuthorizationStatusRestricted:    return PERMISSION_STATUS_DENIED;
+    case AVAuthorizationStatusNotDetermined: return PERMISSION_STATUS_NOT_DETERMINED;
+  }
+  return PERMISSION_STATUS_NOT_DETERMINED;
+}
+
+static PermissionStatus sfAuthStatus(SFSpeechRecognizerAuthorizationStatus s) {
+  switch (s) {
+    case SFSpeechRecognizerAuthorizationStatusAuthorized:    return PERMISSION_STATUS_GRANTED;
+    case SFSpeechRecognizerAuthorizationStatusDenied:        return PERMISSION_STATUS_DENIED;
+    case SFSpeechRecognizerAuthorizationStatusRestricted:    return PERMISSION_STATUS_DENIED;
+    case SFSpeechRecognizerAuthorizationStatusNotDetermined: return PERMISSION_STATUS_NOT_DETERMINED;
+  }
+  return PERMISSION_STATUS_NOT_DETERMINED;
+}
 
 // ─── SystemPermissionsServiceImpl ────────────────────────────────────────────
 
 class SystemPermissionsServiceImpl : public SystemPermissionsService {
  public:
+  // Returns the current authorisation status for microphone, speech
+  // recognition, and accessibility (Cmd+V simulation requires it).
   void GetPermissionsStatus(const google::protobuf::Empty* /*request*/,
                             Callback<PermissionsStatusResponse> done) override {
     PermissionsStatusResponse response;
 
-    // Microphone
     auto* mic = response.add_permissions();
-    mic->set_type("microphone");
-    AVAuthorizationStatus micStatus =
-        [AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeAudio];
-    mic->set_status(avAuthStatusString(micStatus));
+    mic->set_type(PERMISSION_TYPE_MICROPHONE);
+    mic->set_status(avAuthStatus(
+        [AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeAudio]));
 
-    // Accessibility
-    auto* acc = response.add_permissions();
-    acc->set_type("accessibility");
-    acc->set_status(AXIsProcessTrusted() ? "granted" : "denied");
-
-    // Speech recognition
     auto* speech = response.add_permissions();
-    speech->set_type("speechRecognition");
-    SFSpeechRecognizerAuthorizationStatus speechStatus =
-        [SFSpeechRecognizer authorizationStatus];
-    speech->set_status(speechAuthStatusString(speechStatus));
+    speech->set_type(PERMISSION_TYPE_SPEECH_RECOGNITION);
+    speech->set_status(sfAuthStatus([SFSpeechRecognizer authorizationStatus]));
+
+    auto* acc = response.add_permissions();
+    acc->set_type(PERMISSION_TYPE_ACCESSIBILITY);
+    acc->set_status(AXIsProcessTrusted() ? PERMISSION_STATUS_GRANTED : PERMISSION_STATUS_DENIED);
 
     std::move(done).Complete(response);
   }
 
-  void RequestPermission(const PermissionTypeRequest* request,
-                         Callback<google::protobuf::Empty> done) override {
-    const std::string& type = request->type();
-
-    if (type == "microphone") {
-      dispatch_semaphore_t sem = dispatch_semaphore_create(0);
-      [AVCaptureDevice requestAccessForMediaType:AVMediaTypeAudio
-                             completionHandler:^(BOOL /*granted*/) {
-                               dispatch_semaphore_signal(sem);
-                             }];
-      dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER);
-
-    } else if (type == "speechRecognition") {
-      // TODO: This crashes with SIGABRT because NSSpeechRecognitionUsageDescription
-      // is absent from the app bundle. Chromium ships NSMicrophoneUsageDescription in
-      // its localized InfoPlist.strings files (which is why mic works), but it does not
-      // include NSSpeechRecognitionUsageDescription. macOS's TCC subsystem aborts the
-      // process immediately when requestAuthorization: is called without that key.
-      // Fix: inject NSSpeechRecognitionUsageDescription into the built Info.plist via
-      // the MōBrowser build system (mechanism TBD).
-      dispatch_semaphore_t sem = dispatch_semaphore_create(0);
-      dispatch_async(dispatch_get_main_queue(), ^{
-        [SFSpeechRecognizer requestAuthorization:^(SFSpeechRecognizerAuthorizationStatus /*status*/) {
-          dispatch_semaphore_signal(sem);
-        }];
-      });
-      dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER);
-
+  // Opens the relevant System Settings pane so the user can grant the
+  // permission themselves. The x-apple.systempreferences: URL scheme is
+  // supported on macOS 13+.
+  void OpenSystemSettings(const PermissionTypeRequest* request,
+                          Callback<google::protobuf::Empty> done) override {
+    NSString* url = settingsPaneUrl(request->type());
+    if (url != nil) {
+      [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:url]];
     }
-
     std::move(done).Complete(google::protobuf::Empty{});
   }
 
-  void OpenSystemSettings(const PermissionTypeRequest* request,
-                          Callback<google::protobuf::Empty> done) override {
-    const std::string& type = request->type();
-    NSString* urlString = nil;
-
-    if (type == "microphone") {
-      urlString =
-          @"x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone";
-    } else if (type == "accessibility") {
-      urlString =
-          @"x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility";
-    } else if (type == "speechRecognition") {
-      urlString =
-          @"x-apple.systempreferences:com.apple.preference.security?Privacy_SpeechRecognition";
-    }
-
-    if (urlString != nil) {
-      [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:urlString]];
+  // Triggers the system permission prompt for microphone or speech
+  // recognition. For accessibility there is no programmatic request path;
+  // we open System Settings instead.
+  //
+  // NOTE: Speech recognition requires NSSpeechRecognitionUsageDescription
+  // in the app's Info.plist. Without it macOS TCC will terminate the process.
+  void RequestPermission(const PermissionTypeRequest* request,
+                         Callback<google::protobuf::Empty> done) override {
+    switch (request->type()) {
+      case PERMISSION_TYPE_MICROPHONE:
+        requestMicrophonePermission();
+        break;
+      case PERMISSION_TYPE_SPEECH_RECOGNITION:
+        requestSpeechPermission();
+        break;
+      case PERMISSION_TYPE_ACCESSIBILITY: {
+        NSString* url = settingsPaneUrl(request->type());
+        if (url != nil) {
+          [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:url]];
+        }
+        break;
+      }
+      default:
+        break;
     }
 
     std::move(done).Complete(google::protobuf::Empty{});
   }
 
  private:
-  static std::string avAuthStatusString(AVAuthorizationStatus status) {
-    switch (status) {
-      case AVAuthorizationStatusAuthorized:
-        return "granted";
-      case AVAuthorizationStatusDenied:
-        return "denied";
-      case AVAuthorizationStatusRestricted:
-        return "denied";
-      case AVAuthorizationStatusNotDetermined:
-        return "notDetermined";
+  static NSString* settingsPaneUrl(PermissionType type) {
+    switch (type) {
+      case PERMISSION_TYPE_MICROPHONE:
+        return @"x-apple.systempreferences:com.apple.preference.security"
+                "?Privacy_Microphone";
+      case PERMISSION_TYPE_SPEECH_RECOGNITION:
+        return @"x-apple.systempreferences:com.apple.preference.security"
+                "?Privacy_SpeechRecognition";
+      case PERMISSION_TYPE_ACCESSIBILITY:
+        return @"x-apple.systempreferences:com.apple.preference.security"
+                "?Privacy_Accessibility";
+      default:
+        return nil;
     }
-    return "notDetermined";
   }
 
-  static std::string speechAuthStatusString(
-      SFSpeechRecognizerAuthorizationStatus status) {
-    switch (status) {
-      case SFSpeechRecognizerAuthorizationStatusAuthorized:
-        return "granted";
-      case SFSpeechRecognizerAuthorizationStatusDenied:
-        return "denied";
-      case SFSpeechRecognizerAuthorizationStatusRestricted:
-        return "denied";
-      case SFSpeechRecognizerAuthorizationStatusNotDetermined:
-        return "notDetermined";
-    }
-    return "notDetermined";
-  }
-};
-
-// ─── PasteServiceImpl ─────────────────────────────────────────────────────────
-
-class PasteServiceImpl : public PasteService {
- public:
-  void CaptureFrontmostApp(const google::protobuf::Empty* /*request*/,
-                            Callback<CapturedAppResponse> done) override {
-    CapturedAppResponse response;
-    NSRunningApplication* frontmost =
-        [[NSWorkspace sharedWorkspace] frontmostApplication];
-    if (frontmost != nil) {
-      if (frontmost.bundleIdentifier != nil) {
-        response.set_bundle_id(frontmost.bundleIdentifier.UTF8String);
-      }
-      if (frontmost.localizedName != nil) {
-        response.set_name(frontmost.localizedName.UTF8String);
-      }
-    }
-    std::move(done).Complete(response);
+  // Blocks the calling (background RPC) thread until the system shows the
+  // microphone prompt and the user responds.
+  static void requestMicrophonePermission() {
+    dispatch_semaphore_t sem = dispatch_semaphore_create(0);
+    [AVCaptureDevice
+        requestAccessForMediaType:AVMediaTypeAudio
+               completionHandler:^(BOOL /*granted*/) {
+                 dispatch_semaphore_signal(sem);
+               }];
+    dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER);
   }
 
-  void ActivateAndPaste(const ActivateRequest* request,
-                        Callback<ActivateResult> done) override {
-    ActivateResult result;
-    NSString* bundleId =
-        [NSString stringWithUTF8String:request->bundle_id().c_str()];
+  // Blocks the calling (background RPC) thread until the speech recognition
+  // authorisation dialog is dismissed. The requestAuthorization: callback runs
+  // on the main queue, so this must not be called from the main thread.
+  //
+  // TODO: NSSpeechRecognitionUsageDescription must be present in Info.plist or
+  // macOS TCC will terminate the process on this call. MōBrowser does not yet
+  // expose a way to inject custom Info.plist keys. Re-test once that is possible.
+  static void requestSpeechPermission() {
+    // Guard: macOS TCC hard-kills the process if this key is absent. Skip the
+    // request rather than crash; the status will remain notDetermined.
+    NSString* usageDesc = [[NSBundle mainBundle]
+        objectForInfoDictionaryKey:@"NSSpeechRecognitionUsageDescription"];
+    if (usageDesc == nil) return;
 
-    NSArray<NSRunningApplication*>* apps =
-        [NSRunningApplication runningApplicationsWithBundleIdentifier:bundleId];
-    if (apps.count == 0) {
-      result.set_success(false);
-      result.set_error_code("APP_NOT_RUNNING");
-      std::move(done).Complete(result);
-      return;
-    }
-
-    NSRunningApplication* app = apps.firstObject;
-    [app activateWithOptions:NSApplicationActivateIgnoringOtherApps];
-
-    // Allow the target app time to come to the foreground before synthesising
-    // the keystroke. 100 ms is empirically sufficient on modern macOS.
-    usleep(100000);
-
-    // Synthesize Cmd+V (virtual key code 9 = 'v').
-    CGEventRef keyDown = CGEventCreateKeyboardEvent(nullptr, 9, true);
-    CGEventSetFlags(keyDown, kCGEventFlagMaskCommand);
-    CGEventPost(kCGHIDEventTap, keyDown);
-    CFRelease(keyDown);
-
-    CGEventRef keyUp = CGEventCreateKeyboardEvent(nullptr, 9, false);
-    CGEventSetFlags(keyUp, kCGEventFlagMaskCommand);
-    CGEventPost(kCGHIDEventTap, keyUp);
-    CFRelease(keyUp);
-
-    result.set_success(true);
-    std::move(done).Complete(result);
+    dispatch_semaphore_t sem = dispatch_semaphore_create(0);
+    [SFSpeechRecognizer
+        requestAuthorization:^(SFSpeechRecognizerAuthorizationStatus /*s*/) {
+          dispatch_semaphore_signal(sem);
+        }];
+    dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER);
   }
 };
 
-// ─── LoginItemServiceImpl ─────────────────────────────────────────────────────
+// ─── AutomationServiceImpl ─────────────────────────────────────────────────────
 
-class LoginItemServiceImpl : public LoginItemService {
+class AutomationServiceImpl : public AutomationService {
  public:
-  void SetLaunchAtLogin(const BoolRequest* request,
-                        Callback<google::protobuf::Empty> done) override {
-    SMAppService* service = [SMAppService mainAppService];
-    NSError* error = nil;
-    if (request->value()) {
-      [service registerAndReturnError:&error];
-    } else {
-      [service unregisterAndReturnError:&error];
-    }
-    // Errors are not surfaced to the caller — the main process logs them
-    // and the preference value is still persisted. The worst case is that
-    // the login-item state does not change, which the user can retry.
+  // Synthesises Cmd+V into the current frontmost app.
+  //
+  // Requires the Accessibility permission (AXIsProcessTrusted) so that
+  // CGEventPost() is allowed to deliver keystrokes to other processes.
+  void Paste(const google::protobuf::Empty* /*request*/,
+             Callback<google::protobuf::Empty> done) override {
+    // Virtual key code 9 = 'v' on all Apple keyboards.
+    CGEventRef down = CGEventCreateKeyboardEvent(nullptr, 9, true);
+    CGEventSetFlags(down, kCGEventFlagMaskCommand);
+    CGEventPost(kCGHIDEventTap, down);
+    CFRelease(down);
+
+    CGEventRef up = CGEventCreateKeyboardEvent(nullptr, 9, false);
+    CGEventSetFlags(up, kCGEventFlagMaskCommand);
+    CGEventPost(kCGHIDEventTap, up);
+    CFRelease(up);
+
     std::move(done).Complete(google::protobuf::Empty{});
   }
 };
@@ -214,75 +183,79 @@ class LoginItemServiceImpl : public LoginItemService {
 
 class BuiltinSpeechServiceImpl : public BuiltinSpeechService {
  public:
+  // Transcribes raw 16 kHz mono Float32 PCM audio using SFSpeechRecognizer.
+  // Blocks the calling thread until recognition completes or the 30-second
+  // hard timeout elapses.
   void RunBuiltinSpeechRecognition(const SpeechRequest* request,
                                    Callback<SpeechResponse> done) override {
-    // Build the recogniser. An explicit locale is used when language is set.
-    SFSpeechRecognizer* recognizer = nil;
-    const std::string& language = request->language();
-    if (!language.empty()) {
-      NSLocale* locale = [NSLocale
-          localeWithLocaleIdentifier:[NSString
-                                         stringWithUTF8String:language.c_str()]];
-      recognizer = [[SFSpeechRecognizer alloc] initWithLocale:locale];
-    } else {
-      recognizer = [[SFSpeechRecognizer alloc] init];
-    }
+    SFSpeechRecognizer* recognizer = buildRecognizer(request->language());
 
     if (recognizer == nil || !recognizer.isAvailable) {
-      SpeechResponse response;
-      std::move(done).Complete(response);
+      std::move(done).Complete(SpeechResponse{});
       return;
     }
 
-    // Reconstruct an AVAudioPCMBuffer from the raw Float32 PCM bytes.
-    // Input format: 16 kHz, mono, 32-bit float (little-endian).
-    const std::string& pcmBytes = request->pcm();
-    NSUInteger sampleCount = pcmBytes.size() / sizeof(float);
+    AVAudioPCMBuffer* buffer = buildPcmBuffer(request->pcm());
+    if (buffer == nil) {
+      std::move(done).Complete(SpeechResponse{});
+      return;
+    }
 
-    AVAudioFormat* format = [[AVAudioFormat alloc]
-        initWithCommonFormat:AVAudioPCMFormatFloat32
-                  sampleRate:16000.0
-                    channels:1
-                 interleaved:NO];
-
-    AVAudioPCMBuffer* buffer =
-        [[AVAudioPCMBuffer alloc] initWithPCMFormat:format
-                                      frameCapacity:(AVAudioFrameCount)sampleCount];
-    buffer.frameLength = (AVAudioFrameCount)sampleCount;
-    memcpy(buffer.floatChannelData[0], pcmBytes.data(), pcmBytes.size());
-
-    SFSpeechAudioBufferRecognitionRequest* speechRequest =
+    SFSpeechAudioBufferRecognitionRequest* speechReq =
         [[SFSpeechAudioBufferRecognitionRequest alloc] init];
-    [speechRequest appendAudioPCMBuffer:buffer];
-    [speechRequest endAudio];
+    speechReq.requiresOnDeviceRecognition = YES;
+    [speechReq appendAudioPCMBuffer:buffer];
+    [speechReq endAudio];
 
-    // Block the calling thread with a semaphore. The RPC handler runs on a
-    // worker thread managed by the MōBrowser runtime, not on the main thread,
-    // so blocking here does not freeze the UI.
-    dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
-    __block std::string transcribedText;
+    dispatch_semaphore_t sem = dispatch_semaphore_create(0);
+    __block std::string text;
 
-    [recognizer recognitionTaskWithRequest:speechRequest
-                             resultHandler:^(SFSpeechRecognitionResult* result,
-                                            NSError* error) {
-                               if (result.isFinal || error != nil) {
-                                 if (result != nil) {
-                                   transcribedText =
-                                       result.bestTranscription.formattedString
-                                           .UTF8String;
-                                 }
-                                 dispatch_semaphore_signal(semaphore);
-                               }
-                             }];
+    [recognizer
+        recognitionTaskWithRequest:speechReq
+                     resultHandler:^(SFSpeechRecognitionResult* result,
+                                     NSError* /*error*/) {
+                       if (result.isFinal) {
+                         text = result.bestTranscription.formattedString
+                                    .UTF8String;
+                         dispatch_semaphore_signal(sem);
+                       }
+                     }];
 
-    // 30-second hard timeout — avoids blocking forever on empty/silent audio.
     dispatch_semaphore_wait(
-        semaphore,
-        dispatch_time(DISPATCH_TIME_NOW, 30 * NSEC_PER_SEC));
+        sem, dispatch_time(DISPATCH_TIME_NOW, 30 * NSEC_PER_SEC));
 
     SpeechResponse response;
-    response.set_text(transcribedText);
+    response.set_text(text);
     std::move(done).Complete(response);
+  }
+
+ private:
+  static SFSpeechRecognizer* buildRecognizer(const std::string& language) {
+    if (language.empty()) {
+      return [[SFSpeechRecognizer alloc] init];
+    }
+    NSLocale* locale = [NSLocale
+        localeWithLocaleIdentifier:[NSString
+                                       stringWithUTF8String:language.c_str()]];
+    return [[SFSpeechRecognizer alloc] initWithLocale:locale];
+  }
+
+  // Wraps raw Float32 PCM bytes (16 kHz, mono) in an AVAudioPCMBuffer.
+  static AVAudioPCMBuffer* buildPcmBuffer(const std::string& pcmBytes) {
+    NSUInteger frameCount = pcmBytes.size() / sizeof(float);
+    if (frameCount == 0) return nil;
+
+    AVAudioFormat* format =
+        [[AVAudioFormat alloc] initWithCommonFormat:AVAudioPCMFormatFloat32
+                                         sampleRate:16000.0
+                                           channels:1
+                                        interleaved:NO];
+    AVAudioPCMBuffer* buffer =
+        [[AVAudioPCMBuffer alloc] initWithPCMFormat:format
+                                      frameCapacity:(AVAudioFrameCount)frameCount];
+    buffer.frameLength = (AVAudioFrameCount)frameCount;
+    memcpy(buffer.floatChannelData[0], pcmBytes.data(), pcmBytes.size());
+    return buffer;
   }
 };
 
@@ -290,7 +263,6 @@ class BuiltinSpeechServiceImpl : public BuiltinSpeechService {
 
 void launch() {
   mo::rpc::RegisterService(new SystemPermissionsServiceImpl());
-  mo::rpc::RegisterService(new PasteServiceImpl());
-  mo::rpc::RegisterService(new LoginItemServiceImpl());
+  mo::rpc::RegisterService(new AutomationServiceImpl());
   mo::rpc::RegisterService(new BuiltinSpeechServiceImpl());
 }

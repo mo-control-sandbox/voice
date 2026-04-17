@@ -2,30 +2,36 @@ syntax = "proto3";
 
 import "google/protobuf/empty.proto";
 
-/** All user-configurable preferences, mirroring the Preferences interface in shared types. */
-message PreferencesProto {
+message GetSettingsRequest {}
+
+message SettingsProto {
+  bool   dont_save_transcripts = 2;
+  bool   dont_save_audio       = 3;
+  string shortcut_key          = 4;
+  string audio_input_device_id = 5;
+}
+
+message SetAudioInputDeviceRequest {
+  string device_id = 1;
+}
+
+message SetShortcutKeyRequest {
   string shortcut_key = 1;
-  string shortcut_mode = 2;
-  bool hide_dock_icon = 3;
-  bool launch_at_login = 4;
-  bool dont_save_transcripts = 5;
-  bool dont_save_audio = 6;
-  string active_model_id = 7;
-  string primary_language = 8;
-  string model_storage_path = 9;
 }
 
-message PreferencesResponse {
-  PreferencesProto preferences = 1;
+message SetBooleanSettingRequest {
+  bool value = 1;
 }
 
-message SetPreferenceRequest {
-  string key = 1;
-  // JSON-encoded value for the given key's type.
-  string value = 2;
+message SetShortcutCaptureModeRequest {
+  bool capturing = 1;
 }
 
 service SettingsService {
-  rpc GetPreferences(google.protobuf.Empty) returns (PreferencesResponse);
-  rpc SetPreference(SetPreferenceRequest) returns (google.protobuf.Empty);
+  rpc GetSettings(GetSettingsRequest)                         returns (SettingsProto);
+  rpc SetAudioInputDevice(SetAudioInputDeviceRequest)         returns (google.protobuf.Empty);
+  rpc SetShortcutKey(SetShortcutKeyRequest)                   returns (google.protobuf.Empty);
+  rpc SetDontSaveTranscripts(SetBooleanSettingRequest)        returns (google.protobuf.Empty);
+  rpc SetDontSaveAudio(SetBooleanSettingRequest)              returns (google.protobuf.Empty);
+  rpc SetShortcutCaptureMode(SetShortcutCaptureModeRequest)   returns (google.protobuf.Empty);
 }

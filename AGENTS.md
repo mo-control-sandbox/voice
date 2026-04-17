@@ -47,8 +47,6 @@ The window is only visible during recording or processing. At all other times th
 The application lives in the macOS menu bar tray. The tray menu exposes:
 
 - Start recording
-- Select active model
-- Primary language selection
 - Open Settings
 - Open History
 - Open About
@@ -86,12 +84,13 @@ The first page of Settings is a dashboard displaying large, colorful, informativ
   - A descriptive label (one sentence).
   - Speed and accuracy indicators presented both visually and as a numeric X.X value.
   - A **Download** button; while downloading it shows progress inline.
-  - When downloaded: **Delete** and **Reveal in Finder** actions.
+  - When downloaded: **Delete** action.
   - A clear **"In Use"** visual marker on the active model.
 - Selection logic:
   - If no models are downloaded, built-in macOS recognition is the active model.
   - If exactly one model is downloaded and built-in recognition is off, that model becomes active automatically.
   - One model (or built-in recognition) is always designated as active.
+  - Model selection and download state are renderer-owned and are not exposed through the tray menu.
 
 ### Permissions Page
 
@@ -107,14 +106,15 @@ Displays all macOS permissions required by the application. Each permission entr
 
 Displays a chronological list of all transcription sessions. Selecting a session shows:
 
-- The full transcription text.
+- The full transcription text when transcript saving was enabled for that session; otherwise a
+  redacted transcript state.
 - A compact audio player for the associated recording (visible but disabled when no audio was saved).
 - Buttons to **Reveal audio file** and **Reveal transcript file** in Finder.
 - A **Delete** button to remove the history entry (and its files, subject to the save-audio / save-transcript settings).
 
 Each session entry includes metadata:
 
-- Model used for transcription.
+- Transcription engine used.
 - Transcription duration (wall-clock time taken to process).
 - Audio duration.
 - Date and time of the session.
@@ -136,19 +136,41 @@ Displays:
 | Concern | Technology |
 |---|---|
 | Application shell & OS integration | MōBrowser |
-| Audio capture | MōBrowser native APIs |
+| Audio capture | Renderer Web Audio API (`getUserMedia`, `AudioWorklet`) |
 | Speech-to-text inference | Transformers.js v4 (local models) / macOS built-in speech recognition |
 | UI framework | React (latest stable) |
 | UI component library | shadcn/ui (latest stable) |
 | Language | TypeScript (strict mode) |
 
-MōBrowser provides the application skeleton: process management, tray integration, global shortcuts, audio capture, and OS-level APIs. The renderer process hosts the React UI. All inter-process communication must follow MōBrowser's IPC conventions (see `node_modules/@mobrowser/api/docs/guides/`).
+MōBrowser provides the application skeleton: process management, tray integration, global shortcuts,
+windowing, and OS-level APIs. The renderer process hosts the React UI and captures microphone audio
+through the browser Web Audio API. All inter-process communication must follow MōBrowser's IPC
+conventions (see `node_modules/@mobrowser/api/docs/guides/`).
 
 ## Generated Files
 
-All files under `src/main/gen/` and `src/renderer/gen/` are **code-generated**. Never edit them by hand. Changes will be overwritten on the next codegen run.
+> **⛔ NEVER EDIT FILES IN `src/main/gen/`, `src/renderer/gen/`, OR `src/native/gen/`.**
+>
+> Every file in those directories begins with a `// Code generated … DO NOT EDIT.` header.
+> Any hand-edit will be silently overwritten the next time `npm run gen` runs.
+>
+> **What to do instead:**
+> 1. Edit the `.proto` source file (under `src/renderer/proto/` or `src/native/proto/`).
+> 2. Run `nvm use 24 && npm run gen` to regenerate all three `gen/` trees.
+> 3. Commit both the `.proto` change and the regenerated files together.
+>
+> This rule has no exceptions. If a generated type or service method is missing or wrong,
+> the source of truth is the `.proto` definition — fix it there and regenerate.
 
-If a generated type or service method is missing, the source of truth is the `.proto` definition or the codegen configuration — fix it there and regenerate. Do not patch generated files directly.
+## Documentation
+
+**Classes:** The doc must answer two questions: what is this entity (its role), and what does it own or do (so a reader knows whether their concern belongs here). Always use a multi-line block comment. Do not describe internals, implementation details, or how the class is wired. Do not list what a class does not do unless something would genuinely be assumed otherwise. Do not mention the types of data handled if the name already implies them. Do not enumerate methods or operations — that duplicates what the method list already shows.
+
+**Methods and fields:** State the outcome or meaning in one sentence. Always use a multi-line block comment.
+
+**@param / @returns:** Use only when the name and type together do not fully convey the meaning — for example, a non-obvious constraint, a special sentinel value, or a parameter whose role is ambiguous in context. Never add them to restate what the signature already says.
+
+**General:** Use plain ASCII punctuation only. No em dashes, arrows, or other non-default keyboard symbols. Add "why" or "how" commentary only when the logic is non-obvious from the code itself. Never reference temporary or external documents.
 
 ## Code Quality
 

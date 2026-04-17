@@ -71,6 +71,9 @@ export default [
 
       // Require Promise return values to be handled.
       '@typescript-eslint/no-floating-promises': 'error',
+
+      // Allow unused parameters prefixed with _ (interface implementation convention).
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
     },
   },
 

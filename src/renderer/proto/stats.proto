@@ -1,16 +1,15 @@
 syntax = "proto3";
 
-import "google/protobuf/empty.proto";
+message GetStatsRequest {}
 
-/** Aggregate productivity metrics for the Settings dashboard. */
-message DashboardStatsResponse {
-  int32 total_sessions = 1;
-  int32 total_words = 2;
-  double total_time_saved_seconds = 3;
-  double words_per_minute = 4;
-  int32 keystrokes_saved = 5;
+message DashboardStats {
+  double total_time_saved_seconds = 1;
+  int32  total_sessions           = 2;
+  int32  total_words              = 3;
+  double words_per_minute         = 4;
+  int32  keystrokes_saved         = 5;
 }
 
 service StatsService {
-  rpc GetStats(google.protobuf.Empty) returns (DashboardStatsResponse);
+  rpc GetStats(GetStatsRequest) returns (DashboardStats);
 }
