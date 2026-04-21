@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { SessionRecordProto } from '../../gen/history';
 import { AudioPlayer } from './AudioPlayer';
-import './SessionDetail.css';
 
 interface SessionDetailProps {
   readonly session: SessionRecordProto;
@@ -71,127 +70,29 @@ export function SessionDetail({
   }
 
   return (
-    <>
-      <div className="session-detail">
-        {/* Transcript */}
-        <section className="session-detail__section" aria-labelledby="transcript-heading">
-          <span id="transcript-heading" className="session-detail__section-label">
-            Transcript
-          </span>
-          {transcriptSaved ? (
-            <p className="session-detail__transcript">{session.transcriptionText}</p>
-          ) : (
-            <p className="session-detail__transcript session-detail__transcript--empty">
-              Transcript not saved for this session.
-            </p>
-          )}
-        </section>
+    <div>
+      <p>{transcriptSaved ? session.transcriptionText : 'Transcript not saved.'}</p>
 
-        {/* Audio */}
-        <section className="session-detail__section" aria-labelledby="audio-heading">
-          <span id="audio-heading" className="session-detail__section-label">
-            Audio
-          </span>
-          <AudioPlayer audioData={audioData} />
-        </section>
+      <AudioPlayer audioData={audioData} />
 
-        {/* Metadata */}
-        <section className="session-detail__section" aria-labelledby="details-heading">
-          <span id="details-heading" className="session-detail__section-label">
-            Details
-          </span>
-          <dl className="session-detail__meta">
-            <dt className="session-detail__meta-label">Date</dt>
-            <dd className="session-detail__meta-value">{formatDate(session.startedAt)}</dd>
+      <p>Date: {formatDate(session.startedAt)}</p>
+      <p>Engine: {session.transcriptionEngineLabel}</p>
+      <p>Language: {session.detectedLanguage !== '' ? session.detectedLanguage : '—'}</p>
+      <p>Audio duration: {formatAudioDuration(session.audioDurationSeconds)}</p>
+      <p>Transcription time: {formatMs(session.transcriptionDurationMs)}</p>
+      <p>Words: {String(session.wordCount)}</p>
 
-            <dt className="session-detail__meta-label">Engine</dt>
-            <dd className="session-detail__meta-value">{session.transcriptionEngineLabel}</dd>
+      <button onClick={() => { onRevealAudio(session.id); }}>Reveal Audio</button>
+      <button onClick={() => { onRevealTranscript(session.id); }} disabled={!transcriptSaved}>Reveal Transcript</button>
+      <button onClick={() => { setConfirming(true); }}>Delete</button>
 
-            <dt className="session-detail__meta-label">Language</dt>
-            <dd className="session-detail__meta-value">
-              {session.detectedLanguage !== '' ? session.detectedLanguage : '—'}
-            </dd>
-
-            <dt className="session-detail__meta-label">Audio duration</dt>
-            <dd className="session-detail__meta-value">
-              {formatAudioDuration(session.audioDurationSeconds)}
-            </dd>
-
-            <dt className="session-detail__meta-label">Transcription time</dt>
-            <dd className="session-detail__meta-value">
-              {formatMs(session.transcriptionDurationMs)}
-            </dd>
-
-            <dt className="session-detail__meta-label">Words</dt>
-            <dd className="session-detail__meta-value">{String(session.wordCount)}</dd>
-          </dl>
-        </section>
-
-        {/* Actions */}
-        <section className="session-detail__actions" aria-label="Session actions">
-          <button
-            className="session-detail__btn"
-            data-btn="secondary"
-            onClick={() => { onRevealAudio(session.id); }}
-          >
-            Reveal Audio in Finder
-          </button>
-          <button
-            className="session-detail__btn"
-            data-btn="secondary"
-            onClick={() => { onRevealTranscript(session.id); }}
-            disabled={!transcriptSaved}
-          >
-            Reveal Transcript in Finder
-          </button>
-          <button
-            className="session-detail__btn"
-            data-btn="destructive"
-            onClick={() => { setConfirming(true); }}
-          >
-            Delete
-          </button>
-        </section>
-      </div>
-
-      {/* Delete confirmation dialog */}
       {confirming && (
-        <div
-          className="delete-confirm-backdrop"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="delete-confirm-heading"
-          aria-describedby="delete-confirm-body"
-          onKeyDown={handleDialogKeyDown}
-        >
-          <div className="delete-confirm">
-            <h2 id="delete-confirm-heading" className="delete-confirm__heading">
-              Delete this session?
-            </h2>
-            <p id="delete-confirm-body" className="delete-confirm__body">
-              The transcript and audio file will be permanently removed. This
-              cannot be undone.
-            </p>
-            <div className="delete-confirm__actions">
-              <button
-                ref={cancelRef}
-                className="session-detail__btn"
-                data-btn="secondary"
-                onClick={() => { setConfirming(false); }}
-              >
-                Cancel
-              </button>
-              <button
-                className="session-detail__btn"
-                data-btn="destructive"
-                onClick={() => { onDelete(session.id); }}
-              >
-                Delete
-              </button>
-            </div>
-          </div>
+        <div onKeyDown={handleDialogKeyDown}>
+          <p>Delete this session?</p>
+          <button ref={cancelRef} onClick={() => { setConfirming(false); }}>Cancel</button>
+          <button onClick={() => { onDelete(session.id); }}>Delete</button>
         </div>
       )}
-    </>
+    </div>
   );
 }

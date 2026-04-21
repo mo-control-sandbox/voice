@@ -1,15 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Mic, Keyboard, BrainCircuit, RefreshCw } from 'lucide-react';
+import { Mic, Keyboard, BrainCircuit } from 'lucide-react';
 import { PermissionType, type PermissionStatusProto } from '../../gen/permissions';
 import { PermissionRow, type PermissionMeta } from '../components/PermissionRow';
 import { PermissionsService } from '../services/PermissionsService';
-import './PermissionsPage.css';
 
 const permissionsService = new PermissionsService();
 
 /**
  * moVoice-specific display metadata for each required permission.
- * Lives here — labels, descriptions, and icons are domain knowledge of this
+ * Lives here -- labels, descriptions, and icons are domain knowledge of this
  * application, not the generic PermissionRow component.
  */
 const PERMISSION_META: Partial<Record<PermissionType, PermissionMeta>> = {
@@ -36,7 +35,7 @@ const FALLBACK_META: PermissionMeta = {
   icon: Keyboard,
 };
 
-/** Permissions settings page — shows macOS permission statuses with request actions. */
+/** Permissions settings page -- shows macOS permission statuses with request actions. */
 export function PermissionsPage(): React.JSX.Element {
   const [permissions, setPermissions] = useState<PermissionStatusProto[]>([]);
   const [loading, setLoading] = useState(true);
@@ -67,48 +66,21 @@ export function PermissionsPage(): React.JSX.Element {
     setPermissions(response.permissions);
   }
 
+  if (loading) return <p>Loading...</p>;
+
   return (
-    <div className="permissions-page">
-      <div className="permissions-page__header">
-        <div className="permissions-page__title-block">
-          <h2 className="permissions-page__heading">Permissions</h2>
-          <p className="permissions-page__description">
-            macOS permissions required by moVoice.
-          </p>
-        </div>
-
-        <button
-          className="permissions-page__refresh"
-          onClick={() => { void handleRefresh(); }}
-          disabled={refreshing}
-          aria-label="Refresh permission statuses"
-        >
-          <RefreshCw
-            className="permissions-page__refresh-icon"
-            data-spinning={refreshing ? 'true' : undefined}
-            aria-hidden="true"
-          />
-          Refresh
-        </button>
-      </div>
-
-      {loading ? (
-        <div className="permissions-page__loading" aria-busy="true" aria-label="Loading permissions">
-          <RefreshCw className="permissions-page__loading-icon" aria-hidden="true" />
-        </div>
-      ) : (
-        <div className="permissions-page__list" role="list">
-          {permissions.map((permission) => (
-            <div key={permission.type} role="listitem">
-              <PermissionRow
-                permission={permission}
-                meta={PERMISSION_META[permission.type] ?? FALLBACK_META}
-                onRequest={() => { void handleRequest(permission.type); }}
-              />
-            </div>
-          ))}
-        </div>
-      )}
+    <div>
+      <button onClick={() => { void handleRefresh(); }} disabled={refreshing}>
+        {refreshing ? 'Refreshing...' : 'Refresh'}
+      </button>
+      {permissions.map((permission) => (
+        <PermissionRow
+          key={permission.type}
+          permission={permission}
+          meta={PERMISSION_META[permission.type] ?? FALLBACK_META}
+          onRequest={() => { void handleRequest(permission.type); }}
+        />
+      ))}
     </div>
   );
 }

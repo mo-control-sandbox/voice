@@ -1,7 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import { SettingsService } from '../services/SettingsService';
-import '../components/Switch.css';
-import './GeneralPage.css';
 
 const settingsService = new SettingsService();
 
@@ -19,11 +17,11 @@ interface AudioDevice {
  * Keys use MoBrowser accelerator format.
  */
 const PREDEFINED_SHORTCUTS: readonly { readonly label: string; readonly value: string }[] = [
-  { label: '⌘⇧Space', value: 'CommandOrControl+Shift+Space' },
-  { label: '⌘⇧M',     value: 'CommandOrControl+Shift+M'     },
-  { label: '⌘⇧R',     value: 'CommandOrControl+Shift+R'     },
-  { label: '⌃Space',  value: 'Control+Space'                 },
-  { label: '⌥Space',  value: 'Alt+Space'                     },
+  { label: 'Cmd+Shift+Space', value: 'CommandOrControl+Shift+Space' },
+  { label: 'Cmd+Shift+M',     value: 'CommandOrControl+Shift+M'     },
+  { label: 'Cmd+Shift+R',     value: 'CommandOrControl+Shift+R'     },
+  { label: 'Ctrl+Space',      value: 'Control+Space'                 },
+  { label: 'Alt+Space',       value: 'Alt+Space'                     },
 ];
 
 /**
@@ -49,20 +47,9 @@ function buildAccelerator(e: KeyboardEvent): string | null {
   return parts.join('+');
 }
 
-/** Formats an accelerator string for human-readable display. */
-function formatShortcut(accelerator: string): string {
-  return accelerator
-    .replace('CommandOrControl', '⌘')
-    .replace('Command', '⌘')
-    .replace('Control', '⌃')
-    .replace('Shift', '⇧')
-    .replace('Alt', '⌥')
-    .replace(/\+/g, '');
-}
-
 // ── Page ───────────────────────────────────────────────────────────────────
 
-/** General settings — audio input, shortcut, and privacy preferences. */
+/** General settings -- audio input, shortcut, and privacy preferences. */
 export function GeneralPage(): React.JSX.Element {
   const [devices, setDevices] = useState<AudioDevice[]>([]);
   const [selectedDeviceId, setSelectedDeviceId] = useState<string>('');
@@ -78,7 +65,7 @@ export function GeneralPage(): React.JSX.Element {
       try {
         const tempStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
         tempStream.getTracks().forEach((t) => { t.stop(); });
-      } catch { /* Permission denied — device labels will be empty. */ }
+      } catch { /* Permission denied -- device labels will be empty. */ }
 
       const [settings, allDevices] = await Promise.all([
         settingsService.getSettings(),
@@ -142,129 +129,62 @@ export function GeneralPage(): React.JSX.Element {
     await settingsService.setShortcutKey(accelerator);
   }
 
-  const isCustomShortcut = shortcutKey !== '' && !PREDEFINED_SHORTCUTS.some((s) => s.value === shortcutKey);
+  if (isLoading) return <p>Loading...</p>;
 
   return (
-    <div className="general-page">
-      <h2 className="general-page__heading">General</h2>
-
-      {/* ── Audio Input ─────────────────────────────────────────────────── */}
-      <section className="general-section" aria-labelledby="audio-input-heading">
-        <span id="audio-input-heading" className="general-section__label">
-          Audio Input
-        </span>
-        <div className="general-field">
-          <label htmlFor="device-select" className="general-field__hint">
-            Microphone
-          </label>
-          {isLoading ? (
-            <div className="general-skeleton" aria-label="Loading devices" />
-          ) : (
-            <select
-              id="device-select"
-              className="device-select"
-              value={selectedDeviceId}
-              onChange={(e) => { void handleDeviceChange(e.target.value); }}
-            >
-              <option value="">System default</option>
-              {devices.map((d) => (
-                <option key={d.deviceId} value={d.deviceId}>
-                  {d.label}
-                </option>
-              ))}
-            </select>
-          )}
-          <p className="general-field__hint">
-            Selecting a specific device overrides the system default.
-          </p>
-        </div>
-      </section>
-
-      {/* ── Preferences ─────────────────────────────────────────────────── */}
-      <section className="general-section" aria-labelledby="preferences-heading">
-        <span id="preferences-heading" className="general-section__label">
-          Preferences
-        </span>
-        <div className="toggle-row">
-          <span className="toggle-row__label">Don't save transcripts</span>
-          <button
-            role="switch"
-            aria-checked={dontSaveTranscripts}
-            aria-label="Don't save transcripts"
-            className="switch"
-            onClick={() => { void handleDontSaveTranscripts(!dontSaveTranscripts); }}
+    <div>
+      <div>
+        <label>
+          Microphone:
+          <select
+            value={selectedDeviceId}
+            onChange={(e) => { void handleDeviceChange(e.target.value); }}
           >
-            <span className="switch__thumb" />
-          </button>
-        </div>
-        <div className="toggle-row">
-          <span className="toggle-row__label">Don't save audio</span>
+            <option value="">System default</option>
+            {devices.map((d) => (
+              <option key={d.deviceId} value={d.deviceId}>{d.label}</option>
+            ))}
+          </select>
+        </label>
+      </div>
+
+      <div>
+        <label>
+          <input
+            type="checkbox"
+            checked={dontSaveTranscripts}
+            onChange={(e) => { void handleDontSaveTranscripts(e.target.checked); }}
+          />
+          Don't save transcripts
+        </label>
+        <label>
+          <input
+            type="checkbox"
+            checked={dontSaveAudio}
+            onChange={(e) => { void handleDontSaveAudio(e.target.checked); }}
+          />
+          Don't save audio
+        </label>
+      </div>
+
+      <div>
+        <p>Shortcut: {shortcutKey !== '' ? shortcutKey : '—'}</p>
+        {PREDEFINED_SHORTCUTS.map((s) => (
           <button
-            role="switch"
-            aria-checked={dontSaveAudio}
-            aria-label="Don't save audio"
-            className="switch"
-            onClick={() => { void handleDontSaveAudio(!dontSaveAudio); }}
+            key={s.value}
+            disabled={shortcutKey === s.value}
+            onClick={() => { void saveShortcut(s.value); }}
           >
-            <span className="switch__thumb" />
+            {s.label}
           </button>
-        </div>
-      </section>
-
-      {/* ── Global Shortcut ─────────────────────────────────────────────── */}
-      <section className="general-section" aria-labelledby="shortcut-heading">
-        <span id="shortcut-heading" className="general-section__label">
-          Global Shortcut
-        </span>
-        {isLoading ? (
-          <div className="general-skeleton" aria-label="Loading shortcuts" />
-        ) : (
-          <div className="shortcut-section">
-            {/* Predefined shortcut pills */}
-            <div className="shortcut-presets" role="group" aria-label="Predefined shortcuts">
-              {PREDEFINED_SHORTCUTS.map((s) => (
-                <button
-                  key={s.value}
-                  className="shortcut-preset"
-                  data-active={shortcutKey === s.value ? 'true' : undefined}
-                  aria-pressed={shortcutKey === s.value}
-                  onClick={() => { void saveShortcut(s.value); }}
-                >
-                  {s.label}
-                </button>
-              ))}
-            </div>
-
-            {/* Custom shortcut capture */}
-            <div className="shortcut-capture-row">
-              <button
-                ref={captureRef}
-                className="shortcut-capture"
-                data-state={isCapturing ? 'capturing' : 'idle'}
-                aria-label={isCapturing ? 'Press a key combination' : 'Set a custom shortcut'}
-                onClick={() => { setIsCapturing(true); captureRef.current?.focus(); }}
-              >
-                {isCapturing ? 'Press a shortcut…' : 'Custom…'}
-              </button>
-              {isCapturing && (
-                <span className="shortcut-capture__hint">Esc to cancel</span>
-              )}
-              {!isCapturing && isCustomShortcut && (
-                <span className="shortcut-custom-value" aria-live="polite">
-                  {formatShortcut(shortcutKey)}
-                </span>
-              )}
-            </div>
-
-            <p className="shortcut-summary">
-              Active:{' '}
-              <span className="shortcut-summary__value">
-                {shortcutKey !== '' ? formatShortcut(shortcutKey) : '—'}
-              </span>
-            </p>
-          </div>
-        )}
-      </section>
+        ))}
+        <button
+          ref={captureRef}
+          onClick={() => { setIsCapturing(true); captureRef.current?.focus(); }}
+        >
+          {isCapturing ? 'Press a shortcut... (Esc to cancel)' : 'Custom...'}
+        </button>
+      </div>
     </div>
   );
 }

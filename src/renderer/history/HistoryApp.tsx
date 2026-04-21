@@ -5,7 +5,6 @@ import { SessionDetail } from './components/SessionDetail';
 import { reverseIpcBridge } from '../ipc/ReverseIpcBridge';
 import { HistorySignalService } from '../ipc/SignalService';
 import { HistoryService } from './services/HistoryService';
-import './HistoryApp.css';
 
 const historyService = new HistoryService();
 
@@ -70,33 +69,16 @@ export function HistoryApp(): React.JSX.Element {
   const selectedSession = sessions.find((s) => s.id === selectedId) ?? null;
 
   return (
-    <div className="history-app">
-      {/* Left pane — session list */}
-      <aside
-        className="history-app__list-pane"
-        aria-label="Recording sessions"
-      >
-        <div className="history-app__list-pane-inner">
-          <SessionList
-            sessions={sessions}
-            selectedId={selectedId}
-            onSelect={setSelectedId}
-            onDelete={(id) => {
-              // Keyboard-triggered delete: select the item first, then the
-              // delete button in SessionDetail handles confirmation.
-              setSelectedId(id);
-            }}
-          />
-        </div>
-      </aside>
-
-      {/* Right pane — session detail or placeholder */}
-      <main
-        className="history-app__detail-pane"
-        role="region"
-        aria-label="Session details"
-        aria-live="polite"
-      >
+    <div>
+      <div>
+        <SessionList
+          sessions={sessions}
+          selectedId={selectedId}
+          onSelect={setSelectedId}
+          onDelete={setSelectedId}
+        />
+      </div>
+      <div>
         {selectedSession !== null ? (
           <SessionDetail
             session={selectedSession}
@@ -106,13 +88,9 @@ export function HistoryApp(): React.JSX.Element {
             onRevealTranscript={handleRevealTranscript}
           />
         ) : (
-          <div className="history-app__placeholder">
-            <span className="history-app__placeholder-text">
-              {sessions.length > 0 ? 'Select a session to view details.' : ''}
-            </span>
-          </div>
+          <p>{sessions.length > 0 ? 'Select a session.' : ''}</p>
         )}
-      </main>
+      </div>
     </div>
   );
 }

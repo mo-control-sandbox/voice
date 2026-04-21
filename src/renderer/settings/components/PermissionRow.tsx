@@ -1,7 +1,6 @@
 import { PermissionStatus, type PermissionStatusProto } from '../../gen/permissions';
-import './PermissionRow.css';
 
-/** Display metadata for a single permission entry — provided by the caller. */
+/** Display metadata for a single permission entry -- provided by the caller. */
 export interface PermissionMeta {
   readonly label: string;
   readonly description: string;
@@ -14,61 +13,27 @@ interface PermissionRowProps {
   readonly onRequest: () => void;
 }
 
-type BadgeStatus = 'granted' | 'denied' | 'unknown';
-
-function resolveBadge(status: PermissionStatus): { label: string; status: BadgeStatus } {
+function statusLabel(status: PermissionStatus): string {
   switch (status) {
-    case PermissionStatus.PERMISSION_STATUS_GRANTED:
-      return { label: 'Granted', status: 'granted' };
-    case PermissionStatus.PERMISSION_STATUS_DENIED:
-      return { label: 'Denied', status: 'denied' };
-    default:
-      return { label: 'Not requested', status: 'unknown' };
+    case PermissionStatus.PERMISSION_STATUS_GRANTED: return 'Granted';
+    case PermissionStatus.PERMISSION_STATUS_DENIED:  return 'Denied';
+    default: return 'Not requested';
   }
 }
 
-const descriptionId = (label: string): string =>
-  `permission-desc-${label.toLowerCase().replace(/\s+/g, '-')}`;
-
-/** One row in the Permissions page — icon, name/description, status badge, optional action. */
+/** One row in the Permissions page -- name, description, status, optional action. */
 export function PermissionRow({ permission, meta, onRequest }: PermissionRowProps): React.JSX.Element {
-  const Icon = meta.icon;
-  const badge = resolveBadge(permission.status);
   const isGranted = permission.status === PermissionStatus.PERMISSION_STATUS_GRANTED;
-  const descId = descriptionId(meta.label);
+  const isDenied  = permission.status === PermissionStatus.PERMISSION_STATUS_DENIED;
 
   return (
-    <div className="permission-row">
-      {/* Icon */}
-      <div className="permission-row__icon-wrap" aria-hidden="true">
-        <Icon className="permission-row__icon" />
-      </div>
-
-      {/* Name + description */}
-      <div className="permission-row__text">
-        <span className="permission-row__name">{meta.label}</span>
-        <span id={descId} className="permission-row__description">{meta.description}</span>
-      </div>
-
-      {/* Status badge */}
-      <span
-        className="permission-row__badge"
-        data-status={badge.status}
-        aria-label={`${meta.label}: ${badge.label}`}
-      >
-        {badge.label}
-      </span>
-
-      {/* Request / Open Settings — only when not yet granted */}
+    <div>
+      <span>{meta.label}</span>
+      <span>{meta.description}</span>
+      <span>{statusLabel(permission.status)}</span>
       {!isGranted && (
-        <button
-          className="permission-row__action"
-          onClick={onRequest}
-          aria-describedby={descId}
-        >
-          {permission.status === PermissionStatus.PERMISSION_STATUS_DENIED
-            ? 'Open Settings'
-            : 'Request'}
+        <button onClick={onRequest}>
+          {isDenied ? 'Open Settings' : 'Request'}
         </button>
       )}
     </div>

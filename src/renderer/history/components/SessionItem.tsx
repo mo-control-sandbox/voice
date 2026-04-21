@@ -1,5 +1,4 @@
 import type { SessionRecordProto } from '../../gen/history';
-import './SessionItem.css';
 
 interface SessionItemProps {
   readonly session: SessionRecordProto;
@@ -44,26 +43,13 @@ export function SessionItem({ session, isSelected, onSelect, onDelete }: Session
     : 'No transcript';
 
   return (
-    <li className="session-list__item" role="none">
+    <li>
       <button
-        className="session-item"
-        role="option"
-        aria-selected={isSelected}
+        data-selected={isSelected}
         onClick={() => { onSelect(session.id); }}
         onKeyDown={handleKeyDown}
       >
-        <div className="session-item__body">
-          <div className="session-item__row">
-            <span className="session-item__date">{formatDate(session.startedAt)}</span>
-            <span className="session-item__duration" aria-label={`Duration: ${formatDuration(session.audioDurationSeconds)}`}>
-              {formatDuration(session.audioDurationSeconds)}
-            </span>
-          </div>
-          <div className="session-item__meta">
-            <span className="session-item__engine">{session.transcriptionEngineLabel}</span>
-            <span className="session-item__words">{wordLabel}</span>
-          </div>
-        </div>
+        {formatDate(session.startedAt)} — {formatDuration(session.audioDurationSeconds)} — {session.transcriptionEngineLabel} — {wordLabel}
       </button>
     </li>
   );

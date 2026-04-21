@@ -10,7 +10,6 @@ import { RendererModelRepository } from '../services/RendererModelRepository';
 import { MoVoiceBackendFactory } from './services/MoVoiceBackendFactory';
 import { RecordingController } from './RecordingController';
 import type { RecordingViewState } from './RecordingController';
-import './RecordingApp.css';
 
 // Singletons shared for the lifetime of the recording window.
 const catalog = new RendererModelCatalog();
@@ -49,7 +48,7 @@ export function RecordingApp(): React.JSX.Element {
     return controllerRef.current.start(setViewState);
   }, []);
 
-  // Elapsed-time ticker — increments while recording, resets otherwise.
+  // Elapsed-time ticker -- increments while recording, resets otherwise.
   useEffect(() => {
     if (viewState.phase !== 'recording') {
       setElapsed(0);
@@ -65,45 +64,17 @@ export function RecordingApp(): React.JSX.Element {
     return <></>;
   }
 
-  const announcement = phase === 'recording' ? 'Recording in progress' : 'Transcribing';
-
   return (
-    <div
-      role="dialog"
-      aria-label="Voice recording"
-      aria-modal="false"
-      className="recording-window"
-      data-state={phase}
-    >
-      {/* Screen-reader-only live region announces state transitions immediately */}
-      <div
-        aria-live="assertive"
-        aria-atomic="true"
-        className="recording-window__announcer"
-      >
-        {announcement}
-      </div>
-
-      <div className="recording-window__body">
-        {/* Recording state — waveform + elapsed time */}
-        <div className="recording-window__content" data-role="recording">
-          <span className="recording-window__dot" aria-hidden="true" />
-          <div className="recording-window__waveform-slot">
-            {isAudioReady && (
-              <WaveformVisualizer getAmplitude={() => controllerRef.current.getAmplitude()} />
-            )}
-          </div>
-          <span className="recording-window__elapsed" aria-hidden="true">
-            {formatElapsed(elapsed)}
-          </span>
+    <div>
+      {phase === 'recording' && (
+        <div>
+          {isAudioReady && (
+            <WaveformVisualizer getAmplitude={() => controllerRef.current.getAmplitude()} />
+          )}
+          <span>{formatElapsed(elapsed)}</span>
         </div>
-
-        {/* Processing state — spinner + label */}
-        <div className="recording-window__content" data-role="processing">
-          <ProcessingIndicator />
-        </div>
-      </div>
-
+      )}
+      {phase === 'processing' && <ProcessingIndicator />}
       <CancelButton onCancel={() => { controllerRef.current.cancel(); }} />
     </div>
   );

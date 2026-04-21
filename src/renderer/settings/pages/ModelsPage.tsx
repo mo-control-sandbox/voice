@@ -5,8 +5,6 @@ import { RendererModelCache } from '../../services/RendererModelCache';
 import { RendererModelStateStore } from '../../services/RendererModelStateStore';
 import { RendererModelRepository } from '../../services/RendererModelRepository';
 import { ModelCard } from '../components/ModelCard';
-import '../components/Switch.css';
-import './ModelsPage.css';
 
 const POLL_INTERVAL_MS = 500;
 
@@ -21,15 +19,14 @@ function hasActiveDownload(models: ModelEntry[]): boolean {
   return models.some((m) => m.downloadProgress !== null);
 }
 
-/** Models settings page — view, download, delete, and activate Whisper models. */
+/** Models settings page -- view, download, delete, and activate Whisper models. */
 export function ModelsPage(): React.JSX.Element {
-
   const [models, setModels] = useState<ModelEntry[]>([]);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const refreshModels = useCallback(async (): Promise<void> => {
     setModels(await repository.getModels());
-  }, [repository]);
+  }, []);
 
   useEffect(() => { void refreshModels(); }, [refreshModels]);
 
@@ -81,46 +78,26 @@ export function ModelsPage(): React.JSX.Element {
   }
 
   return (
-    <div className="models-page">
-      <div className="models-page__header">
-        <h2 className="models-page__heading">Models</h2>
-        <p className="models-page__description">
-          Choose the speech recognition engine used for transcription.
-        </p>
-      </div>
-
-      {/* Built-in macOS Speech toggle */}
-      <div className="builtin-toggle">
-        <div className="builtin-toggle__text">
-          <span className="builtin-toggle__name">Use built-in macOS Speech Recognition</span>
-          <span className="builtin-toggle__hint">
-            No download required. Uses Apple's on-device recogniser.
-          </span>
-        </div>
-        <button
-          role="switch"
-          aria-checked={isBuiltinActive}
-          aria-label="Use built-in macOS Speech Recognition"
-          className="switch"
+    <div>
+      <label>
+        <input
+          type="checkbox"
+          checked={isBuiltinActive}
           disabled={!isBuiltinActive && !hasDownloadedWhisper}
-          onClick={() => { void handleToggleBuiltin(!isBuiltinActive); }}
-        >
-          <span className="switch__thumb" />
-        </button>
-      </div>
+          onChange={(e) => { void handleToggleBuiltin(e.target.checked); }}
+        />
+        Use built-in macOS Speech Recognition
+      </label>
 
-      {/* Whisper model list */}
-      <div className="models-page__list">
-        {whisperModels.map((model) => (
-          <ModelCard
-            key={model.definition.id}
-            model={model}
-            onDownload={() => { void handleDownload(model.definition.id); }}
-            onDelete={() => { void handleDelete(model.definition.id); }}
-            onSetActive={() => { void handleSetActive(model.definition.id); }}
-          />
-        ))}
-      </div>
+      {whisperModels.map((model) => (
+        <ModelCard
+          key={model.definition.id}
+          model={model}
+          onDownload={() => { void handleDownload(model.definition.id); }}
+          onDelete={() => { void handleDelete(model.definition.id); }}
+          onSetActive={() => { void handleSetActive(model.definition.id); }}
+        />
+      ))}
     </div>
   );
 }
