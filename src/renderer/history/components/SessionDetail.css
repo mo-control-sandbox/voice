@@ -1,0 +1,176 @@
+/* ─── Session Detail ─────────────────────────────────────────────────────── */
+
+.session-detail {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 8);       /* 32px between sections */
+  max-width: 720px;
+}
+
+/* ─── Section header ─────────────────────────────────────────────────────── */
+
+.session-detail__section {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 3);       /* 12px heading-to-content gap */
+}
+
+.session-detail__section-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+/* ─── Transcript text ────────────────────────────────────────────────────── */
+
+.session-detail__transcript {
+  font-size: 0.875rem;
+  line-height: 1.625;                  /* relaxed — long-form reading */
+  white-space: pre-wrap;
+  max-width: 72ch;                     /* system.md §3.6 measure rule */
+  padding: calc(var(--spacing) * 4);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background-color: var(--muted);
+  color: var(--foreground);
+}
+
+.session-detail__transcript--empty {
+  color: var(--muted-foreground);
+  font-style: italic;
+}
+
+/* ─── Metadata grid ──────────────────────────────────────────────────────── */
+
+.session-detail__meta {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: calc(var(--spacing) * 1) calc(var(--spacing) * 4); /* 4px row, 16px col */
+}
+
+.session-detail__meta-label {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.session-detail__meta-value {
+  font-size: 0.875rem;
+  color: var(--foreground);
+}
+
+/* ─── Action row ─────────────────────────────────────────────────────────── */
+
+.session-detail__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--spacing) * 2);       /* 8px */
+}
+
+.session-detail__btn {
+  display: inline-flex;
+  align-items: center;
+  padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 3); /* 6px 12px */
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-out),
+              color var(--duration-fast) var(--ease-out);
+}
+
+.session-detail__btn:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.session-detail__btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Secondary-style reveal buttons */
+.session-detail__btn[data-btn="secondary"] {
+  border: 1px solid var(--input);
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+.session-detail__btn[data-btn="secondary"]:hover:not(:disabled) {
+  background-color: var(--accent);
+  color: var(--accent-foreground);
+}
+
+/* Destructive delete button */
+.session-detail__btn[data-btn="destructive"] {
+  border: 1px solid var(--destructive);
+  background-color: transparent;
+  color: var(--destructive);
+}
+
+.session-detail__btn[data-btn="destructive"]:hover:not(:disabled) {
+  background-color: var(--destructive);
+  color: var(--destructive-foreground);
+}
+
+/* ─── Delete confirmation dialog ─────────────────────────────────────────── */
+
+.delete-confirm-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: oklch(0 0 0 / 40%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--z-overlay);
+  animation: backdrop-in var(--duration-normal) var(--ease-out) both;
+}
+
+.delete-confirm {
+  background-color: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+  padding: calc(var(--spacing) * 6);   /* 24px */
+  max-width: 400px;
+  width: calc(100% - calc(var(--spacing) * 8));
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 5);       /* 20px */
+  animation: dialog-in var(--duration-normal) var(--ease-out) both;
+}
+
+.delete-confirm__heading {
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.delete-confirm__body {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+.delete-confirm__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: calc(var(--spacing) * 2);
+}
+
+@keyframes backdrop-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes dialog-in {
+  from { opacity: 0; transform: scale(0.97) translateY(4px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .delete-confirm-backdrop,
+  .delete-confirm {
+    animation: none;
+  }
+}

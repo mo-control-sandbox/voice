@@ -1,0 +1,106 @@
+/* ─── Permissions Page ───────────────────────────────────────────────────── */
+
+.permissions-page {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 6);
+  max-width: 720px;
+}
+
+.permissions-page__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: calc(var(--spacing) * 4);
+}
+
+.permissions-page__title-block {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 1);
+}
+
+.permissions-page__heading {
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.333;
+  letter-spacing: -0.025em;
+}
+
+.permissions-page__description {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+/* ─── Refresh button ─────────────────────────────────────────────────────── */
+
+.permissions-page__refresh {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--spacing) * 1.5);    /* 6px */
+  padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background-color: transparent;
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background-color var(--duration-fast) var(--ease-out),
+              color var(--duration-fast) var(--ease-out);
+}
+
+.permissions-page__refresh:hover {
+  background-color: var(--accent);
+  color: var(--accent-foreground);
+}
+
+.permissions-page__refresh:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.permissions-page__refresh:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.permissions-page__refresh-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.permissions-page__refresh-icon[data-spinning="true"] {
+  animation: spin var(--duration-slow) var(--ease-linear) infinite;
+}
+
+/* ─── Permission list ────────────────────────────────────────────────────── */
+
+.permissions-page__list {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 3);
+}
+
+/* ─── Loading state ──────────────────────────────────────────────────────── */
+
+.permissions-page__loading {
+  display: flex;
+  justify-content: center;
+  padding: calc(var(--spacing) * 12) 0;
+}
+
+.permissions-page__loading-icon {
+  width: 20px;
+  height: 20px;
+  color: var(--muted-foreground);
+  animation: spin var(--duration-slow) var(--ease-linear) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .permissions-page__refresh-icon[data-spinning="true"],
+  .permissions-page__loading-icon {
+    animation: none;
+  }
+}

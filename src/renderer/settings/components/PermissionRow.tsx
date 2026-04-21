@@ -1,7 +1,7 @@
 import { PermissionStatus, type PermissionStatusProto } from '../../gen/permissions';
-import { cn } from '../../lib/utils';
+import './PermissionRow.css';
 
-/** Display metadata for a single permission entry — injected by the caller. */
+/** Display metadata for a single permission entry — provided by the caller. */
 export interface PermissionMeta {
   readonly label: string;
   readonly description: string;
@@ -14,64 +14,61 @@ interface PermissionRowProps {
   readonly onRequest: () => void;
 }
 
-const NOT_DETERMINED_BADGE = {
-  label: 'Not requested',
-  className: 'bg-amber-500/15 text-amber-400 border border-amber-500/30',
-};
+type BadgeStatus = 'granted' | 'denied' | 'unknown';
 
-const STATUS_BADGE: Partial<Record<PermissionStatus, { label: string; className: string }>> = {
-  [PermissionStatus.PERMISSION_STATUS_GRANTED]: {
-    label: 'Granted',
-    className: 'bg-green-500/15 text-green-400 border border-green-500/30',
-  },
-  [PermissionStatus.PERMISSION_STATUS_DENIED]: {
-    label: 'Denied',
-    className: 'bg-red-500/15 text-red-400 border border-red-500/30',
-  },
-  [PermissionStatus.PERMISSION_STATUS_NOT_DETERMINED]: NOT_DETERMINED_BADGE,
-};
+function resolveBadge(status: PermissionStatus): { label: string; status: BadgeStatus } {
+  switch (status) {
+    case PermissionStatus.PERMISSION_STATUS_GRANTED:
+      return { label: 'Granted', status: 'granted' };
+    case PermissionStatus.PERMISSION_STATUS_DENIED:
+      return { label: 'Denied', status: 'denied' };
+    default:
+      return { label: 'Not requested', status: 'unknown' };
+  }
+}
 
-const FALLBACK_BADGE = NOT_DETERMINED_BADGE;
+const descriptionId = (label: string): string =>
+  `permission-desc-${label.toLowerCase().replace(/\s+/g, '-')}`;
 
-/** Displays a single macOS permission with its status and action buttons. */
-export function PermissionRow({
-  permission,
-  meta,
-  onRequest,
-}: PermissionRowProps): React.JSX.Element {
-  const badge = STATUS_BADGE[permission.status] ?? FALLBACK_BADGE;
+/** One row in the Permissions page — icon, name/description, status badge, optional action. */
+export function PermissionRow({ permission, meta, onRequest }: PermissionRowProps): React.JSX.Element {
   const Icon = meta.icon;
+  const badge = resolveBadge(permission.status);
+  const isGranted = permission.status === PermissionStatus.PERMISSION_STATUS_GRANTED;
+  const descId = descriptionId(meta.label);
 
   return (
-    <div className="flex items-center gap-4 rounded-lg border border-border bg-card p-4">
+    <div className="permission-row">
       {/* Icon */}
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-secondary">
-        <Icon className="h-4 w-4 text-muted-foreground" />
+      <div className="permission-row__icon-wrap" aria-hidden="true">
+        <Icon className="permission-row__icon" />
       </div>
 
-      {/* Text */}
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium">{meta.label}</p>
-        <p className="text-xs text-muted-foreground mt-0.5">{meta.description}</p>
+      {/* Name + description */}
+      <div className="permission-row__text">
+        <span className="permission-row__name">{meta.label}</span>
+        <span id={descId} className="permission-row__description">{meta.description}</span>
       </div>
 
       {/* Status badge */}
       <span
-        className={cn(
-          'shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium',
-          badge.className,
-        )}
+        className="permission-row__badge"
+        data-status={badge.status}
+        aria-label={`${meta.label}: ${badge.label}`}
       >
         {badge.label}
       </span>
 
-      {/* Request button — visible when not yet granted */}
-      {permission.status !== PermissionStatus.PERMISSION_STATUS_GRANTED && (
+      {/* Request / Open Settings — only when not yet granted */}
+      {!isGranted && (
         <button
+          className="permission-row__action"
           onClick={onRequest}
-          className="shrink-0 rounded-md border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+          aria-describedby={descId}
         >
-          Request
+          {permission.status === PermissionStatus.PERMISSION_STATUS_DENIED
+            ? 'Open Settings'
+            : 'Request'}
         </button>
       )}
     </div>

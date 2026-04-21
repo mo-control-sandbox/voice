@@ -27,7 +27,10 @@ function defineMainConfig(): UserConfig {
       },
       rollupOptions: {
         external: [
-          "mobrowser"
+          "mobrowser",
+          "node:crypto",
+          "node:fs",
+          "node:path",
         ],
       },
     },

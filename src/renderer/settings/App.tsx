@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { LayoutDashboard, Settings, HardDrive, ShieldCheck } from 'lucide-react';
-import { cn } from '../lib/utils';
 import { DashboardPage } from './pages/DashboardPage';
 import { GeneralPage } from './pages/GeneralPage';
 import { ModelsPage } from './pages/ModelsPage';
 import { PermissionsPage } from './pages/PermissionsPage';
+import './App.css';
 
 type PageId = 'dashboard' | 'general' | 'models' | 'permissions';
 
@@ -15,58 +15,81 @@ interface NavItem {
 }
 
 const NAV_ITEMS: readonly NavItem[] = [
-  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { id: 'general', label: 'General', icon: Settings },
-  { id: 'models', label: 'Models', icon: HardDrive },
-  { id: 'permissions', label: 'Permissions', icon: ShieldCheck },
+  { id: 'dashboard',   label: 'Dashboard',   icon: LayoutDashboard },
+  { id: 'general',     label: 'General',     icon: Settings        },
+  { id: 'models',      label: 'Models',      icon: HardDrive       },
+  { id: 'permissions', label: 'Permissions', icon: ShieldCheck     },
 ];
 
-/** The root component for the Settings window, providing sidebar navigation. */
+const PAGE_HEADINGS: Record<PageId, string> = {
+  dashboard:   'Dashboard',
+  general:     'General',
+  models:      'Models',
+  permissions: 'Permissions',
+};
+
+/** Root component for the Settings window — Panel surface with sidebar nav. */
 export function SettingsApp(): React.JSX.Element {
   const [activePage, setActivePage] = useState<PageId>('models');
+  const navRef = useRef<HTMLElement>(null);
 
   function renderActivePage(): React.JSX.Element {
     switch (activePage) {
-      case 'dashboard':
-        return <DashboardPage />;
-      case 'general':
-        return <GeneralPage />;
-      case 'models':
-        return <ModelsPage />;
-      case 'permissions':
-        return <PermissionsPage />;
+      case 'dashboard':   return <DashboardPage />;
+      case 'general':     return <GeneralPage />;
+      case 'models':      return <ModelsPage />;
+      case 'permissions': return <PermissionsPage />;
+    }
+  }
+
+  /** Keyboard nav: ↑/↓ moves focus between sidebar items. */
+  function handleNavKeyDown(e: React.KeyboardEvent<HTMLElement>): void {
+    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+    e.preventDefault();
+
+    const items = Array.from(
+      navRef.current?.querySelectorAll<HTMLButtonElement>('.settings-nav-item') ?? [],
+    );
+    if (items.length === 0) return;
+
+    const focused = document.activeElement as HTMLButtonElement;
+    const idx = items.indexOf(focused);
+
+    if (e.key === 'ArrowDown') {
+      items[Math.min(idx + 1, items.length - 1)]?.focus();
+    } else {
+      items[Math.max(idx - 1, 0)]?.focus();
     }
   }
 
   return (
-    <div className="flex h-screen bg-background text-foreground">
-      {/* -webkit-app-region: drag makes the sidebar act as a drag handle for the window. */}
+    <div className="settings-app">
       <nav
-        className="w-48 shrink-0 border-r border-border p-3 flex flex-col gap-1"
-        style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}
+        ref={navRef}
+        className="settings-sidebar"
+        aria-label="Settings sections"
+        onKeyDown={handleNavKeyDown}
       >
-        {NAV_ITEMS.map((item) => {
-          const Icon = item.icon;
-          const isActive = activePage === item.id;
-          return (
-            <button
-              key={item.id}
-              onClick={() => { setActivePage(item.id); }}
-              style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
-              className={cn(
-                'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors w-full text-left',
-                isActive
-                  ? 'bg-accent text-accent-foreground'
-                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
-              )}
-            >
-              <Icon className="h-4 w-4 shrink-0" />
-              {item.label}
-            </button>
-          );
-        })}
+        {NAV_ITEMS.map(({ id, label, icon: Icon }) => (
+          <button
+            key={id}
+            className="settings-nav-item"
+            aria-current={activePage === id ? 'page' : undefined}
+            onClick={() => { setActivePage(id); }}
+          >
+            <Icon className="settings-nav-item__icon" aria-hidden="true" />
+            {label}
+          </button>
+        ))}
       </nav>
-      <main className="flex-1 overflow-auto p-6">{renderActivePage()}</main>
+
+      <main
+        className="settings-content"
+        role="region"
+        aria-label={PAGE_HEADINGS[activePage]}
+      >
+        {renderActivePage()}
+      </main>
     </div>
   );
 }

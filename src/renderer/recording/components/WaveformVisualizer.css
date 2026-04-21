@@ -1,0 +1,9 @@
+/* ─── Waveform Visualizer ────────────────────────────────────────────────── */
+
+.waveform-visualizer {
+  display: block;
+  /* CSS size matches the logical pixel constants in the component. */
+  width: 177px;
+  height: 32px;
+  flex-shrink: 0;
+}

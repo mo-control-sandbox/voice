@@ -1,36 +1,300 @@
-@import "tailwindcss";
-@config "../../tailwind.config.js";
+/* ─── Typeface ──────────────────────────────────────────────────────────────── */
+@import "@fontsource-variable/inter/index.css";
 
-:root {
-  --background: 222.2 84% 4.9%;
-  --foreground: 210 40% 98%;
-  --card: 222.2 84% 4.9%;
-  --card-foreground: 210 40% 98%;
-  --popover: 222.2 84% 4.9%;
-  --popover-foreground: 210 40% 98%;
-  --primary: 217.2 91.2% 59.8%;
-  --primary-foreground: 222.2 47.4% 11.2%;
-  --secondary: 217.2 32.6% 17.5%;
-  --secondary-foreground: 210 40% 98%;
-  --muted: 217.2 32.6% 17.5%;
-  --muted-foreground: 215 20.2% 65.1%;
-  --accent: 217.2 32.6% 17.5%;
-  --accent-foreground: 210 40% 98%;
-  --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 210 40% 98%;
-  --border: 217.2 32.6% 17.5%;
-  --input: 217.2 32.6% 17.5%;
-  --ring: 224.3 76.3% 48%;
-  --radius: 0.5rem;
+/* ─── Tailwind v4 ───────────────────────────────────────────────────────────── */
+@import "tailwindcss";
+
+/* ─── Theme — map semantic CSS vars to Tailwind utility namespace ────────────
+   @theme inline means Tailwind references the CSS vars directly rather than
+   inlining the resolved values. Components that need Tailwind utilities (shadcn
+   internals, CVA variant classes) resolve against these mappings at runtime.
+   Component CSS files use var(--token) directly and do not need this mapping.
+────────────────────────────────────────────────────────────────────────────── */
+@theme inline {
+  /* Typography */
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+
+  /* Colors — semantic surface & text */
+  --color-background:        var(--background);
+  --color-foreground:        var(--foreground);
+  --color-card:              var(--card);
+  --color-card-foreground:   var(--card-foreground);
+  --color-popover:           var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  /* Colors — interactive */
+  --color-primary:              var(--primary);
+  --color-primary-foreground:   var(--primary-foreground);
+  --color-secondary:            var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent:               var(--accent);
+  --color-accent-foreground:    var(--accent-foreground);
+  --color-destructive:          var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  /* Colors — chrome */
+  --color-muted:              var(--muted);
+  --color-muted-foreground:   var(--muted-foreground);
+  --color-border:             var(--border);
+  --color-input:              var(--input);
+  --color-ring:               var(--ring);
+
+  /* Colors — sidebar */
+  --color-sidebar:                    var(--sidebar);
+  --color-sidebar-foreground:         var(--sidebar-foreground);
+  --color-sidebar-primary:            var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent:             var(--sidebar-accent);
+  --color-sidebar-accent-foreground:  var(--sidebar-accent-foreground);
+  --color-sidebar-border:             var(--sidebar-border);
+  --color-sidebar-ring:               var(--sidebar-ring);
+
+  /* Colors — status */
+  --color-success:             var(--success);
+  --color-success-foreground:  var(--success-foreground);
+  --color-warning:             var(--warning);
+  --color-warning-foreground:  var(--warning-foreground);
+  --color-info:                var(--info);
+  --color-info-foreground:     var(--info-foreground);
+
+  /* Colors — moVoice product */
+  --color-recording:            var(--recording);
+  --color-recording-foreground: var(--recording-foreground);
+
+  /* Colors — data visualisation */
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  /* Border radius */
+  --radius-xs:   var(--radius-xs);
+  --radius-sm:   var(--radius-sm);
+  --radius-md:   var(--radius-md);
+  --radius-lg:   var(--radius-lg);
+  --radius-xl:   var(--radius-xl);
+  --radius-2xl:  var(--radius-2xl);
+  --radius-3xl:  var(--radius-3xl);
+  --radius-4xl:  var(--radius-4xl);
+  --radius-full: var(--radius-full);
+
+  /* Animations */
+  --animate-recording-pulse: recording-pulse 1500ms linear infinite;
+  --animate-accordion-down:  accordion-down 200ms ease-out;
+  --animate-accordion-up:    accordion-up 200ms ease-out;
 }
 
+/* ─── Semantic tokens — Light mode ──────────────────────────────────────────── */
+:root {
+  /* Surface & text */
+  --background:        oklch(1 0 0);
+  --foreground:        oklch(0.145 0 0);
+  --card:              oklch(1 0 0);
+  --card-foreground:   oklch(0.145 0 0);
+  --popover:           oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+
+  /* Interactive */
+  --primary:              oklch(0.205 0 0);
+  --primary-foreground:   oklch(0.985 0 0);
+  --secondary:            oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --accent:               oklch(0.97 0 0);
+  --accent-foreground:    oklch(0.205 0 0);
+  --destructive:          oklch(0.577 0.245 27.3);
+  --destructive-foreground: oklch(0.985 0 0);
+
+  /* Chrome */
+  --muted:            oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --border:           oklch(0.922 0 0);
+  --input:            oklch(0.922 0 0);
+  --ring:             oklch(0.708 0 0);
+
+  /* Sidebar */
+  --sidebar:                    oklch(0.985 0 0);
+  --sidebar-foreground:         oklch(0.145 0 0);
+  --sidebar-primary:            oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent:             oklch(0.97 0 0);
+  --sidebar-accent-foreground:  oklch(0.205 0 0);
+  --sidebar-border:             oklch(0.922 0 0);
+  --sidebar-ring:               oklch(0.708 0 0);
+
+  /* Status */
+  --success:            oklch(0.596 0.145 163.2);
+  --success-foreground: oklch(0.985 0 0);
+  --warning:            oklch(0.700 0.180 65.0);
+  --warning-foreground: oklch(0.145 0 0);
+  --info:               oklch(0.546 0.245 262.9);
+  --info-foreground:    oklch(0.985 0 0);
+
+  /* moVoice — recording state */
+  --recording:            oklch(0.627 0.218 20.8);
+  --recording-foreground: oklch(0.985 0 0);
+
+  /* Data visualisation */
+  --chart-1: oklch(0.809 0.105 251.8);
+  --chart-2: oklch(0.623 0.214 259.8);
+  --chart-3: oklch(0.546 0.245 262.9);
+  --chart-4: oklch(0.488 0.243 264.4);
+  --chart-5: oklch(0.424 0.199 265.6);
+
+  /* Border radius — base: 10px */
+  --radius-xs:   0.125rem;   /* 2px  */
+  --radius-sm:   0.375rem;   /* 6px  */
+  --radius-md:   0.5rem;     /* 8px  */
+  --radius-lg:   0.625rem;   /* 10px — default */
+  --radius-xl:   0.875rem;   /* 14px */
+  --radius-2xl:  1.125rem;   /* 18px */
+  --radius-3xl:  1.375rem;   /* 22px */
+  --radius-4xl:  1.625rem;   /* 26px */
+  --radius-full: 9999px;
+
+  /* Motion — duration scale */
+  --duration-instant:    0ms;
+  --duration-fast:       100ms;
+  --duration-default:    150ms;
+  --duration-normal:     200ms;
+  --duration-slow:       300ms;
+  --duration-deliberate: 500ms;
+
+  /* Motion — easing curves */
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out:    cubic-bezier(0, 0, 0.2, 1);
+  --ease-linear: linear;
+  --ease-spring: cubic-bezier(0.32, 0.72, 0, 1);
+
+  /* Z-index scale */
+  --z-base:     0;
+  --z-raised:   10;
+  --z-dropdown: 100;
+  --z-overlay:  200;
+  --z-toast:    300;
+  --z-tooltip:  400;
+
+  /* Elevation shadows (system.md §6.1) */
+  --shadow-xs:  0 1px 2px rgba(0,0,0,0.05);
+  --shadow-sm:  0 1px 3px rgba(0,0,0,0.1), 0 1px 2px -1px rgba(0,0,0,0.1);
+  --shadow-md:  0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
+  --shadow-lg:  0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
+  --shadow-xl:  0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);
+  --shadow-2xl: 0 25px 50px -12px rgba(0,0,0,0.25);
+}
+
+/* ─── Semantic tokens — Dark mode ───────────────────────────────────────────── */
+.dark {
+  /* Surface & text */
+  --background:        oklch(0.145 0 0);
+  --foreground:        oklch(0.985 0 0);
+  --card:              oklch(0.205 0 0);
+  --card-foreground:   oklch(0.985 0 0);
+  --popover:           oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+
+  /* Interactive */
+  --primary:              oklch(0.985 0 0);
+  --primary-foreground:   oklch(0.205 0 0);
+  --secondary:            oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --accent:               oklch(0.269 0 0);
+  --accent-foreground:    oklch(0.985 0 0);
+  --destructive:          oklch(0.704 0.191 22.2);
+  --destructive-foreground: oklch(0.985 0 0);
+
+  /* Chrome */
+  --muted:            oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --border:           oklch(1 0 0 / 10%);
+  --input:            oklch(1 0 0 / 15%);
+  --ring:             oklch(0.556 0 0);
+
+  /* Sidebar */
+  --sidebar:                    oklch(0.205 0 0);
+  --sidebar-foreground:         oklch(0.985 0 0);
+  --sidebar-primary:            oklch(0.488 0.243 264.4);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent:             oklch(0.269 0 0);
+  --sidebar-accent-foreground:  oklch(0.985 0 0);
+  --sidebar-border:             oklch(1 0 0 / 10%);
+  --sidebar-ring:               oklch(0.556 0 0);
+
+  /* Status */
+  --success:            oklch(0.696 0.170 162.5);
+  --success-foreground: oklch(0.145 0 0);
+  --warning:            oklch(0.820 0.160 75.0);
+  --warning-foreground: oklch(0.145 0 0);
+  --info:               oklch(0.623 0.214 259.8);
+  --info-foreground:    oklch(0.985 0 0);
+
+  /* moVoice — recording state */
+  --recording:            oklch(0.720 0.185 18.0);
+  --recording-foreground: oklch(0.985 0 0);
+
+  /* Data visualisation — same in both modes */
+  --chart-1: oklch(0.809 0.105 251.8);
+  --chart-2: oklch(0.623 0.214 259.8);
+  --chart-3: oklch(0.546 0.245 262.9);
+  --chart-4: oklch(0.488 0.243 264.4);
+  --chart-5: oklch(0.424 0.199 265.6);
+}
+
+/* ─── Keyframes ─────────────────────────────────────────────────────────────── */
+@keyframes recording-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.35; }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes accordion-down {
+  from { height: 0; }
+  to   { height: var(--radix-accordion-content-height); }
+}
+
+@keyframes accordion-up {
+  from { height: var(--radix-accordion-content-height); }
+  to   { height: 0; }
+}
+
+/* ─── Base layer ────────────────────────────────────────────────────────────── */
 @layer base {
-  * {
-    border-color: hsl(var(--border));
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    border-color: var(--border);
+  }
+
+  html {
+    /* Prevent font size inflation on orientation change */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
 
   body {
-    background-color: hsl(var(--background));
-    color: hsl(var(--foreground));
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    font-size: 1rem;        /* text-base = 16px */
+    line-height: 1.5;       /* leading-normal */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Tabular figures for data contexts — applied via utility class, not globally */
+
+  /* Reduced motion — collapse all transitions/animations to instant */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }

@@ -1,0 +1,44 @@
+/* ─── Session List ───────────────────────────────────────────────────────── */
+
+.session-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* Thin divider between items — border-top on every item except the first */
+.session-list__item + .session-list__item {
+  border-top: 1px solid var(--border);
+}
+
+/* ─── Empty History ──────────────────────────────────────────────────────── */
+
+.empty-history {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: calc(var(--spacing) * 3);       /* 12px */
+  padding: calc(var(--spacing) * 12) calc(var(--spacing) * 6); /* 48px 24px */
+}
+
+.empty-history__icon {
+  width: 48px;
+  height: 48px;
+  color: var(--muted-foreground);
+  opacity: 0.5;
+}
+
+.empty-history__title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.empty-history__hint {
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+  max-width: 200px;
+}

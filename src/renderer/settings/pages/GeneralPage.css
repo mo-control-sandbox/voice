@@ -1,0 +1,218 @@
+/* ─── General Page ───────────────────────────────────────────────────────── */
+
+.general-page {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 8);       /* 32px between sections */
+  max-width: 720px;
+}
+
+.general-page__heading {
+  font-size: 1.5rem;                   /* text-2xl */
+  font-weight: 600;
+  line-height: 1.333;
+  letter-spacing: -0.025em;
+}
+
+/* ─── Section ────────────────────────────────────────────────────────────── */
+
+.general-section {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 4);       /* 16px */
+}
+
+.general-section__label {
+  font-size: 0.75rem;                  /* text-xs */
+  font-weight: 600;
+  line-height: 1.333;
+  letter-spacing: 0.05em;             /* tracking-wider — required for all-caps per system.md §3.6 */
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+/* ─── Form field ─────────────────────────────────────────────────────────── */
+
+.general-field {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 2);       /* 8px label-to-input gap */
+}
+
+.general-field__hint {
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+/* ─── Loading skeleton ───────────────────────────────────────────────────── */
+
+.general-skeleton {
+  height: 36px;                         /* matches select height */
+  border-radius: var(--radius-md);
+  background: linear-gradient(
+    90deg,
+    var(--muted) 25%,
+    var(--border) 50%,
+    var(--muted) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1200ms linear infinite;
+}
+
+@keyframes skeleton-shimmer {
+  from { background-position: 200% center; }
+  to   { background-position: -200% center; }
+}
+
+/* ─── Device select ──────────────────────────────────────────────────────── */
+
+.device-select {
+  width: 100%;
+  padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3); /* 8px 12px */
+  border-radius: var(--radius-md);
+  border: 1px solid var(--input);
+  background-color: var(--background);
+  color: var(--foreground);
+  font-size: 0.875rem;
+  line-height: 1.429;
+  cursor: pointer;
+  appearance: none;
+  /* Custom chevron via background SVG */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right calc(var(--spacing) * 3) center;
+  padding-right: calc(var(--spacing) * 8);
+}
+
+.device-select:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* ─── Toggle row (Switch + label) ────────────────────────────────────────── */
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(var(--spacing) * 4);
+}
+
+.toggle-row__label {
+  font-size: 0.875rem;
+  line-height: 1.429;
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggle-row__hint {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  margin-top: calc(var(--spacing) * 1);
+}
+
+/* Switch styles live in ../components/Switch.css — imported by each page
+   that uses the Switch component. */
+
+/* ─── Shortcut Capture ───────────────────────────────────────────────────── */
+
+.shortcut-section {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 3);       /* 12px */
+}
+
+/* Row of predefined shortcut pills */
+.shortcut-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--spacing) * 2);       /* 8px */
+}
+
+.shortcut-preset {
+  padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 3); /* 6px 12px */
+  border-radius: var(--radius-md);
+  border: 1px solid var(--input);
+  background-color: var(--background);
+  color: var(--foreground);
+  font-size: 0.875rem;
+  font-family: var(--font-sans);       /* monospace feel via letter-spacing instead */
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-out),
+              border-color var(--duration-fast) var(--ease-out),
+              color var(--duration-fast) var(--ease-out);
+}
+
+.shortcut-preset:hover {
+  background-color: var(--accent);
+  color: var(--accent-foreground);
+}
+
+.shortcut-preset:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.shortcut-preset[data-active="true"] {
+  border-color: var(--primary);
+  background-color: var(--secondary);
+  color: var(--secondary-foreground);
+}
+
+/* Custom capture widget */
+.shortcut-capture-row {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--spacing) * 3);       /* 12px */
+}
+
+.shortcut-capture {
+  padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--input);
+  background-color: var(--background);
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: border-color var(--duration-fast) var(--ease-out),
+              color var(--duration-fast) var(--ease-out);
+}
+
+.shortcut-capture:hover {
+  background-color: var(--accent);
+  color: var(--accent-foreground);
+}
+
+.shortcut-capture:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.shortcut-capture[data-state="capturing"] {
+  border-color: var(--ring);
+  color: var(--foreground);
+}
+
+.shortcut-capture__hint {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+/* Custom shortcut display (shown when active shortcut is non-predefined) */
+.shortcut-custom-value {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  letter-spacing: 0.02em;
+}
+
+/* Summary line below the capture row */
+.shortcut-summary {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.shortcut-summary__value {
+  letter-spacing: 0.02em;
+}

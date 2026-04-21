@@ -1,0 +1,32 @@
+/* ─── Processing Indicator ───────────────────────────────────────────────── */
+
+.processing-indicator {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--spacing) * 2);           /* 8px */
+}
+
+.processing-indicator__spinner {
+  width: 16px;
+  height: 16px;
+  border-radius: var(--radius-full);
+  border: 1.5px solid var(--border);
+  border-top-color: var(--muted-foreground);
+  flex-shrink: 0;
+  animation: spin var(--duration-slow) var(--ease-linear) infinite;
+}
+
+.processing-indicator__label {
+  font-size: 0.875rem;                     /* text-sm = 14px */
+  line-height: 1.429;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .processing-indicator__spinner {
+    animation: none;
+    border-top-color: var(--border);
+    opacity: 0.5;
+  }
+}

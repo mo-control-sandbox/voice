@@ -1,0 +1,110 @@
+/* ─── Permission Row ─────────────────────────────────────────────────────── */
+
+.permission-row {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--spacing) * 4);       /* 16px */
+  padding: calc(var(--spacing) * 4);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background-color: var(--card);
+}
+
+/* ─── Icon container ─────────────────────────────────────────────────────── */
+
+.permission-row__icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: var(--radius-md);
+  background-color: var(--secondary);
+}
+
+.permission-row__icon {
+  width: 16px;
+  height: 16px;
+  color: var(--muted-foreground);
+}
+
+/* ─── Text block ─────────────────────────────────────────────────────────── */
+
+.permission-row__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 0.5);
+}
+
+.permission-row__name {
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.429;
+}
+
+.permission-row__description {
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+/* ─── Status badge ───────────────────────────────────────────────────────── */
+
+.permission-row__badge {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding: 0 calc(var(--spacing) * 2.5);  /* 0 10px */
+  height: 22px;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.permission-row__badge[data-status="granted"] {
+  background-color: var(--success);
+  color: var(--success-foreground);
+}
+
+.permission-row__badge[data-status="denied"] {
+  background-color: var(--destructive);
+  color: var(--destructive-foreground);
+}
+
+.permission-row__badge[data-status="unknown"] {
+  background-color: transparent;
+  color: var(--muted-foreground);
+  border: 1px solid var(--border);
+}
+
+/* ─── Request / Open Settings button ────────────────────────────────────── */
+
+.permission-row__action {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 3);
+  border-radius: var(--radius-md);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  background-color: transparent;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-out),
+              color var(--duration-fast) var(--ease-out);
+}
+
+.permission-row__action:hover {
+  background-color: var(--accent);
+  color: var(--accent-foreground);
+}
+
+.permission-row__action:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
+}

@@ -1,0 +1,51 @@
+/* ─── Switch ─────────────────────────────────────────────────────────────── */
+
+.switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 36px;
+  height: 20px;
+  border-radius: var(--radius-full);
+  border: 2px solid transparent;
+  background-color: var(--input);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.switch[aria-checked="true"] {
+  background-color: var(--primary);
+}
+
+.switch:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.switch:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.switch__thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: var(--radius-full);
+  background-color: var(--background);
+  box-shadow: var(--shadow-xs);
+  transform: translateX(0);
+  transition: transform var(--duration-fast) var(--ease-out);
+  pointer-events: none;
+}
+
+.switch[aria-checked="true"] .switch__thumb {
+  transform: translateX(16px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .switch,
+  .switch__thumb {
+    transition: none;
+  }
+}

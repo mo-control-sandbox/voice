@@ -1,9 +1,11 @@
-/** Purely presentational spinner shown while transcription is in progress. */
+import './ProcessingIndicator.css';
+
+/** Spinner + label shown while transcription inference is running. */
 export function ProcessingIndicator(): React.JSX.Element {
   return (
-    <div className="flex items-center gap-3">
-      <div className="h-6 w-6 rounded-full border-2 border-blue-500 border-t-transparent animate-spin" />
-      <span className="text-sm text-foreground">Transcribing…</span>
+    <div className="processing-indicator">
+      <span className="processing-indicator__spinner" aria-hidden="true" />
+      <span className="processing-indicator__label">Transcribing…</span>
     </div>
   );
 }

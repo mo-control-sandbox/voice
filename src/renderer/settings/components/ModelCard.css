@@ -1,0 +1,234 @@
+/* ─── Model Card ─────────────────────────────────────────────────────────── */
+
+.model-card {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 3);       /* 12px between rows */
+  padding: calc(var(--spacing) * 4);   /* 16px */
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background-color: var(--card);
+  /* Left accent via box-shadow — no layout shift */
+  box-shadow: inset 3px 0 0 transparent;
+  transition: box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.model-card[data-model-state="active"] {
+  box-shadow: inset 3px 0 0 var(--primary);
+}
+
+.model-card[data-model-state="downloading"] {
+  box-shadow: inset 3px 0 0 var(--info);
+}
+
+/* ─── Header row ─────────────────────────────────────────────────────────── */
+
+.model-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: calc(var(--spacing) * 2);
+}
+
+.model-card__meta {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 1);
+  min-width: 0;
+}
+
+.model-card__title-row {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--spacing) * 2);
+  flex-wrap: wrap;
+}
+
+.model-card__name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.429;
+}
+
+.model-card__badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 calc(var(--spacing) * 1.5);
+  height: 18px;
+  border-radius: var(--radius-full);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.model-card__badge[data-badge="active"] {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.model-card__badge[data-badge="multilingual"] {
+  background-color: var(--secondary);
+  color: var(--secondary-foreground);
+  border: 1px solid var(--border);
+}
+
+.model-card__badge[data-badge="en-only"] {
+  background-color: var(--muted);
+  color: var(--muted-foreground);
+  border: 1px solid var(--border);
+}
+
+.model-card__description {
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+.model-card__size {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ─── Score pips ─────────────────────────────────────────────────────────── */
+
+.model-card__scores {
+  display: flex;
+  gap: calc(var(--spacing) * 4);       /* 16px between speed and accuracy */
+}
+
+.score-pips {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--spacing) * 2);       /* 8px label-to-pips */
+}
+
+.score-pips__label {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  width: 52px;
+  flex-shrink: 0;
+}
+
+.score-pips__dots {
+  display: flex;
+  gap: calc(var(--spacing) * 1);       /* 4px between dots */
+}
+
+.score-pips__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background-color: var(--muted);
+}
+
+.score-pips__dot[data-filled="true"] {
+  background-color: var(--foreground);
+}
+
+/* ─── Download progress ──────────────────────────────────────────────────── */
+
+.model-card__progress {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 1);
+}
+
+.model-card__progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.model-card__progress-label,
+.model-card__progress-pct {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.model-card__progress-track {
+  height: 4px;
+  border-radius: var(--radius-full);
+  background-color: var(--secondary);
+  overflow: hidden;
+}
+
+.model-card__progress-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  background-color: var(--info);
+  transition: width 500ms var(--ease-linear);
+}
+
+/* ─── Action row ─────────────────────────────────────────────────────────── */
+
+.model-card__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: calc(var(--spacing) * 2);
+}
+
+/* Shared base for all action buttons */
+.model-card__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 3); /* 6px 12px */
+  border-radius: var(--radius-md);
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background-color var(--duration-fast) var(--ease-out),
+              color var(--duration-fast) var(--ease-out),
+              opacity var(--duration-fast) var(--ease-out);
+}
+
+.model-card__btn:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.model-card__btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Primary: Download / Use */
+.model-card__btn[data-btn="primary"] {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  border-color: var(--primary);
+}
+
+.model-card__btn[data-btn="primary"]:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+/* Ghost: Cancel / Active (disabled look) */
+.model-card__btn[data-btn="ghost"] {
+  background-color: transparent;
+  color: var(--muted-foreground);
+  border-color: var(--border);
+}
+
+.model-card__btn[data-btn="ghost"]:hover:not(:disabled) {
+  background-color: var(--accent);
+  color: var(--accent-foreground);
+}
+
+/* Destructive ghost: Delete */
+.model-card__btn[data-btn="destructive"] {
+  background-color: transparent;
+  color: var(--destructive);
+  border-color: var(--destructive);
+}
+
+.model-card__btn[data-btn="destructive"]:hover:not(:disabled) {
+  background-color: var(--destructive);
+  color: var(--destructive-foreground);
+}

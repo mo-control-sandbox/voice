@@ -1,0 +1,93 @@
+/* ─── Settings Window — Panel surface ───────────────────────────────────────
+   Layout: fixed 200px sidebar + scrollable content area (max 720px).
+   The entire sidebar is a window drag handle; nav buttons override to no-drag.
+─────────────────────────────────────────────────────────────────────────── */
+
+.settings-app {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+/* ─── Sidebar ───────────────────────────────────────────────────────────── */
+
+.settings-sidebar {
+  width: 200px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 1);       /* 4px between items */
+  padding: calc(var(--spacing) * 3);   /* 12px all sides */
+  background-color: var(--sidebar);
+  border-right: 1px solid var(--sidebar-border);
+  -webkit-app-region: drag;
+}
+
+/* ─── Nav items ─────────────────────────────────────────────────────────── */
+
+.settings-nav-item {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--spacing) * 2);       /* 8px icon-to-label */
+  padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3); /* 8px 12px */
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;                 /* text-sm */
+  font-weight: 500;
+  line-height: 1.429;
+  color: var(--sidebar-foreground);
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition: background-color var(--duration-fast) var(--ease-out),
+              color var(--duration-fast) var(--ease-out);
+
+  /* Allow clicks through the draggable sidebar surface */
+  -webkit-app-region: no-drag;
+}
+
+.settings-nav-item:hover {
+  background-color: var(--sidebar-accent);
+  color: var(--sidebar-accent-foreground);
+}
+
+.settings-nav-item:focus-visible {
+  outline: 3px solid var(--sidebar-ring);
+  outline-offset: 2px;
+}
+
+.settings-nav-item:active {
+  transform: translateY(1px);
+}
+
+.settings-nav-item[aria-current="page"] {
+  background-color: var(--sidebar-primary);
+  color: var(--sidebar-primary-foreground);
+}
+
+/* Hover on active item — maintain active colours, just slightly lightened */
+.settings-nav-item[aria-current="page"]:hover {
+  background-color: var(--sidebar-primary);
+  color: var(--sidebar-primary-foreground);
+  opacity: 0.9;
+}
+
+.settings-nav-item__icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  pointer-events: none;
+}
+
+/* ─── Content area ──────────────────────────────────────────────────────── */
+
+.settings-content {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+  /* Per system.md §4.3 Panel: 32px horizontal, 24px vertical */
+  padding: calc(var(--spacing) * 6) calc(var(--spacing) * 8);  /* 24px 32px */
+}

@@ -1,0 +1,54 @@
+/* ─── History Window — Panel surface ────────────────────────────────────────
+   Two-pane layout: fixed 280px session list on the left, scrollable detail
+   pane on the right. Both panes are independently scrollable.
+─────────────────────────────────────────────────────────────────────────── */
+
+.history-app {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+/* ─── Left pane — session list ──────────────────────────────────────────── */
+
+.history-app__list-pane {
+  width: 280px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--border);
+  overflow: hidden;
+  -webkit-app-region: drag;
+}
+
+.history-app__list-pane-inner {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-app-region: no-drag;
+}
+
+/* ─── Right pane — session detail ───────────────────────────────────────── */
+
+.history-app__detail-pane {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+  /* Per system.md §4.3 Panel: 32px horizontal, 24px vertical */
+  padding: calc(var(--spacing) * 6) calc(var(--spacing) * 8);
+}
+
+/* ─── Placeholder (no selection / initial state) ────────────────────────── */
+
+.history-app__placeholder {
+  display: flex;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+}
+
+.history-app__placeholder-text {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}

@@ -1,19 +1,25 @@
+import './AboutApp.css';
+
 /** Displays static application metadata. No IPC required. */
 export function AboutApp(): React.JSX.Element {
   return (
-    <div className="flex h-screen items-center justify-center bg-background text-foreground">
-      <div className="flex flex-col items-center gap-4 text-center p-8">
+    <div className="about-window">
+      <div className="about-window__card">
         <img
+          className="about-window__icon"
           src="../../assets/app.icns"
-          alt="moVoice logo"
-          className="w-24 h-24 rounded-2xl"
+          alt="moVoice app icon"
         />
-        <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-bold">moVoice</h1>
-          <p className="text-sm text-muted-foreground">Version 1.0.0</p>
+
+        <div className="about-window__identity">
+          <h1 className="about-window__name">moVoice</h1>
+          <p className="about-window__version">Version 1.0.0</p>
         </div>
-        <p className="text-sm text-muted-foreground">By Vladyslav Lubenskyi</p>
-        <p className="text-xs text-muted-foreground/60">Powered by MōBrowser</p>
+
+        <div className="about-window__credits">
+          <p className="about-window__author">By Vladyslav Lubenskyi</p>
+          <p className="about-window__powered-by">Powered by MōBrowser</p>
+        </div>
       </div>
     </div>
   );

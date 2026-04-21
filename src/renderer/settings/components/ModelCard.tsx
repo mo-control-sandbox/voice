@@ -1,6 +1,5 @@
-import type { ModelEntry } from '../../types/models';
-import type { ModelDefinition } from '../../types/models';
-import { cn } from '../../lib/utils';
+import type { ModelEntry, ModelDefinition } from '../../types/models';
+import './ModelCard.css';
 
 interface ModelCardProps {
   readonly model: ModelEntry;
@@ -14,130 +13,129 @@ function formatMb(bytes: number): string {
   return `${(bytes / 1_000_000).toFixed(0)} MB`;
 }
 
-/** Formats a 0–5 score as a one-decimal string. */
-function formatScore(score: number): string {
-  return score.toFixed(1);
-}
-
-/** Converts a 0–1 fraction to a CSS percentage string for inline styles. */
+/** Converts a 0–1 fraction to a CSS percentage string. */
 function toPercent(fraction: number): string {
   return `${String(Math.round(fraction * 100))}%`;
 }
 
-interface ScoreBarProps {
+interface ScorePipsProps {
   readonly label: string;
   readonly score: number;
   readonly maxScore?: number;
 }
 
-/** Renders a labelled score bar with a numeric value. */
-function ScoreBar({ label, score, maxScore = 5 }: ScoreBarProps): React.JSX.Element {
-  const fraction = Math.min(score / maxScore, 1);
+/** Five filled/unfilled dots representing a 1–5 score. */
+function ScorePips({ label, score, maxScore = 5 }: ScorePipsProps): React.JSX.Element {
   return (
-    <div className="flex items-center gap-2 text-xs">
-      <span className="w-16 shrink-0 text-muted-foreground">{label}</span>
-      <div className="flex-1 h-1.5 rounded-full bg-secondary overflow-hidden">
-        <div
-          className="h-full rounded-full bg-primary transition-all"
-          style={{ width: toPercent(fraction) }}
-        />
+    <div className="score-pips">
+      <span className="score-pips__label">{label}</span>
+      <div className="score-pips__dots" aria-label={`${label}: ${score} out of ${maxScore}`}>
+        {Array.from({ length: maxScore }, (_, i) => (
+          <span
+            key={i}
+            className="score-pips__dot"
+            data-filled={i < Math.round(score) ? 'true' : undefined}
+          />
+        ))}
       </div>
-      <span className="w-6 text-right text-muted-foreground">
-        {formatScore(score)}
-      </span>
     </div>
   );
 }
 
+type ModelState = 'available' | 'downloading' | 'downloaded' | 'active';
+
+function resolveModelState(model: ModelEntry): ModelState {
+  if (model.isActive) return 'active';
+  if (model.downloadProgress !== null) return 'downloading';
+  if (model.isDownloaded) return 'downloaded';
+  return 'available';
+}
+
 /**
  * Displays a single Whisper model with its metadata, download state,
- * and action controls (download, set active, delete).
+ * and action controls (download, activate, delete).
  */
-export function ModelCard({
-  model,
-  onDownload,
-  onDelete,
-  onSetActive,
-}: ModelCardProps): React.JSX.Element {
-  // ModelCard is only rendered for Whisper (non-builtin) models.
+export function ModelCard({ model, onDownload, onDelete, onSetActive }: ModelCardProps): React.JSX.Element {
   const definition = model.definition as ModelDefinition;
+  const state = resolveModelState(model);
 
   return (
-    <div
-      className={cn(
-        'rounded-lg border border-border bg-card p-4 flex flex-col gap-3',
-        model.isActive && 'border-primary',
-      )}
-    >
+    <div className="model-card" data-model-state={state}>
       {/* Header */}
-      <div className="flex items-start justify-between gap-2">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="font-semibold text-sm">{definition.label}</span>
-            {model.isActive && (
-              <span className="text-xs px-1.5 py-0.5 rounded bg-primary text-primary-foreground font-medium">
-                In Use
-              </span>
+      <div className="model-card__header">
+        <div className="model-card__meta">
+          <div className="model-card__title-row">
+            <span className="model-card__name">{definition.label}</span>
+            {state === 'active' && (
+              <span className="model-card__badge" data-badge="active">In Use</span>
             )}
+            <span
+              className="model-card__badge"
+              data-badge={definition.isMultilingual ? 'multilingual' : 'en-only'}
+            >
+              {definition.isMultilingual ? 'Multilingual' : 'English'}
+            </span>
           </div>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            {definition.description}
-          </p>
+          <p className="model-card__description">{definition.description}</p>
         </div>
-        <span className="text-xs text-muted-foreground shrink-0">
-          {formatMb(definition.fileSizeBytes)}
-        </span>
+        <span className="model-card__size">{formatMb(definition.fileSizeBytes)}</span>
       </div>
 
-      {/* Score bars */}
-      <div className="flex flex-col gap-1.5">
-        <ScoreBar label="Speed" score={definition.speedScore} />
-        <ScoreBar label="Accuracy" score={definition.accuracyScore} />
+      {/* Score pips */}
+      <div className="model-card__scores">
+        <ScorePips label="Speed" score={definition.speedScore} />
+        <ScorePips label="Accuracy" score={definition.accuracyScore} />
       </div>
 
-      {/* Download progress — only rendered when a download is actively in progress */}
+      {/* Download progress */}
       {model.downloadProgress !== null && (
-        <div className="flex flex-col gap-1">
-          <div className="flex justify-between text-xs text-muted-foreground">
-            <span>Downloading…</span>
-            <span>{toPercent(model.downloadProgress)}</span>
+        <div className="model-card__progress">
+          <div className="model-card__progress-header">
+            <span className="model-card__progress-label">Downloading…</span>
+            <span className="model-card__progress-pct">{toPercent(model.downloadProgress)}</span>
           </div>
-          <div className="h-1.5 rounded-full bg-secondary overflow-hidden">
+          <div
+            className="model-card__progress-track"
+            role="progressbar"
+            aria-valuenow={Math.round(model.downloadProgress * 100)}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label={`Downloading ${definition.label}`}
+          >
             <div
-              className="h-full rounded-full bg-primary transition-all"
+              className="model-card__progress-fill"
               style={{ width: toPercent(model.downloadProgress) }}
             />
           </div>
         </div>
       )}
 
-      {/* Actions */}
+      {/* Actions — hidden while downloading */}
       {model.downloadProgress === null && (
-        <div className="flex items-center gap-2 justify-end">
-          {!model.isDownloaded && (
-            <button
-              onClick={onDownload}
-              className="text-xs px-3 py-1.5 rounded-md bg-primary text-primary-foreground font-medium hover:opacity-90 transition-opacity"
-            >
+        <div className="model-card__actions">
+          {state === 'available' && (
+            <button className="model-card__btn" data-btn="primary" onClick={onDownload}>
               Download
             </button>
           )}
-          {model.isDownloaded && (
+          {state === 'downloaded' && (
             <>
-              <button
-                onClick={onDelete}
-                className="text-xs px-3 py-1.5 rounded-md border border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground transition-colors"
-              >
+              <button className="model-card__btn" data-btn="destructive" onClick={onDelete}>
                 Delete
               </button>
-              {!model.isActive && (
-                <button
-                  onClick={onSetActive}
-                  className="text-xs px-3 py-1.5 rounded-md bg-primary text-primary-foreground font-medium hover:opacity-90 transition-opacity"
-                >
-                  Use
-                </button>
-              )}
+              <button className="model-card__btn" data-btn="primary" onClick={onSetActive}>
+                Use
+              </button>
+            </>
+          )}
+          {state === 'active' && (
+            <>
+              <button className="model-card__btn" data-btn="destructive" onClick={onDelete}>
+                Delete
+              </button>
+              <button className="model-card__btn" data-btn="ghost" disabled>
+                Active
+              </button>
             </>
           )}
         </div>

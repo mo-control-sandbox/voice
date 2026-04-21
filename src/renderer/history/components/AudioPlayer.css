@@ -1,0 +1,119 @@
+/* ─── Audio Player ───────────────────────────────────────────────────────── */
+
+.audio-player {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--spacing) * 2);       /* 8px */
+  padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3); /* 8px 12px */
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background-color: var(--card);
+}
+
+/* ─── Play / Pause button ────────────────────────────────────────────────── */
+
+.audio-player__play {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  border: none;
+  background-color: var(--secondary);
+  color: var(--secondary-foreground);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background-color var(--duration-fast) var(--ease-out),
+              color var(--duration-fast) var(--ease-out);
+}
+
+.audio-player__play:hover {
+  background-color: var(--accent);
+  color: var(--accent-foreground);
+}
+
+.audio-player__play:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.audio-player__play:active {
+  transform: translateY(1px);
+}
+
+.audio-player__play:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.audio-player__play-icon {
+  width: 14px;
+  height: 14px;
+  pointer-events: none;
+}
+
+/* ─── Time labels ────────────────────────────────────────────────────────── */
+
+.audio-player__time {
+  font-size: 0.75rem;
+  line-height: 1;
+  color: var(--muted-foreground);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+  min-width: 2.8ch;                    /* enough for "9:59" */
+}
+
+/* ─── Scrubber track ─────────────────────────────────────────────────────── */
+
+.audio-player__scrubber {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  position: relative;
+  height: 16px;
+  cursor: pointer;
+}
+
+.audio-player__track {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3px;
+  border-radius: var(--radius-full);
+  background-color: var(--secondary);
+  overflow: hidden;
+}
+
+.audio-player__fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  background-color: var(--foreground);
+  pointer-events: none;
+  transition: width 200ms var(--ease-linear);
+}
+
+/* Invisible but accessible range input overlays the visual track */
+.audio-player__range {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  opacity: 0;
+  cursor: pointer;
+  height: 100%;
+  margin: 0;
+}
+
+.audio-player__range:focus-visible + .audio-player__track {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* ─── Not-saved placeholder ──────────────────────────────────────────────── */
+
+.audio-player--empty {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  padding: calc(var(--spacing) * 2) 0;
+}

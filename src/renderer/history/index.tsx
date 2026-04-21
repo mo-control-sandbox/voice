@@ -1,7 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import '../index.css';
+import { initTheme } from '../lib/theme';
 import { HistoryApp } from './HistoryApp';
+
+initTheme();
 
 const rootElement = document.getElementById('root');
 if (rootElement === null) {

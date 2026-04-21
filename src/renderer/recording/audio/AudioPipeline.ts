@@ -30,7 +30,7 @@ export class AudioPipeline {
   async start(deviceId = ''): Promise<void> {
     this.pcmChunks = [];
     const audioConstraint: MediaTrackConstraints = deviceId !== ''
-      ? { deviceId: { exact: deviceId } }
+      ? { deviceId: { ideal: deviceId } }
       : {};
     this.stream = await navigator.mediaDevices.getUserMedia({ audio: audioConstraint, video: false });
 
