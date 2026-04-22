@@ -1,4 +1,5 @@
 import type { SessionRecordProto } from '../../gen/history';
+import './SessionItem.css';
 
 interface SessionItemProps {
   readonly session: SessionRecordProto;
@@ -17,20 +18,20 @@ function formatDate(ms: number): string {
   });
 }
 
-/** Formats audio duration in seconds as m:ss or h:mm:ss. */
+/** Formats audio duration in seconds as m:ss. */
 function formatDuration(seconds: number): string {
   const total = Math.round(seconds);
-  const h = Math.floor(total / 3600);
-  const m = Math.floor((total % 3600) / 60);
+  const m = Math.floor(total / 60);
   const s = total % 60;
-  if (h > 0) {
-    return `${String(h)}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-  }
   return `${String(m)}:${String(s).padStart(2, '0')}`;
 }
 
 /** A single row in the history session list. */
 export function SessionItem({ session, isSelected, onSelect, onDelete }: SessionItemProps): React.JSX.Element {
+  const wordLabel = session.wordCount > 0
+    ? `${String(session.wordCount)} words`
+    : 'No transcript';
+
   function handleKeyDown(e: React.KeyboardEvent<HTMLButtonElement>): void {
     if (e.key === 'Delete' || e.key === 'Backspace') {
       e.preventDefault();
@@ -38,19 +39,24 @@ export function SessionItem({ session, isSelected, onSelect, onDelete }: Session
     }
   }
 
-  const wordLabel = session.wordCount > 0
-    ? `${String(session.wordCount)} words`
-    : 'No transcript';
-
   return (
-    <li>
-      <button
-        data-selected={isSelected}
-        onClick={() => { onSelect(session.id); }}
-        onKeyDown={handleKeyDown}
-      >
-        {formatDate(session.startedAt)} — {formatDuration(session.audioDurationSeconds)} — {session.transcriptionEngineLabel} — {wordLabel}
-      </button>
-    </li>
+    <button
+      type="button"
+      className="session-item"
+      aria-selected={isSelected}
+      onClick={() => { onSelect(session.id); }}
+      onKeyDown={handleKeyDown}
+    >
+      <div className="session-item__body">
+        <div className="session-item__row">
+          <span className="session-item__date">{formatDate(session.startedAt)}</span>
+          <span className="session-item__duration">{formatDuration(session.audioDurationSeconds)}</span>
+        </div>
+        <div className="session-item__meta">
+          <span className="session-item__engine">{session.transcriptionEngineLabel}</span>
+          <span className="session-item__words">{wordLabel}</span>
+        </div>
+      </div>
+    </button>
   );
 }

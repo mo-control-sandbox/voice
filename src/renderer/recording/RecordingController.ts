@@ -26,7 +26,7 @@ export interface RecordingViewState {
  * Drives the full lifecycle: idle -> recording -> processing -> idle. Manages
  * the AudioPipeline, runs transcription inference, and submits results or
  * cancellation notices to the main process via IPC. The view layer interacts
- * only through start(), cancel(), and getAmplitude().
+ * only through start(), cancel(), and getWaveformData().
  */
 export class RecordingController {
   private pipeline: AudioPipeline | null = null;
@@ -105,11 +105,11 @@ export class RecordingController {
   }
 
   /**
-   * Current microphone amplitude in [0, 1]. Returns 0 when no pipeline is
-   * active.
+   * Current time-domain waveform snapshot for the visualiser. Returns an empty
+   * array when no pipeline is active.
    */
-  getAmplitude(): number {
-    return this.pipeline?.getAmplitude() ?? 0;
+  getWaveformData(): Float32Array {
+    return this.pipeline?.getWaveformData() ?? new Float32Array(0);
   }
 
   // ── Private helpers ──────────────────────────────────────────────────────────

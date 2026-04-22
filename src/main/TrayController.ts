@@ -1,8 +1,9 @@
 import { app, Tray, Menu, MenuItem } from '@mobrowser/api';
 import type { RecordingSessionController } from './recording/RecordingSessionController';
+import type { SettingsStore } from './settings/SettingsStore';
 import type { SettingsWindow } from './settings/SettingsWindow';
 import type { HistoryWindow } from './history/HistoryWindow';
-import { showAboutWindow } from './AboutWindow';
+import type { AboutWindow } from './AboutWindow';
 
 /**
  * Manages the menu-bar tray icon for moVoice.
@@ -12,8 +13,10 @@ export class TrayController {
 
   constructor(
     private readonly controller: RecordingSessionController,
+    private readonly settings: SettingsStore,
     private readonly settingsWindow: SettingsWindow,
     private readonly historyWindow: HistoryWindow,
+    private readonly aboutWindow: AboutWindow,
   ) {}
 
   /**
@@ -33,6 +36,7 @@ export class TrayController {
     if (this.tray === null) return;
 
     const state = this.controller.getState();
+    const { shortcutKey } = this.settings.get();
     this.tray.setMenu(
       new Menu({
         items: [
@@ -40,29 +44,37 @@ export class TrayController {
             ? new MenuItem({
                 id: 'stopRecording',
                 label: 'Stop Recording',
+                shortcut: shortcutKey,
                 action: () => { this.controller.stop(); },
               })
             : new MenuItem({
                 id: 'startRecording',
                 label: 'Start Recording',
+                shortcut: shortcutKey,
                 enabled: state === 'idle',
                 action: () => { this.controller.start(); },
               }),
+          new MenuItem({
+            id: 'openHistory',
+            label: 'History',
+            action: () => { this.historyWindow.show(); },
+          }),
           'separator',
           new MenuItem({
             id: 'openSettings',
-            label: 'Open Settings',
+            label: 'Settings',
             action: () => { this.settingsWindow.show(); },
           }),
           new MenuItem({
-            id: 'openHistory',
-            label: 'Open History',
-            action: () => { this.historyWindow.show(); },
-          }),
-          new MenuItem({
             id: 'openAbout',
-            label: 'Open About',
-            action: () => { showAboutWindow(); },
+            label: 'About moVoice',
+            action: () => { this.aboutWindow.show(); },
+          }),
+          'separator',
+          new MenuItem({
+            id: 'quit',
+            label: 'Quit',
+            action: () => { app.quit(); },
           }),
         ],
       }),

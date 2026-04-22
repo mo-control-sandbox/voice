@@ -3,7 +3,7 @@
 .dashboard-page {
   display: flex;
   flex-direction: column;
-  gap: calc(var(--spacing) * 6);       /* 24px between heading and stats */
+  gap: calc(var(--spacing) * 6);       /* 24px between heading and grid */
   max-width: 720px;
 }
 
@@ -22,36 +22,95 @@
   gap: calc(var(--spacing) * 4);       /* 16px gap between cards */
 }
 
-/* "Keystrokes Saved" banner spans both columns */
-.dashboard-page__grid > .stat-banner:last-child {
+/* ─── Stat Card ──────────────────────────────────────────────────────────── */
+
+.stat-card {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 3);       /* 12px between sections */
+  padding: calc(var(--spacing) * 6);   /* 24px card padding */
+  border-radius: var(--radius-2xl);    /* 18px, softer than current lg */
+  background-color: var(--secondary);
+}
+
+.stat-card--wide {
   grid-column: 1 / -1;
 }
 
-/* ─── Stat Banner ────────────────────────────────────────────────────────── */
+/* ─── Card header: icon badge + title ────────────────────────────────────── */
 
-.stat-banner {
+.stat-card__header {
   display: flex;
-  flex-direction: column;
-  gap: calc(var(--spacing) * 1);       /* 4px between value and label */
-  padding: calc(var(--spacing) * 6);   /* 24px card padding */
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border);
-  background-color: var(--card);
+  align-items: center;
+  gap: calc(var(--spacing) * 3);       /* 12px icon → title gap */
 }
 
-.stat-banner__value {
-  font-size: 1.875rem;                 /* text-3xl */
+.stat-card__icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-xl);     /* 14px */
+  flex-shrink: 0;
+}
+
+.stat-card__title {
+  font-size: 0.9375rem;               /* ~15px */
+  font-weight: 600;
+  line-height: 1.333;
+  color: var(--card-foreground);
+}
+
+/* ─── Card value (large number) ──────────────────────────────────────────── */
+
+.stat-card__value {
+  font-size: 2.25rem;                 /* text-4xl */
   font-weight: 700;
-  line-height: 1.2;
-  letter-spacing: -0.025em;
+  line-height: 1;
+  letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
   color: var(--card-foreground);
 }
 
-.stat-banner__label {
-  font-size: 0.875rem;                 /* text-sm */
+/* ─── Card description ───────────────────────────────────────────────────── */
+
+.stat-card__desc {
+  font-size: 0.875rem;                /* text-sm */
   line-height: 1.429;
   color: var(--muted-foreground);
+}
+
+/* ─── Per-accent icon badge colors ──────────────────────────────────────── */
+
+/* Sessions — purple / lavender */
+.stat-card[data-accent="sessions"] .stat-card__icon-wrap {
+  background-color: oklch(89% 0.06 310deg);
+  color:            oklch(55% 0.18 305deg);
+}
+
+/* Words — blue / steel */
+.stat-card[data-accent="words"] .stat-card__icon-wrap {
+  background-color: oklch(88% 0.05 240deg);
+  color:            oklch(52% 0.20 245deg);
+}
+
+/* WPM — amber / yellow */
+.stat-card[data-accent="wpm"] .stat-card__icon-wrap {
+  background-color: oklch(92% 0.08 85deg);
+  color:            oklch(62% 0.18 75deg);
+}
+
+/* Keystrokes — orange */
+.stat-card[data-accent="keystrokes"] .stat-card__icon-wrap {
+  background-color: oklch(90% 0.07 55deg);
+  color:            oklch(60% 0.20 48deg);
+}
+
+/* Time saved — teal / green */
+.stat-card[data-accent="time"] .stat-card__icon-wrap {
+  background-color: oklch(88% 0.06 165deg);
+  color:            oklch(52% 0.16 165deg);
 }
 
 /* ─── Loading skeleton ───────────────────────────────────────────────────── */
@@ -63,8 +122,8 @@
 }
 
 .dashboard-page__skeleton {
-  height: 100px;
-  border-radius: var(--radius-lg);
+  height: 140px;
+  border-radius: var(--radius-2xl);
   background-color: var(--muted);
   animation: skeleton-pulse 1500ms var(--ease-in-out) infinite;
 }

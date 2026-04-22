@@ -94,7 +94,6 @@
   color: var(--muted-foreground);
   background-color: transparent;
   border: 1px solid var(--border);
-  cursor: pointer;
   transition: background-color var(--duration-fast) var(--ease-out),
               color var(--duration-fast) var(--ease-out);
 }

@@ -30,7 +30,7 @@ export class AudioPipeline {
   async start(deviceId = ''): Promise<void> {
     this.pcmChunks = [];
     const audioConstraint: MediaTrackConstraints = deviceId !== ''
-      ? { deviceId: { ideal: deviceId } }
+      ? { deviceId: { exact: deviceId } }
       : {};
     this.stream = await navigator.mediaDevices.getUserMedia({ audio: audioConstraint, video: false });
 
@@ -50,7 +50,7 @@ export class AudioPipeline {
       this.pcmChunks.push(event.data);
     };
     source.connect(this.workletNode);
-    // Chrome only delivers real mic samples to nodes with an active path to
+    // MōBrowser only delivers real mic samples to nodes with an active path to
     // the destination. Connect through a muted gain node to satisfy that
     // requirement without playing any audio.
     const silencer = this.audioContext.createGain();
@@ -65,19 +65,19 @@ export class AudioPipeline {
   }
 
   /**
-   * Returns a normalised amplitude value in [0, 1] suitable for the waveform
-   * visualiser. Reads from AnalyserNode — no IPC involved.
+   * Returns a snapshot of the current time-domain audio signal as normalised
+   * per-sample amplitudes in [0, 1]. The caller buckets this into display bars.
+   * Returns an empty array when no pipeline is active.
    */
-  getAmplitude(): number {
-    if (this.analyser === null) return 0;
+  getWaveformData(): Float32Array {
+    if (this.analyser === null) return new Float32Array(0);
     const buffer = new Uint8Array(this.analyser.frequencyBinCount);
     this.analyser.getByteTimeDomainData(buffer);
-    let peak = 0;
-    for (const sample of buffer) {
-      // byteTimeDomainData is centred at 128; deviation from 128 is the signal.
-      peak = Math.max(peak, Math.abs(sample - 128));
+    const result = new Float32Array(buffer.length);
+    for (let i = 0; i < buffer.length; i++) {
+      result[i] = Math.abs(buffer[i] - 128) / 128;
     }
-    return peak / 128;
+    return result;
   }
 
   /**

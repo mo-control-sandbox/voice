@@ -41,6 +41,5 @@ service HistoryService {
   rpc GetSessions(GetSessionsRequest)              returns (SessionListResponse);
   rpc DeleteSession(DeleteSessionRequest)          returns (google.protobuf.Empty);
   rpc GetAudioData(SessionIdRequest)               returns (AudioDataResponse);
-  rpc RevealAudioFile(SessionIdRequest)            returns (google.protobuf.Empty);
-  rpc RevealTranscriptFile(SessionIdRequest)       returns (google.protobuf.Empty);
+  rpc RevealSessionFolder(SessionIdRequest)        returns (google.protobuf.Empty);
 }

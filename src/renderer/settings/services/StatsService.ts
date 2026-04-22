@@ -1,4 +1,5 @@
 import { ipc } from '../../gen/ipc';
+import type { DashboardStats } from '../../gen/stats';
 
 /**
  * IPC adapter for the statistics domain.
@@ -8,7 +9,7 @@ import { ipc } from '../../gen/ipc';
  */
 export class StatsService {
   /** Returns aggregated usage statistics for the current user. */
-  async getStats() {
+  async getStats(): Promise<DashboardStats> {
     return ipc.stats.GetStats({});
   }
 }

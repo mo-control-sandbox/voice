@@ -38,8 +38,6 @@ export class RecordingWindow {
   private createWindow(): BrowserWindow {
     const win = new BrowserWindow({
       size: { width: RECORDING_WINDOW_WIDTH, height: RECORDING_WINDOW_HEIGHT },
-      resizable: false,
-      isTransparent: true,
       alwaysOnTop: true,
       windowTitleVisible: false,
       windowTitlebarVisible: false,

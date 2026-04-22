@@ -2,6 +2,7 @@ import { dock } from '@mobrowser/api';
 import { native } from './gen/native';
 import { SettingsStore } from './settings/SettingsStore';
 import { ShortcutManager } from './system/ShortcutManager';
+import { DockManager } from './system/DockManager';
 import { SessionStorage } from './recording/SessionStorage';
 import { HistoryStore } from './history/HistoryStore';
 import { Clipboard } from './system/Clipboard';
@@ -10,6 +11,7 @@ import { TrayController } from './TrayController';
 import { RecordingWindow } from './recording/RecordingWindow';
 import { SettingsWindow } from './settings/SettingsWindow';
 import { HistoryWindow } from './history/HistoryWindow';
+import { AboutWindow } from './AboutWindow';
 import { registerPermissionsIpc } from './system/PermissionsService';
 import {
   registerRecordingIpc,
@@ -35,13 +37,17 @@ export class Application {
   );
 
   private readonly recordingWindow = new RecordingWindow(this.recordingController);
-  private readonly settingsWindow = new SettingsWindow();
-  private readonly historyWindow = new HistoryWindow();
+  private readonly dockManager = new DockManager();
+  private readonly settingsWindow = new SettingsWindow(this.dockManager);
+  private readonly historyWindow = new HistoryWindow(this.dockManager);
+  private readonly aboutWindow = new AboutWindow(this.dockManager);
 
   private readonly trayController = new TrayController(
     this.recordingController,
+    this.settings,
     this.settingsWindow,
     this.historyWindow,
+    this.aboutWindow,
   );
 
   private readonly shortcutManager = new ShortcutManager();
@@ -68,6 +74,7 @@ export class Application {
     this.recordingWindow.initialize();
 
     this.recordingController.onStateChange(() => { this.trayController.refresh(); });
+    this.settings.onShortcutKeyChanged(() => { this.trayController.refresh(); });
 
     this.recordingController.onTranscriptionCompleted((text) => {
       void this.clipboard.execute(text);

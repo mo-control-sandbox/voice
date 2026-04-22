@@ -44,7 +44,6 @@
   background-color: transparent;
   color: var(--muted-foreground);
   font-size: 0.875rem;
-  cursor: pointer;
   flex-shrink: 0;
   transition: background-color var(--duration-fast) var(--ease-out),
               color var(--duration-fast) var(--ease-out);

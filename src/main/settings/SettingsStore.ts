@@ -21,6 +21,8 @@ const DEFAULTS: SettingsProto = {
  * Stores and persists user settings using MoBrowser preferences store.
  */
 export class SettingsStore {
+  private readonly shortcutKeyListeners: (() => void)[] = [];
+
   /**
    * Returns the current settings read from disk.
    */
@@ -50,11 +52,19 @@ export class SettingsStore {
   }
 
   /**
+   * Registers a listener that fires after the shortcut key is changed.
+   */
+  onShortcutKeyChanged(listener: () => void): void {
+    this.shortcutKeyListeners.push(listener);
+  }
+
+  /**
    * Updates the shortcut key setting and persists to disk.
    */
   setShortcutKey(value: string): void {
     prefs.setString('shortcutKey', value);
     prefs.persist();
+    for (const listener of this.shortcutKeyListeners) listener();
   }
 
   /**

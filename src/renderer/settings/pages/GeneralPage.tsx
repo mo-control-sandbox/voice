@@ -1,28 +1,18 @@
 import { useEffect, useRef, useState } from 'react';
+import { Switch } from '../components/Switch';
 import { SettingsService } from '../services/SettingsService';
+import './GeneralPage.css';
 
 const settingsService = new SettingsService();
 
-// ── Audio device picker ────────────────────────────────────────────────────
-
-interface AudioDevice {
-  readonly deviceId: string;
-  readonly label: string;
-}
-
-// ── Shortcut utilities ─────────────────────────────────────────────────────
-
-/**
- * Predefined shortcuts the user can choose with a single click.
- * Keys use MoBrowser accelerator format.
- */
-const PREDEFINED_SHORTCUTS: readonly { readonly label: string; readonly value: string }[] = [
+/** Predefined shortcuts the user can choose with a single click. */
+const PREDEFINED_SHORTCUTS = [
   { label: 'Cmd+Shift+Space', value: 'CommandOrControl+Shift+Space' },
   { label: 'Cmd+Shift+M',     value: 'CommandOrControl+Shift+M'     },
   { label: 'Cmd+Shift+R',     value: 'CommandOrControl+Shift+R'     },
   { label: 'Ctrl+Space',      value: 'Control+Space'                 },
   { label: 'Alt+Space',       value: 'Alt+Space'                     },
-];
+] as const;
 
 /**
  * Converts a KeyboardEvent into a MoBrowser accelerator string.
@@ -40,54 +30,57 @@ function buildAccelerator(e: KeyboardEvent): string | null {
   if (parts.length === 0) return null;
 
   let key = e.key;
-  if (key === ' ')          key = 'Space';
+  if (key === ' ')           key = 'Space';
   else if (key.length === 1) key = key.toUpperCase();
 
   parts.push(key);
   return parts.join('+');
 }
 
-// ── Page ───────────────────────────────────────────────────────────────────
-
-/** General settings -- audio input, shortcut, and privacy preferences. */
+/** General settings -- audio input, global shortcut, and privacy preferences. */
 export function GeneralPage(): React.JSX.Element {
-  const [devices, setDevices] = useState<AudioDevice[]>([]);
-  const [selectedDeviceId, setSelectedDeviceId] = useState<string>('');
-  const [shortcutKey, setShortcutKey] = useState<string>('');
+  const [devices, setDevices] = useState<readonly { deviceId: string; label: string }[]>([]);
+  const [selectedDeviceId, setSelectedDeviceId] = useState('');
+  const [shortcutKey, setShortcutKey] = useState('');
   const [isCapturing, setIsCapturing] = useState(false);
   const [dontSaveTranscripts, setDontSaveTranscripts] = useState(false);
   const [dontSaveAudio, setDontSaveAudio] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isShortcutLoading, setIsShortcutLoading] = useState(true);
+  const [isMicLoading, setIsMicLoading] = useState(true);
   const captureRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    async function load(): Promise<void> {
-      try {
-        const tempStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-        tempStream.getTracks().forEach((t) => { t.stop(); });
-      } catch { /* Permission denied -- device labels will be empty. */ }
-
-      const [settings, allDevices] = await Promise.all([
-        settingsService.getSettings(),
-        navigator.mediaDevices.enumerateDevices(),
-      ]);
-
-      const audioInputs = allDevices
-        .filter((d) => d.kind === 'audioinput')
-        .map((d) => ({ deviceId: d.deviceId, label: d.label || d.deviceId }));
-
-      setDevices(audioInputs);
-      setSelectedDeviceId(settings.audioInputDeviceId);
+    // Settings load fast: drives shortcut key and privacy toggles immediately.
+    const settingsPromise = settingsService.getSettings().then((settings) => {
       setShortcutKey(settings.shortcutKey);
       setDontSaveTranscripts(settings.dontSaveTranscripts);
       setDontSaveAudio(settings.dontSaveAudio);
-      setIsLoading(false);
-    }
-    void load();
+      setIsShortcutLoading(false);
+      return settings.audioInputDeviceId;
+    });
+
+    // Device enumeration may be slower: requires getUserMedia to populate labels.
+    const devicesPromise = (async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+        stream.getTracks().forEach((t) => { t.stop(); });
+      } catch { /* Permission not yet granted -- device labels may be empty. */ }
+      const all = await navigator.mediaDevices.enumerateDevices();
+      return all
+        .filter((d) => d.kind === 'audioinput')
+        .map((d) => ({ deviceId: d.deviceId, label: d.label || d.deviceId }));
+    })();
+
+    // Mic section needs both the saved device ID and the device list.
+    void Promise.all([settingsPromise, devicesPromise]).then(([savedDeviceId, deviceList]) => {
+      setSelectedDeviceId(savedDeviceId);
+      setDevices(deviceList);
+      setIsMicLoading(false);
+    });
   }, []);
 
-  // Suspend the global shortcut while capture mode is active so the current
-  // hotkey doesn't fire mid-capture.
+  // Suspend the global shortcut during key capture so the current hotkey
+  // doesn't fire while the user is pressing a new one.
   useEffect(() => {
     if (!isCapturing) return;
 
@@ -109,6 +102,16 @@ export function GeneralPage(): React.JSX.Element {
     };
   }, [isCapturing]);
 
+  async function saveShortcut(accelerator: string): Promise<void> {
+    setShortcutKey(accelerator);
+    await settingsService.setShortcutKey(accelerator);
+  }
+
+  async function handleDeviceChange(deviceId: string): Promise<void> {
+    setSelectedDeviceId(deviceId);
+    await settingsService.setAudioInputDevice(deviceId);
+  }
+
   async function handleDontSaveTranscripts(value: boolean): Promise<void> {
     setDontSaveTranscripts(value);
     await settingsService.setDontSaveTranscripts(value);
@@ -119,72 +122,103 @@ export function GeneralPage(): React.JSX.Element {
     await settingsService.setDontSaveAudio(value);
   }
 
-  async function handleDeviceChange(deviceId: string): Promise<void> {
-    setSelectedDeviceId(deviceId);
-    await settingsService.setAudioInputDevice(deviceId);
-  }
-
-  async function saveShortcut(accelerator: string): Promise<void> {
-    setShortcutKey(accelerator);
-    await settingsService.setShortcutKey(accelerator);
-  }
-
-  if (isLoading) return <p>Loading...</p>;
+  const isPredefined = PREDEFINED_SHORTCUTS.some((s) => s.value === shortcutKey);
+  const customLabel  = !isPredefined && shortcutKey !== '' ? shortcutKey : null;
 
   return (
-    <div>
-      <div>
-        <label>
-          Microphone:
-          <select
-            value={selectedDeviceId}
-            onChange={(e) => { void handleDeviceChange(e.target.value); }}
-          >
-            <option value="">System default</option>
-            {devices.map((d) => (
-              <option key={d.deviceId} value={d.deviceId}>{d.label}</option>
-            ))}
-          </select>
-        </label>
-      </div>
+    <div className="general-page">
+      <h1 className="general-page__heading">General</h1>
 
-      <div>
-        <label>
-          <input
-            type="checkbox"
+      {/* ── Privacy ─────────────────────────────────────────────────────── */}
+      <section className="general-section">
+        <span className="general-section__label">Privacy</span>
+        <div className="toggle-row">
+          <label htmlFor="no-transcripts" className="toggle-row__label">
+            Don't save transcripts
+          </label>
+          <Switch
+            id="no-transcripts"
             checked={dontSaveTranscripts}
-            onChange={(e) => { void handleDontSaveTranscripts(e.target.checked); }}
+            onChange={(v) => { void handleDontSaveTranscripts(v); }}
           />
-          Don't save transcripts
-        </label>
-        <label>
-          <input
-            type="checkbox"
+        </div>
+        <div className="toggle-row">
+          <label htmlFor="no-audio" className="toggle-row__label">
+            Don't save audio
+          </label>
+          <Switch
+            id="no-audio"
             checked={dontSaveAudio}
-            onChange={(e) => { void handleDontSaveAudio(e.target.checked); }}
+            onChange={(v) => { void handleDontSaveAudio(v); }}
           />
-          Don't save audio
-        </label>
-      </div>
+        </div>
+      </section>
 
-      <div>
-        <p>Shortcut: {shortcutKey !== '' ? shortcutKey : '—'}</p>
-        {PREDEFINED_SHORTCUTS.map((s) => (
-          <button
-            key={s.value}
-            disabled={shortcutKey === s.value}
-            onClick={() => { void saveShortcut(s.value); }}
-          >
-            {s.label}
-          </button>
-        ))}
-        <button
-          ref={captureRef}
-          onClick={() => { setIsCapturing(true); captureRef.current?.focus(); }}
-        >
-          {isCapturing ? 'Press a shortcut... (Esc to cancel)' : 'Custom...'}
-        </button>
-      </div>
+      {/* ── Input ───────────────────────────────────────────────────────── */}
+      <section className="general-section">
+        <span className="general-section__label">Input</span>
+        {isMicLoading ? (
+          <div className="general-skeleton" />
+        ) : (
+          <div className="general-field">
+            <label htmlFor="mic-select" className="toggle-row__label">Microphone</label>
+            <select
+              id="mic-select"
+              className="device-select"
+              value={selectedDeviceId}
+              onChange={(e) => { void handleDeviceChange(e.target.value); }}
+            >
+              <option value="">System default</option>
+              {devices.map((d) => (
+                <option key={d.deviceId} value={d.deviceId}>{d.label}</option>
+              ))}
+            </select>
+          </div>
+        )}
+      </section>
+
+      {/* ── Shortcut ────────────────────────────────────────────────────── */}
+      <section className="general-section">
+        <span className="general-section__label">Shortcut</span>
+        {isShortcutLoading ? (
+          <div className="general-skeleton" />
+        ) : (
+          <div className="shortcut-section">
+            <div className="shortcut-presets">
+              {PREDEFINED_SHORTCUTS.map((s) => (
+                <button
+                  key={s.value}
+                  type="button"
+                  className="shortcut-preset"
+                  data-active={shortcutKey === s.value ? 'true' : undefined}
+                  onClick={() => { void saveShortcut(s.value); }}
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
+            <div className="shortcut-capture-row">
+              <button
+                ref={captureRef}
+                type="button"
+                className="shortcut-capture"
+                data-state={isCapturing ? 'capturing' : undefined}
+                onClick={() => { setIsCapturing(true); captureRef.current?.focus(); }}
+              >
+                {isCapturing ? 'Press a key... (Esc to cancel)' : 'Custom...'}
+              </button>
+              {customLabel !== null && (
+                <span className="shortcut-custom-value">{customLabel}</span>
+              )}
+            </div>
+            {shortcutKey !== '' && (
+              <span className="shortcut-summary">
+                Active shortcut: <span className="shortcut-summary__value">{shortcutKey}</span>
+              </span>
+            )}
+          </div>
+        )}
+      </section>
     </div>
   );
 }

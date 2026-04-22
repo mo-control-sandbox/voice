@@ -1,5 +1,5 @@
 import { ipc } from '../../gen/ipc';
-import type { PermissionType } from '../../gen/permissions';
+import type { PermissionType, PermissionsResponse } from '../../gen/permissions';
 
 /**
  * IPC adapter for the permissions domain.
@@ -9,12 +9,12 @@ import type { PermissionType } from '../../gen/permissions';
  */
 export class PermissionsService {
   /** Returns the current status of all macOS permissions required by moVoice. */
-  async getPermissions() {
+  async getPermissions(): Promise<PermissionsResponse> {
     return ipc.permissions.GetPermissions({});
   }
 
   /** Re-queries the OS for the latest permission statuses. */
-  async refreshPermissions() {
+  async refreshPermissions(): Promise<PermissionsResponse> {
     return ipc.permissions.RefreshPermissions({});
   }
 

@@ -1,4 +1,5 @@
 import { ipc } from '../../gen/ipc';
+import type { SettingsProto } from '../../gen/settings';
 
 /**
  * IPC adapter for the settings domain.
@@ -8,7 +9,7 @@ import { ipc } from '../../gen/ipc';
  */
 export class SettingsService {
   /** Returns the current persisted settings. */
-  async getSettings() {
+  async getSettings(): Promise<SettingsProto> {
     return ipc.settings.GetSettings({});
   }
 

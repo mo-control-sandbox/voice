@@ -9,13 +9,12 @@
   border-radius: var(--radius-full);
   border: 2px solid transparent;
   background-color: var(--input);
-  cursor: pointer;
   flex-shrink: 0;
   transition: background-color var(--duration-fast) var(--ease-out);
 }
 
 .switch[aria-checked="true"] {
-  background-color: var(--primary);
+  background-color: var(--sidebar-primary);
 }
 
 .switch:focus-visible {

@@ -8,6 +8,7 @@
   border-radius: var(--radius-lg);
   border: 1px solid var(--border);
   background-color: var(--card);
+
   /* Left accent via box-shadow — no layout shift */
   box-shadow: inset 3px 0 0 transparent;
   transition: box-shadow var(--duration-fast) var(--ease-out);
@@ -181,7 +182,6 @@
   font-size: 0.75rem;
   font-weight: 500;
   line-height: 1;
-  cursor: pointer;
   border: 1px solid transparent;
   transition: background-color var(--duration-fast) var(--ease-out),
               color var(--duration-fast) var(--ease-out),

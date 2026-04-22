@@ -22,7 +22,6 @@
   border: none;
   background-color: var(--secondary);
   color: var(--secondary-foreground);
-  cursor: pointer;
   flex-shrink: 0;
   transition: background-color var(--duration-fast) var(--ease-out),
               color var(--duration-fast) var(--ease-out);
@@ -73,7 +72,6 @@
   align-items: center;
   position: relative;
   height: 16px;
-  cursor: pointer;
 }
 
 .audio-player__track {
@@ -100,7 +98,6 @@
   inset: 0;
   width: 100%;
   opacity: 0;
-  cursor: pointer;
   height: 100%;
   margin: 0;
 }
@@ -110,10 +107,11 @@
   outline-offset: 2px;
 }
 
-/* ─── Not-saved placeholder ──────────────────────────────────────────────── */
+/* ─── Not-saved label (replaces the scrubber) ────────────────────────────── */
 
-.audio-player--empty {
+.audio-player__unavailable {
+  flex: 1;
   font-size: 0.75rem;
   color: var(--muted-foreground);
-  padding: calc(var(--spacing) * 2) 0;
+  font-style: italic;
 }

@@ -88,58 +88,58 @@
 /* ─── Semantic tokens — Light mode ──────────────────────────────────────────── */
 :root {
   /* Surface & text */
-  --background:        oklch(1 0 0);
-  --foreground:        oklch(0.145 0 0);
-  --card:              oklch(1 0 0);
-  --card-foreground:   oklch(0.145 0 0);
-  --popover:           oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
+  --background:        oklch(100% 0 0deg);
+  --foreground:        oklch(14.5% 0 0deg);
+  --card:              oklch(100% 0 0deg);
+  --card-foreground:   oklch(14.5% 0 0deg);
+  --popover:           oklch(100% 0 0deg);
+  --popover-foreground: oklch(14.5% 0 0deg);
 
   /* Interactive */
-  --primary:              oklch(0.205 0 0);
-  --primary-foreground:   oklch(0.985 0 0);
-  --secondary:            oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --accent:               oklch(0.97 0 0);
-  --accent-foreground:    oklch(0.205 0 0);
-  --destructive:          oklch(0.577 0.245 27.3);
-  --destructive-foreground: oklch(0.985 0 0);
+  --primary:              oklch(20.5% 0 0deg);
+  --primary-foreground:   oklch(98.5% 0 0deg);
+  --secondary:            oklch(97% 0 0deg);
+  --secondary-foreground: oklch(20.5% 0 0deg);
+  --accent:               oklch(97% 0 0deg);
+  --accent-foreground:    oklch(20.5% 0 0deg);
+  --destructive:          oklch(57.7% 0.245 27.3deg);
+  --destructive-foreground: oklch(98.5% 0 0deg);
 
   /* Chrome */
-  --muted:            oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --border:           oklch(0.922 0 0);
-  --input:            oklch(0.922 0 0);
-  --ring:             oklch(0.708 0 0);
+  --muted:            oklch(97% 0 0deg);
+  --muted-foreground: oklch(55.6% 0 0deg);
+  --border:           oklch(92.2% 0 0deg);
+  --input:            oklch(92.2% 0 0deg);
+  --ring:             oklch(70.8% 0 0deg);
 
   /* Sidebar */
-  --sidebar:                    oklch(0.985 0 0);
-  --sidebar-foreground:         oklch(0.145 0 0);
-  --sidebar-primary:            oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent:             oklch(0.97 0 0);
-  --sidebar-accent-foreground:  oklch(0.205 0 0);
-  --sidebar-border:             oklch(0.922 0 0);
-  --sidebar-ring:               oklch(0.708 0 0);
+  --sidebar:                    oklch(98.5% 0 0deg);
+  --sidebar-foreground:         oklch(14.5% 0 0deg);
+  --sidebar-primary:            oklch(20.5% 0 0deg);
+  --sidebar-primary-foreground: oklch(98.5% 0 0deg);
+  --sidebar-accent:             oklch(97% 0 0deg);
+  --sidebar-accent-foreground:  oklch(20.5% 0 0deg);
+  --sidebar-border:             oklch(92.2% 0 0deg);
+  --sidebar-ring:               oklch(70.8% 0 0deg);
 
   /* Status */
-  --success:            oklch(0.596 0.145 163.2);
-  --success-foreground: oklch(0.985 0 0);
-  --warning:            oklch(0.700 0.180 65.0);
-  --warning-foreground: oklch(0.145 0 0);
-  --info:               oklch(0.546 0.245 262.9);
-  --info-foreground:    oklch(0.985 0 0);
+  --success:            oklch(59.6% 0.145 163.2deg);
+  --success-foreground: oklch(98.5% 0 0deg);
+  --warning:            oklch(70% 0.180 65.0deg);
+  --warning-foreground: oklch(14.5% 0 0deg);
+  --info:               oklch(54.6% 0.245 262.9deg);
+  --info-foreground:    oklch(98.5% 0 0deg);
 
   /* moVoice — recording state */
-  --recording:            oklch(0.627 0.218 20.8);
-  --recording-foreground: oklch(0.985 0 0);
+  --recording:            oklch(62.7% 0.218 20.8deg);
+  --recording-foreground: oklch(98.5% 0 0deg);
 
   /* Data visualisation */
-  --chart-1: oklch(0.809 0.105 251.8);
-  --chart-2: oklch(0.623 0.214 259.8);
-  --chart-3: oklch(0.546 0.245 262.9);
-  --chart-4: oklch(0.488 0.243 264.4);
-  --chart-5: oklch(0.424 0.199 265.6);
+  --chart-1: oklch(80.9% 0.105 251.8deg);
+  --chart-2: oklch(62.3% 0.214 259.8deg);
+  --chart-3: oklch(54.6% 0.245 262.9deg);
+  --chart-4: oklch(48.8% 0.243 264.4deg);
+  --chart-5: oklch(42.4% 0.199 265.6deg);
 
   /* Border radius — base: 10px */
   --radius-xs:   0.125rem;   /* 2px  */
@@ -175,69 +175,69 @@
   --z-tooltip:  400;
 
   /* Elevation shadows (system.md §6.1) */
-  --shadow-xs:  0 1px 2px rgba(0,0,0,0.05);
-  --shadow-sm:  0 1px 3px rgba(0,0,0,0.1), 0 1px 2px -1px rgba(0,0,0,0.1);
-  --shadow-md:  0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
-  --shadow-lg:  0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
-  --shadow-xl:  0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);
-  --shadow-2xl: 0 25px 50px -12px rgba(0,0,0,0.25);
+  --shadow-xs:  0 1px 2px rgb(0 0 0 / 5%);
+  --shadow-sm:  0 1px 3px rgb(0 0 0 / 10%), 0 1px 2px -1px rgb(0 0 0 / 10%);
+  --shadow-md:  0 4px 6px -1px rgb(0 0 0 / 10%), 0 2px 4px -2px rgb(0 0 0 / 10%);
+  --shadow-lg:  0 10px 15px -3px rgb(0 0 0 / 10%), 0 4px 6px -4px rgb(0 0 0 / 10%);
+  --shadow-xl:  0 20px 25px -5px rgb(0 0 0 / 10%), 0 8px 10px -6px rgb(0 0 0 / 10%);
+  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 25%);
 }
 
 /* ─── Semantic tokens — Dark mode ───────────────────────────────────────────── */
 .dark {
   /* Surface & text */
-  --background:        oklch(0.145 0 0);
-  --foreground:        oklch(0.985 0 0);
-  --card:              oklch(0.205 0 0);
-  --card-foreground:   oklch(0.985 0 0);
-  --popover:           oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
+  --background:        oklch(14.5% 0 0deg);
+  --foreground:        oklch(98.5% 0 0deg);
+  --card:              oklch(20.5% 0 0deg);
+  --card-foreground:   oklch(98.5% 0 0deg);
+  --popover:           oklch(20.5% 0 0deg);
+  --popover-foreground: oklch(98.5% 0 0deg);
 
   /* Interactive */
-  --primary:              oklch(0.985 0 0);
-  --primary-foreground:   oklch(0.205 0 0);
-  --secondary:            oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --accent:               oklch(0.269 0 0);
-  --accent-foreground:    oklch(0.985 0 0);
-  --destructive:          oklch(0.704 0.191 22.2);
-  --destructive-foreground: oklch(0.985 0 0);
+  --primary:              oklch(98.5% 0 0deg);
+  --primary-foreground:   oklch(20.5% 0 0deg);
+  --secondary:            oklch(26.9% 0 0deg);
+  --secondary-foreground: oklch(98.5% 0 0deg);
+  --accent:               oklch(26.9% 0 0deg);
+  --accent-foreground:    oklch(98.5% 0 0deg);
+  --destructive:          oklch(70.4% 0.191 22.2deg);
+  --destructive-foreground: oklch(98.5% 0 0deg);
 
   /* Chrome */
-  --muted:            oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --border:           oklch(1 0 0 / 10%);
-  --input:            oklch(1 0 0 / 15%);
-  --ring:             oklch(0.556 0 0);
+  --muted:            oklch(26.9% 0 0deg);
+  --muted-foreground: oklch(70.8% 0 0deg);
+  --border:           oklch(100% 0 0deg / 10%);
+  --input:            oklch(100% 0 0deg / 15%);
+  --ring:             oklch(55.6% 0 0deg);
 
   /* Sidebar */
-  --sidebar:                    oklch(0.205 0 0);
-  --sidebar-foreground:         oklch(0.985 0 0);
-  --sidebar-primary:            oklch(0.488 0.243 264.4);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent:             oklch(0.269 0 0);
-  --sidebar-accent-foreground:  oklch(0.985 0 0);
-  --sidebar-border:             oklch(1 0 0 / 10%);
-  --sidebar-ring:               oklch(0.556 0 0);
+  --sidebar:                    oklch(20.5% 0 0deg);
+  --sidebar-foreground:         oklch(98.5% 0 0deg);
+  --sidebar-primary:            oklch(48.8% 0.243 264.4deg);
+  --sidebar-primary-foreground: oklch(98.5% 0 0deg);
+  --sidebar-accent:             oklch(26.9% 0 0deg);
+  --sidebar-accent-foreground:  oklch(98.5% 0 0deg);
+  --sidebar-border:             oklch(100% 0 0deg / 10%);
+  --sidebar-ring:               oklch(55.6% 0 0deg);
 
   /* Status */
-  --success:            oklch(0.696 0.170 162.5);
-  --success-foreground: oklch(0.145 0 0);
-  --warning:            oklch(0.820 0.160 75.0);
-  --warning-foreground: oklch(0.145 0 0);
-  --info:               oklch(0.623 0.214 259.8);
-  --info-foreground:    oklch(0.985 0 0);
+  --success:            oklch(69.6% 0.170 162.5deg);
+  --success-foreground: oklch(14.5% 0 0deg);
+  --warning:            oklch(82% 0.160 75.0deg);
+  --warning-foreground: oklch(14.5% 0 0deg);
+  --info:               oklch(62.3% 0.214 259.8deg);
+  --info-foreground:    oklch(98.5% 0 0deg);
 
   /* moVoice — recording state */
-  --recording:            oklch(0.720 0.185 18.0);
-  --recording-foreground: oklch(0.985 0 0);
+  --recording:            oklch(72% 0.185 18.0deg);
+  --recording-foreground: oklch(98.5% 0 0deg);
 
   /* Data visualisation — same in both modes */
-  --chart-1: oklch(0.809 0.105 251.8);
-  --chart-2: oklch(0.623 0.214 259.8);
-  --chart-3: oklch(0.546 0.245 262.9);
-  --chart-4: oklch(0.488 0.243 264.4);
-  --chart-5: oklch(0.424 0.199 265.6);
+  --chart-1: oklch(80.9% 0.105 251.8deg);
+  --chart-2: oklch(62.3% 0.214 259.8deg);
+  --chart-3: oklch(54.6% 0.245 262.9deg);
+  --chart-4: oklch(48.8% 0.243 264.4deg);
+  --chart-5: oklch(42.4% 0.199 265.6deg);
 }
 
 /* ─── Keyframes ─────────────────────────────────────────────────────────────── */
@@ -271,7 +271,6 @@
 
   html {
     /* Prevent font size inflation on orientation change */
-    -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
   }
 
@@ -285,16 +284,50 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
+  /* ── Desktop cursor conventions (system.md §10.4) ───────────────────────
+     On macOS, interactive controls use the arrow cursor; only genuine
+     navigation links use the pointer/hand cursor.
+  ──────────────────────────────────────────────────────────────────────── */
+
+  button,
+  [role="button"],
+  select,
+  label[for],
+  [role="tab"],
+  [role="checkbox"],
+  [role="radio"],
+  [role="switch"],
+  [role="menuitem"],
+  [role="option"] {
+    cursor: default;
+  }
+
+  a[href] {
+    cursor: pointer;
+  }
+
+  /* ── Link styling (system.md §10.4) ─────────────────────────────────────
+     Links are color-differentiated, not underlined at rest.
+  ──────────────────────────────────────────────────────────────────────── */
+
+  a {
+    color: var(--info);
+    text-decoration: none;
+  }
+
+  a:hover {
+    text-decoration: underline;
+  }
+
   /* Tabular figures for data contexts — applied via utility class, not globally */
 
-  /* Reduced motion — collapse all transitions/animations to instant */
+  /* Reduced motion — disable all transitions/animations */
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
     *::after {
-      animation-duration: 0.01ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
+      animation: none;
+      transition: none;
     }
   }
 }

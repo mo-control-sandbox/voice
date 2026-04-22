@@ -1,14 +1,23 @@
 import { useState } from 'react';
+import { LayoutDashboard, Sliders, BrainCircuit, ShieldCheck } from 'lucide-react';
 import { DashboardPage } from './pages/DashboardPage';
 import { GeneralPage } from './pages/GeneralPage';
 import { ModelsPage } from './pages/ModelsPage';
 import { PermissionsPage } from './pages/PermissionsPage';
+import './App.css';
 
 type PageId = 'dashboard' | 'general' | 'models' | 'permissions';
 
-/** Root component for the Settings window. */
+const NAV_ITEMS = [
+  { id: 'dashboard'   as const, label: 'Dashboard',   Icon: LayoutDashboard },
+  { id: 'general'     as const, label: 'General',     Icon: Sliders },
+  { id: 'models'      as const, label: 'Models',      Icon: BrainCircuit },
+  { id: 'permissions' as const, label: 'Permissions', Icon: ShieldCheck },
+] as const;
+
+/** Root component for the Settings window. Owns page-level navigation. */
 export function SettingsApp(): React.JSX.Element {
-  const [activePage, setActivePage] = useState<PageId>('models');
+  const [activePage, setActivePage] = useState<PageId>('dashboard');
 
   function renderActivePage(): React.JSX.Element {
     switch (activePage) {
@@ -20,14 +29,29 @@ export function SettingsApp(): React.JSX.Element {
   }
 
   return (
-    <div>
-      <nav>
-        <button onClick={() => { setActivePage('dashboard'); }}>Dashboard</button>
-        <button onClick={() => { setActivePage('general'); }}>General</button>
-        <button onClick={() => { setActivePage('models'); }}>Models</button>
-        <button onClick={() => { setActivePage('permissions'); }}>Permissions</button>
-      </nav>
-      <main>{renderActivePage()}</main>
+    <div className="settings-app">
+      <aside className="settings-sidebar">
+        <div className="settings-sidebar__header">
+          <span className="settings-sidebar__app-name">moVoice</span>
+        </div>
+        <nav className="settings-sidebar__nav">
+          {NAV_ITEMS.map(({ id, label, Icon }) => (
+            <button
+              key={id}
+              type="button"
+              className="settings-nav-item"
+              aria-current={activePage === id ? 'page' : undefined}
+              onClick={() => { setActivePage(id); }}
+            >
+              <Icon className="settings-nav-item__icon" aria-hidden="true" />
+              {label}
+            </button>
+          ))}
+        </nav>
+      </aside>
+      <main className="settings-content">
+        {renderActivePage()}
+      </main>
     </div>
   );
 }

@@ -1,5 +1,7 @@
+import { MicOff } from 'lucide-react';
 import type { SessionRecordProto } from '../../gen/history';
 import { SessionItem } from './SessionItem';
+import './SessionList.css';
 
 interface SessionListProps {
   readonly sessions: SessionRecordProto[];
@@ -11,24 +13,38 @@ interface SessionListProps {
 /**
  * Scrollable list of transcription sessions.
  *
- * Keyboard contract (up/down navigation) is handled here so focus stays within
- * the listbox as the user arrows through items.
+ * Renders an empty state when there are no sessions. Keyboard navigation
+ * (up/down arrow keys) is handled at the listbox level so focus moves
+ * between items without leaving the list.
  */
 export function SessionList({ sessions, selectedId, onSelect, onDelete }: SessionListProps): React.JSX.Element {
   if (sessions.length === 0) {
-    return <p>No recordings yet.</p>;
+    return (
+      <div className="empty-history">
+        <MicOff className="empty-history__icon" aria-hidden="true" />
+        <span className="empty-history__title">No recordings yet</span>
+        <span className="empty-history__hint">
+          Press your shortcut key to start recording.
+        </span>
+      </div>
+    );
   }
 
   return (
-    <ul>
+    <ul
+      className="session-list"
+      role="listbox"
+      aria-label="Recording history"
+    >
       {sessions.map((session) => (
-        <SessionItem
-          key={session.id}
-          session={session}
-          isSelected={session.id === selectedId}
-          onSelect={onSelect}
-          onDelete={onDelete}
-        />
+        <li key={session.id} className="session-list__item" role="option" aria-selected={session.id === selectedId}>
+          <SessionItem
+            session={session}
+            isSelected={session.id === selectedId}
+            onSelect={onSelect}
+            onDelete={onDelete}
+          />
+        </li>
       ))}
     </ul>
   );

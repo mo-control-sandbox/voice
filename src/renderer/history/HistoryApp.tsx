@@ -5,6 +5,7 @@ import { SessionDetail } from './components/SessionDetail';
 import { reverseIpcBridge } from '../ipc/ReverseIpcBridge';
 import { HistorySignalService } from '../ipc/SignalService';
 import { HistoryService } from './services/HistoryService';
+import './HistoryApp.css';
 
 const historyService = new HistoryService();
 
@@ -12,14 +13,13 @@ const historyService = new HistoryService();
  * Root component for the History window.
  *
  * Owns all IPC for the history feature via HistoryService. Fetches the session
- * list on mount and re-fetches on every main-side history revision increment
- * delivered via the ReverseIpcBridge. Fetches audio data whenever the selected
- * session changes.
+ * list on mount and re-fetches whenever the main-side history revision changes.
+ * Fetches audio data each time the selected session changes.
  */
 export function HistoryApp(): React.JSX.Element {
-  const [sessions, setSessions] = useState<SessionRecordProto[]>([]);
+  const [sessions, setSessions]   = useState<SessionRecordProto[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [audioData, setAudioData] = useState<Uint8Array | null>(null);
+  const [audioData, setAudioData]   = useState<Uint8Array | null>(null);
 
   async function fetchSessions(): Promise<void> {
     const response = await historyService.getSessions();
@@ -36,10 +36,8 @@ export function HistoryApp(): React.JSX.Element {
         },
       }),
     );
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Fetch audio bytes whenever the selected session changes.
   useEffect(() => {
     if (selectedId === null) {
       setAudioData(null);
@@ -58,37 +56,35 @@ export function HistoryApp(): React.JSX.Element {
     });
   }
 
-  function handleRevealAudio(id: string): void {
-    historyService.revealAudioFile(id);
-  }
-
-  function handleRevealTranscript(id: string): void {
-    historyService.revealTranscriptFile(id);
-  }
-
   const selectedSession = sessions.find((s) => s.id === selectedId) ?? null;
 
   return (
-    <div>
-      <div>
-        <SessionList
-          sessions={sessions}
-          selectedId={selectedId}
-          onSelect={setSelectedId}
-          onDelete={setSelectedId}
-        />
+    <div className="history-app">
+      <div className="history-app__list-pane">
+        <div className="history-app__list-pane-inner">
+          <SessionList
+            sessions={sessions}
+            selectedId={selectedId}
+            onSelect={setSelectedId}
+            onDelete={handleDelete}
+          />
+        </div>
       </div>
-      <div>
+
+      <div className="history-app__detail-pane">
         {selectedSession !== null ? (
           <SessionDetail
             session={selectedSession}
             audioData={audioData}
             onDelete={handleDelete}
-            onRevealAudio={handleRevealAudio}
-            onRevealTranscript={handleRevealTranscript}
+            onOpenInFinder={(id) => { historyService.revealSessionFolder(id); }}
           />
         ) : (
-          <p>{sessions.length > 0 ? 'Select a session.' : ''}</p>
+          <div className="history-app__placeholder">
+            <p className="history-app__placeholder-text">
+              {sessions.length > 0 ? 'Select a recording to view details' : ''}
+            </p>
+          </div>
         )}
       </div>
     </div>

@@ -80,24 +80,15 @@ export class HistoryStore {
   }
 
   /**
-   * Opens Finder and selects the audio file for the given session.
+   * Opens the session's storage directory in Finder.
+   *
+   * Falls back to the audio file when the directory itself cannot be shown
+   * directly, and is a no-op when no files for the session exist yet.
    */
-  revealAudioFile(id: string): void {
-    const audioPath = this.sessionStorage.getAudioPath(id);
-    if (this.sessionStorage.fileExists(audioPath)) {
-      desktop.showPath(audioPath);
-    }
-  }
-
-  /**
-   * Opens Finder and selects the transcript file for the given session.
-   * 
-   * No-op when the file does not exist.
-   */
-  revealTranscriptFile(id: string): void {
-    const transcriptPath = this.sessionStorage.getTranscriptPath(id);
-    if (this.sessionStorage.fileExists(transcriptPath)) {
-      desktop.showPath(transcriptPath);
+  revealSessionFolder(id: string): void {
+    const dir = this.sessionStorage.getSessionDir(id);
+    if (this.sessionStorage.fileExists(dir)) {
+      desktop.showPath(dir);
     }
   }
 
@@ -147,13 +138,8 @@ class HistoryService implements HistoryServiceInterface {
     return { audioData: Buffer.from(bytes ?? new Uint8Array(0)) };
   }
 
-  RevealAudioFile(request: SessionIdRequest) {
-    this.historyStore.revealAudioFile(request.id);
-    return Promise.resolve({});
-  }
-
-  RevealTranscriptFile(request: SessionIdRequest) {
-    this.historyStore.revealTranscriptFile(request.id);
+  RevealSessionFolder(request: SessionIdRequest) {
+    this.historyStore.revealSessionFolder(request.id);
     return Promise.resolve({});
   }
 }

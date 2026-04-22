@@ -1,4 +1,5 @@
 import { ipc } from '../../gen/ipc';
+import type { SessionListResponse, AudioDataResponse } from '../../gen/history';
 
 /**
  * IPC adapter for the history domain.
@@ -8,7 +9,7 @@ import { ipc } from '../../gen/ipc';
  */
 export class HistoryService {
   /** Returns all recorded sessions in reverse-chronological order. */
-  async getSessions() {
+  async getSessions(): Promise<SessionListResponse> {
     return ipc.history.GetSessions({});
   }
 
@@ -16,7 +17,7 @@ export class HistoryService {
    * Returns the raw PCM bytes stored for a session.
    * The response audioData field is empty when audio was not saved.
    */
-  async getAudioData(id: string) {
+  async getAudioData(id: string): Promise<AudioDataResponse> {
     return ipc.history.GetAudioData({ id });
   }
 
@@ -25,13 +26,8 @@ export class HistoryService {
     await ipc.history.DeleteSession({ id });
   }
 
-  /** Opens the audio file for a session in Finder. */
-  revealAudioFile(id: string): void {
-    void ipc.history.RevealAudioFile({ id });
-  }
-
-  /** Opens the transcript file for a session in Finder. */
-  revealTranscriptFile(id: string): void {
-    void ipc.history.RevealTranscriptFile({ id });
+  /** Opens the session folder in Finder. */
+  revealSessionFolder(id: string): void {
+    void ipc.history.RevealSessionFolder({ id });
   }
 }
