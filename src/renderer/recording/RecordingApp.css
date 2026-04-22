@@ -1,12 +1,23 @@
 html,
-body {
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
   overflow: hidden;
+  background-color: transparent;
+}
+
+body,
+#root {
+  display: flex;
 }
 
 /* ─── Recording Window — Compact HUD surface ────────────────────────────────
-   300 × 72px floating window. Lives at bottom-centre of the screen.
-   The OS window dimensions and position are controlled by the main process;
-   this component fills 100% of that window.
+   Floating window HUD. Lives at bottom-centre of the screen.
+   The renderer fills the actual browser viewport so the widget tracks the
+   native content area even if it differs slightly from the configured outer
+   window size.
 ─────────────────────────────────────────────────────────────────────────── */
 
 .recording-window {
@@ -18,8 +29,6 @@ body {
   height: 100%;
   background-color: var(--background);
   border-radius: var(--radius-2xl);
-  box-shadow: var(--shadow-2xl);
-  border: 1px solid var(--border);
   overflow: hidden;
 
   /* Entire window is draggable; cancel button overrides below */
