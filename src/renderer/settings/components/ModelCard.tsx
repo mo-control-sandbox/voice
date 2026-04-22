@@ -3,14 +3,17 @@ import './ModelCard.css';
 
 interface ModelCardProps {
   readonly model: ModelEntry;
+  /** Non-null when the most recent download attempt failed. */
+  readonly error: string | null;
   readonly onDownload: () => void;
   readonly onDelete: () => void;
   readonly onSetActive: () => void;
 }
 
-type ModelState = 'available' | 'downloading' | 'downloaded' | 'active';
+type ModelState = 'available' | 'downloading' | 'downloaded' | 'active' | 'error';
 
-function resolveModelState(model: ModelEntry): ModelState {
+function resolveModelState(model: ModelEntry, hasError: boolean): ModelState {
+  if (hasError)                          return 'error';
   if (model.isActive)                    return 'active';
   if (model.downloadProgress !== null)   return 'downloading';
   if (model.isDownloaded)                return 'downloaded';
@@ -31,9 +34,9 @@ function toPercent(fraction: number): string {
  * Displays a single Whisper model with its metadata, download state,
  * and action controls (download, activate, delete).
  */
-export function ModelCard({ model, onDownload, onDelete, onSetActive }: ModelCardProps): React.JSX.Element {
+export function ModelCard({ model, error, onDownload, onDelete, onSetActive }: ModelCardProps): React.JSX.Element {
   const definition = model.definition as ModelDefinition;
-  const state      = resolveModelState(model);
+  const state      = resolveModelState(model, error !== null);
 
   // Five-dot pip row -- filled dots represent the score out of 5.
   function ScorePips({ score, label }: { score: number; label: string }): React.JSX.Element {
@@ -97,12 +100,17 @@ export function ModelCard({ model, onDownload, onDelete, onSetActive }: ModelCar
         </div>
       )}
 
+      {/* Error notice -- shown after a failed download attempt */}
+      {error !== null && (
+        <p className="model-card__error">{error}</p>
+      )}
+
       {/* Actions -- hidden while downloading */}
       {model.downloadProgress === null && (
         <div className="model-card__actions">
-          {state === 'available' && (
+          {(state === 'available' || state === 'error') && (
             <button type="button" className="model-card__btn" data-btn="primary" onClick={onDownload}>
-              Download
+              {state === 'error' ? 'Retry' : 'Download'}
             </button>
           )}
           {state === 'downloaded' && (

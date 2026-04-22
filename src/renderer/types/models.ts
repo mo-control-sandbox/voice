@@ -1,9 +1,16 @@
-/** A Whisper-compatible model from the bundled catalog. */
+/**
+ * Determines which worker and loading strategy a model uses.
+ * Adding a new value here signals a new code path in BackendFactory and its worker.
+ */
+export type InferenceMode = 'whisper' | 'voxtral-realtime';
+
+/** A model from the bundled catalog. */
 export interface ModelDefinition {
   readonly id: string;
   readonly label: string;
   readonly description: string;
   readonly huggingFaceRepo: string;
+  readonly inferenceMode: InferenceMode;
   readonly speedScore: number;
   readonly accuracyScore: number;
   readonly fileSizeBytes: number;

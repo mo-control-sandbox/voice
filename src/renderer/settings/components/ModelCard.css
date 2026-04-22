@@ -22,6 +22,10 @@
   box-shadow: inset 3px 0 0 var(--info);
 }
 
+.model-card[data-model-state="error"] {
+  box-shadow: inset 3px 0 0 var(--destructive);
+}
+
 /* ─── Header row ─────────────────────────────────────────────────────────── */
 
 .model-card__header {
@@ -161,6 +165,14 @@
   border-radius: var(--radius-full);
   background-color: var(--info);
   transition: width 500ms var(--ease-linear);
+}
+
+/* ─── Error notice ───────────────────────────────────────────────────────── */
+
+.model-card__error {
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--destructive);
 }
 
 /* ─── Action row ─────────────────────────────────────────────────────────── */

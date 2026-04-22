@@ -24,6 +24,7 @@ function hasActiveDownload(models: ModelEntry[]): boolean {
 /** Models settings page -- view, download, delete, and activate Whisper models. */
 export function ModelsPage(): React.JSX.Element {
   const [models, setModels] = useState<ModelEntry[]>([]);
+  const [downloadErrors, setDownloadErrors] = useState<ReadonlyMap<string, string>>(new Map());
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const refreshModels = useCallback(async (): Promise<void> => {
@@ -65,7 +66,16 @@ export function ModelsPage(): React.JSX.Element {
   }
 
   async function handleDownload(id: string): Promise<void> {
-    void repository.download(id, () => { /* progress polled by interval */ });
+    setDownloadErrors((prev) => { const m = new Map(prev); m.delete(id); return m; });
+    void repository
+      .download(id, () => { /* progress polled by interval */ })
+      .catch((err: unknown) => {
+        console.error('[ModelsPage] Download failed:', err);
+        setDownloadErrors((prev) =>
+          new Map(prev).set(id, 'Download failed. Check your connection and try again.'),
+        );
+        void refreshModels();
+      });
     await refreshModels();
   }
 
@@ -107,6 +117,7 @@ export function ModelsPage(): React.JSX.Element {
           <ModelCard
             key={model.definition.id}
             model={model}
+            error={downloadErrors.get(model.definition.id) ?? null}
             onDownload={() => { void handleDownload(model.definition.id); }}
             onDelete={() => { void handleDelete(model.definition.id); }}
             onSetActive={() => { void handleSetActive(model.definition.id); }}

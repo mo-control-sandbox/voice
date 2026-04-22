@@ -2,43 +2,54 @@ import type { AnyModelDefinition } from '../../types/models';
 import type { BackendFactory } from './BackendFactory';
 import type { TranscriptionBackend } from './TranscriptionBackend';
 import { BuiltinBackend } from './BuiltinBackend';
+import { VoxtralRealtimeBackend } from './VoxtralRealtimeBackend';
 import { WhisperBackend } from './WhisperBackend';
+
+/**
+ * A transcription backend backed by a downloaded local model with an explicit
+ * lifecycle. Kept as a separate type so the factory can call `dispose()` without
+ * widening `TranscriptionBackend` with lifecycle concerns.
+ */
+interface LocalModelBackend extends TranscriptionBackend {
+  dispose(): void;
+}
 
 /**
  * BackendFactory for moVoice.
  *
- * Selects between BuiltinBackend (macOS speech recognition) and WhisperBackend
- * (local Transformers.js inference) based on the model definition.
- * WhisperBackend instances are cached per model and reused across consecutive
+ * Routes to BuiltinBackend (macOS speech recognition), WhisperBackend, or
+ * VoxtralRealtimeBackend based on the model definition's `inferenceMode`.
+ * Local model backends are cached per model and reused across consecutive
  * transcriptions, avoiding redundant worker spawns and model reloads.
  */
 export class MoVoiceBackendFactory implements BackendFactory {
-  private whisperBackend: WhisperBackend | null = null;
-  private currentModelId = '';
+  private cachedBackend: LocalModelBackend | null = null;
+  private cachedModelId = '';
 
   createBackend(model: AnyModelDefinition): TranscriptionBackend {
     if (model.isBuiltin) {
       return new BuiltinBackend();
     }
 
-    // Reuse the existing backend if the same Whisper model is selected again;
-    // otherwise dispose the stale worker and spin up a new one.
     const modelId = model.huggingFaceRepo;
-    if (this.whisperBackend === null || this.currentModelId !== modelId) {
-      this.whisperBackend?.dispose();
-      this.whisperBackend = new WhisperBackend(modelId);
-      this.currentModelId = modelId;
+    if (this.cachedBackend === null || this.cachedModelId !== modelId) {
+      this.cachedBackend?.dispose();
+      this.cachedBackend =
+        model.inferenceMode === 'voxtral-realtime'
+          ? new VoxtralRealtimeBackend(modelId)
+          : new WhisperBackend(modelId);
+      this.cachedModelId = modelId;
     }
 
-    return this.whisperBackend;
+    return this.cachedBackend;
   }
 
   /**
-   * Terminates any cached WhisperBackend worker and releases all resources.
+   * Terminates any cached local model backend and releases all resources.
    */
   dispose(): void {
-    this.whisperBackend?.dispose();
-    this.whisperBackend = null;
-    this.currentModelId = '';
+    this.cachedBackend?.dispose();
+    this.cachedBackend = null;
+    this.cachedModelId = '';
   }
 }

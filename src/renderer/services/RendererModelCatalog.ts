@@ -1,5 +1,5 @@
 import catalog from '../../../resources/models.json';
-import type { AnyModelDefinition, BuiltinModelDefinition, ModelDefinition } from '../types/models';
+import type { AnyModelDefinition, BuiltinModelDefinition, InferenceMode, ModelDefinition } from '../types/models';
 
 /** Shape of each entry in the bundled models.json catalog. */
 interface CatalogEntry {
@@ -7,6 +7,7 @@ interface CatalogEntry {
   readonly label: string;
   readonly description: string;
   readonly huggingFaceRepo: string;
+  readonly inferenceMode: InferenceMode;
   readonly speedScore: number;
   readonly accuracyScore: number;
   readonly fileSizeBytes: number;
@@ -36,6 +37,7 @@ export class RendererModelCatalog {
         label: entry.label,
         description: entry.description,
         huggingFaceRepo: entry.huggingFaceRepo,
+        inferenceMode: entry.inferenceMode,
         speedScore: entry.speedScore,
         accuracyScore: entry.accuracyScore,
         fileSizeBytes: entry.fileSizeBytes,
