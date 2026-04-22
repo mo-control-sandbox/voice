@@ -22,7 +22,7 @@
         "installer": {
           "dmg": {
             "name": "",
-            "volumeName": "",
+            "volumeName": "moVoice",
             "volumeIcon": "assets/app.icns",
             "eula": "",
             "window": {

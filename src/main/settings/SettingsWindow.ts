@@ -18,6 +18,7 @@ export class SettingsWindow {
         size: { width: 960, height: 700 },
         minimumSize: { width: 960, height: 700 },
         title: 'Settings',
+        resizable: false
       });
       this.window.setWindowButtonVisible('zoom', false);
       this.window.browser.loadUrl(new URL('settings/index.html', app.url).href);

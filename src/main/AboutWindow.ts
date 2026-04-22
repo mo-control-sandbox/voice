@@ -16,6 +16,7 @@ export class AboutWindow {
         minimumSize: { width: 400, height: 300 },
         title: 'About moVoice',
         windowTitlebarVisible: true,
+        resizable: false
       });
       this.window.setWindowButtonVisible('zoom', false);
       this.dockManager.track(this.window);

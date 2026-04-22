@@ -2,10 +2,10 @@ import { app, BrowserWindow } from '@mobrowser/api';
 import type { RecordingSessionController } from './RecordingSessionController';
 
 const RECORDING_WINDOW_WIDTH = 320;
-const RECORDING_WINDOW_HEIGHT = 88;
+const RECORDING_WINDOW_HEIGHT = 72;
 // Dock inset: typical macOS Dock height. No runtime Screen API is available;
 // this constant provides a reasonable bottom-center position.
-const DOCK_INSET_PX = 80;
+const DOCK_INSET_PX = 96;
 
 /**
  * The the floating recording overlay window.
@@ -39,14 +39,17 @@ export class RecordingWindow {
     const win = new BrowserWindow({
       size: { width: RECORDING_WINDOW_WIDTH, height: RECORDING_WINDOW_HEIGHT },
       alwaysOnTop: true,
+      hasShadow: true,
       windowTitleVisible: false,
       windowTitlebarVisible: false,
       windowAnimationEnabled: false,
       activationIndependenceEnabled: true,
+      resizable: false,
+      transparentBackground: true,
       //windowDisplayPolicy: 'appearOnAllDesktops',
     });
     win.browser.loadUrl(new URL('recording/index.html', app.url).href);
-    
+
     win.setWindowButtonVisible('close', false);
     win.setWindowButtonVisible('minimize', false);
     win.setWindowButtonVisible('zoom', false);
