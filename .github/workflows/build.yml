@@ -24,7 +24,7 @@ jobs:
       # Apple ID email used for notarization.
       MACOS_APPLE_ID: ${{ secrets.MACOS_APPLE_ID }}
       # App-specific password generated at appleid.apple.com for notarization.
-      MACOS_APP_PASSWORD: ${{ secrets.MACOS_APP_PASSWORD }}
+      MACOS_APPLE_PASSWORD: ${{ secrets.MACOS_APPLE_PASSWORD }}
 
     steps:
       - uses: actions/checkout@v6
