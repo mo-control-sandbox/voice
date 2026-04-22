@@ -66,4 +66,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: moVoice-macos
-          path: build/dist/pack
+          path: build/dist/pack/*.dmg
