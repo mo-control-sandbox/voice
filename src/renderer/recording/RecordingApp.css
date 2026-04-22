@@ -86,6 +86,12 @@ body {
   pointer-events: auto;
 }
 
+.recording-window[data-state="error"]
+  .recording-window__content[data-role="error"] {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 /* ─── Recording dot ─────────────────────────────────────────────────────── */
 
 .recording-window__dot {
@@ -107,9 +113,10 @@ body {
   flex-shrink: 0;
 }
 
-/* ─── Recording dot — hidden during processing (transcribing is not recording) */
+/* ─── Recording dot — hidden during processing and error states */
 
-.recording-window[data-state="processing"] .recording-window__dot {
+.recording-window[data-state="processing"] .recording-window__dot,
+.recording-window[data-state="error"] .recording-window__dot {
   opacity: 0;
   transition: opacity var(--duration-normal) var(--ease-in-out);
 }
@@ -130,6 +137,17 @@ body {
   color: var(--muted-foreground);
   font-variant-numeric: tabular-nums;
   flex-shrink: 0;
+}
+
+/* ─── Error message ─────────────────────────────────────────────────────── */
+
+.recording-window__error-message {
+  font-size: 0.75rem;
+  line-height: 1.333;
+  color: var(--destructive);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ─── Reduced motion ────────────────────────────────────────────────────── */

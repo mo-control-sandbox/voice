@@ -7,16 +7,34 @@ import type { RendererModelRepository } from '../services/RendererModelRepositor
 import { reverseIpcBridge } from '../ipc/ReverseIpcBridge';
 import { RecordingSignalService } from '../ipc/SignalService';
 
-export type RecordingPhase = 'idle' | 'recording' | 'processing';
+export type RecordingPhase = 'idle' | 'recording' | 'processing' | 'error';
 
 /*
  * The subset of recording state that the view layer needs to render.
  * isAudioReady becomes true once AudioPipeline.start() resolves successfully,
- * enabling the waveform visualiser.
+ * enabling the waveform visualiser. errorMessage is non-null only when phase
+ * is 'error'.
  */
 export interface RecordingViewState {
   readonly phase: RecordingPhase;
   readonly isAudioReady: boolean;
+  readonly errorMessage: string | null;
+}
+
+/** Maps a getUserMedia error to a short, user-readable sentence. */
+function classifyAudioError(err: unknown): string {
+  if (err instanceof DOMException) {
+    if (err.name === 'OverconstrainedError' || err.name === 'ConstraintNotSatisfiedError') {
+      return 'Microphone unavailable. Check your audio settings.';
+    }
+    if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+      return 'Microphone access denied. Open System Settings > Privacy.';
+    }
+    if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+      return 'No microphone found. Connect one and try again.';
+    }
+  }
+  return 'Could not start recording. Try again.';
 }
 
 /**
@@ -34,6 +52,8 @@ export class RecordingController {
   private lastState = 'idle';
   private inferenceAbort: AbortController | null = null;
   private stateCallback: ((state: RecordingViewState) => void) | null = null;
+  private errorMessage: string | null = null;
+  private errorDismissTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(
     private readonly modelRepository: RendererModelRepository,
@@ -94,9 +114,11 @@ export class RecordingController {
    * OS indicator clears without waiting for the main-process round-trip.
    */
   cancel(): void {
+    this.clearErrorDismiss();
     const sessionId = this.lastSessionId;
     const pipeline = this.pipeline;
     this.pipeline = null;
+    this.errorMessage = null;
     this.notifyState();
     void (async () => {
       await pipeline?.release();
@@ -115,10 +137,21 @@ export class RecordingController {
   // ── Private helpers ──────────────────────────────────────────────────────────
 
   private notifyState(): void {
+    const phase: RecordingPhase = this.errorMessage !== null
+      ? 'error'
+      : (this.lastState as RecordingPhase);
     this.stateCallback?.({
-      phase: this.lastState as RecordingPhase,
+      phase,
       isAudioReady: this.pipeline !== null,
+      errorMessage: this.errorMessage,
     });
+  }
+
+  private clearErrorDismiss(): void {
+    if (this.errorDismissTimer !== null) {
+      clearTimeout(this.errorDismissTimer);
+      this.errorDismissTimer = null;
+    }
   }
 
   private async startAudio(sessionId: string, deviceId: string): Promise<void> {
@@ -144,7 +177,13 @@ export class RecordingController {
       console.error('[RecordingController] Failed to start audio:', err);
       this.pipeline = null;
       await pipeline.release();
-      await ipc.recording.CancelRecording({ sessionId, reason: 'AUDIO_START_FAILED' });
+      this.errorMessage = classifyAudioError(err);
+      this.notifyState();
+      this.errorDismissTimer = setTimeout(() => {
+        this.errorMessage = null;
+        this.errorDismissTimer = null;
+        void ipc.recording.CancelRecording({ sessionId, reason: 'AUDIO_START_FAILED' });
+      }, 2000);
     }
   }
 
@@ -211,11 +250,16 @@ export class RecordingController {
   }
 
   private async cleanupPipeline(): Promise<void> {
+    this.clearErrorDismiss();
+    const hadError = this.errorMessage !== null;
+    this.errorMessage = null;
     const pipeline = this.pipeline;
     if (pipeline !== null) {
       this.pipeline = null;
       this.notifyState();
       await pipeline.release();
+    } else if (hadError) {
+      this.notifyState();
     }
   }
 }

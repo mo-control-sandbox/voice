@@ -42,6 +42,7 @@ export function RecordingApp(): React.JSX.Element {
   const [viewState, setViewState] = useState<RecordingViewState>({
     phase: 'idle',
     isAudioReady: false,
+    errorMessage: null,
   });
   const [elapsed, setElapsed] = useState(0);
   const controllerRef = useRef(controller);
@@ -60,7 +61,7 @@ export function RecordingApp(): React.JSX.Element {
     return () => { clearInterval(id); };
   }, [viewState.phase]);
 
-  const { phase, isAudioReady } = viewState;
+  const { phase, isAudioReady, errorMessage } = viewState;
 
   if (phase === 'idle') {
     return <></>;
@@ -75,7 +76,7 @@ export function RecordingApp(): React.JSX.Element {
         aria-atomic="true"
         className="recording-window__announcer"
       >
-        {phase === 'recording' ? 'Recording' : 'Transcribing'}
+        {phase === 'recording' ? 'Recording' : phase === 'error' ? errorMessage : 'Transcribing'}
       </span>
 
       <div className="recording-window__dot" />
@@ -97,6 +98,11 @@ export function RecordingApp(): React.JSX.Element {
         <div className="recording-window__content" data-role="processing">
           <ProcessingIndicator />
           <span className="recording-window__processing-label">Transcribing</span>
+        </div>
+
+        {/* Error layer: message text. Auto-dismissed by RecordingController. */}
+        <div className="recording-window__content" data-role="error">
+          <span className="recording-window__error-message">{errorMessage ?? ''}</span>
         </div>
       </div>
 
