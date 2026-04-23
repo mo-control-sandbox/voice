@@ -1,9 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
+import { PermissionStatus, PermissionType, type PermissionStatusProto } from '../../gen/permissions';
 import { Switch } from '../components/Switch';
+import { PermissionsService } from '../services/PermissionsService';
 import { SettingsService } from '../services/SettingsService';
 import './GeneralPage.css';
 
 const settingsService = new SettingsService();
+const permissionsService = new PermissionsService();
+const MIC_PERMISSION_POLL_INTERVAL_MS = 500;
+const MIC_PERMISSION_POLL_TIMEOUT_MS = 30_000;
 
 /** Predefined shortcuts the user can choose with a single click. */
 const PREDEFINED_SHORTCUTS = [
@@ -13,6 +18,18 @@ const PREDEFINED_SHORTCUTS = [
   { label: 'Ctrl+Space',      value: 'Control+Space'                 },
   { label: 'Alt+Space',       value: 'Alt+Space'                     },
 ] as const;
+
+interface GeneralPageProps {
+  readonly onOpenPermissions: () => void;
+}
+
+function permissionStatus(
+  permissions: readonly PermissionStatusProto[],
+  type: PermissionType,
+): PermissionStatus {
+  const permission = permissions.find((entry) => entry.type === type);
+  return permission?.status ?? PermissionStatus.PERMISSION_STATUS_UNSPECIFIED;
+}
 
 /**
  * Converts a KeyboardEvent into a MoBrowser accelerator string.
@@ -37,47 +54,162 @@ function buildAccelerator(e: KeyboardEvent): string | null {
   return parts.join('+');
 }
 
-/** General settings -- audio input, global shortcut, and privacy preferences. */
-export function GeneralPage(): React.JSX.Element {
+async function getAudioInputDevices(): Promise<readonly { deviceId: string; label: string }[]> {
+  try {
+    // Match the working project behavior: warm up media permission/labels first.
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+    stream.getTracks().forEach((track) => { track.stop(); });
+  } catch {
+    return [];
+  }
+
+  const all = await navigator.mediaDevices.enumerateDevices();
+  return all
+    .filter((d) => d.kind === 'audioinput')
+    .filter((d) => d.deviceId.trim() !== '')
+    .map((d, index) => ({
+      deviceId: d.deviceId,
+      label: d.label.trim() !== '' ? d.label : `Microphone ${String(index + 1)}`,
+    }));
+}
+
+/**
+ * General settings -- audio input, global shortcut, and privacy preferences.
+ */
+export function GeneralPage({ onOpenPermissions }: GeneralPageProps): React.JSX.Element {
   const [devices, setDevices] = useState<readonly { deviceId: string; label: string }[]>([]);
   const [selectedDeviceId, setSelectedDeviceId] = useState('');
+  const [micPermissionStatus, setMicPermissionStatus] = useState<PermissionStatus>(
+    PermissionStatus.PERMISSION_STATUS_UNSPECIFIED,
+  );
   const [shortcutKey, setShortcutKey] = useState('');
   const [isCapturing, setIsCapturing] = useState(false);
   const [dontSaveTranscripts, setDontSaveTranscripts] = useState(false);
   const [dontSaveAudio, setDontSaveAudio] = useState(false);
   const [isShortcutLoading, setIsShortcutLoading] = useState(true);
   const [isMicLoading, setIsMicLoading] = useState(true);
+  const [isMicPermissionActionLoading, setIsMicPermissionActionLoading] = useState(false);
+  const [isMicPermissionPolling, setIsMicPermissionPolling] = useState(false);
   const captureRef = useRef<HTMLButtonElement>(null);
+  const cancelledRef = useRef(false);
+  const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function clearMicPermissionPolling(): void {
+    if (pollIntervalRef.current !== null) {
+      clearInterval(pollIntervalRef.current);
+      pollIntervalRef.current = null;
+    }
+    if (pollTimeoutRef.current !== null) {
+      clearTimeout(pollTimeoutRef.current);
+      pollTimeoutRef.current = null;
+    }
+    setIsMicPermissionPolling(false);
+  }
+
+  async function refreshMicPermissionStatus(): Promise<PermissionStatus> {
+    const response = await permissionsService.refreshPermissions();
+    const status = permissionStatus(response.permissions, PermissionType.PERMISSION_TYPE_MICROPHONE);
+    setMicPermissionStatus(status);
+    return status;
+  }
+
+  async function loadAudioDevices(): Promise<void> {
+    try {
+      const deviceList = await getAudioInputDevices();
+      if (cancelledRef.current) return;
+      setDevices(deviceList);
+    } catch {
+      if (cancelledRef.current) return;
+      setDevices([]);
+    }
+  }
+
+  function startMicPermissionPolling(): void {
+    clearMicPermissionPolling();
+    setIsMicPermissionPolling(true);
+
+    let pollInFlight = false;
+    const runPoll = async (): Promise<void> => {
+      if (pollInFlight) return;
+      pollInFlight = true;
+      try {
+        const status = await refreshMicPermissionStatus();
+        if (status === PermissionStatus.PERMISSION_STATUS_GRANTED) {
+          await loadAudioDevices();
+          clearMicPermissionPolling();
+        }
+      } finally {
+        pollInFlight = false;
+      }
+    };
+
+    void runPoll();
+    pollIntervalRef.current = setInterval(() => { void runPoll(); }, MIC_PERMISSION_POLL_INTERVAL_MS);
+    pollTimeoutRef.current = setTimeout(() => {
+      clearMicPermissionPolling();
+    }, MIC_PERMISSION_POLL_TIMEOUT_MS);
+  }
 
   useEffect(() => {
-    // Settings load fast: drives shortcut key and privacy toggles immediately.
-    const settingsPromise = settingsService.getSettings().then((settings) => {
-      setShortcutKey(settings.shortcutKey);
-      setDontSaveTranscripts(settings.dontSaveTranscripts);
-      setDontSaveAudio(settings.dontSaveAudio);
-      setIsShortcutLoading(false);
-      return settings.audioInputDeviceId;
-    });
+    cancelledRef.current = false;
 
-    // Device enumeration may be slower: requires getUserMedia to populate labels.
-    const devicesPromise = (async () => {
+    async function loadSettings(): Promise<void> {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-        stream.getTracks().forEach((t) => { t.stop(); });
-      } catch { /* Permission not yet granted -- device labels may be empty. */ }
-      const all = await navigator.mediaDevices.enumerateDevices();
-      return all
-        .filter((d) => d.kind === 'audioinput')
-        .map((d) => ({ deviceId: d.deviceId, label: d.label || d.deviceId }));
-    })();
+        const settingsPromise = settingsService.getSettings().then((settings) => {
+          if (cancelledRef.current) return '';
+          setShortcutKey(settings.shortcutKey);
+          setDontSaveTranscripts(settings.dontSaveTranscripts);
+          setDontSaveAudio(settings.dontSaveAudio);
+          setIsShortcutLoading(false);
+          return settings.audioInputDeviceId;
+        });
+        const permissionsPromise = permissionsService.getPermissions().then((response) => (
+          permissionStatus(response.permissions, PermissionType.PERMISSION_TYPE_MICROPHONE)
+        ));
 
-    // Mic section needs both the saved device ID and the device list.
-    void Promise.all([settingsPromise, devicesPromise]).then(([savedDeviceId, deviceList]) => {
-      setSelectedDeviceId(savedDeviceId);
-      setDevices(deviceList);
-      setIsMicLoading(false);
-    });
+        const [savedDeviceId, micStatus] = await Promise.all([settingsPromise, permissionsPromise]);
+        if (cancelledRef.current) return;
+
+        setSelectedDeviceId(savedDeviceId);
+        setMicPermissionStatus(micStatus);
+        if (micStatus === PermissionStatus.PERMISSION_STATUS_GRANTED) {
+          await loadAudioDevices();
+        } else {
+          setDevices([]);
+        }
+      } catch {
+        if (cancelledRef.current) return;
+        setIsShortcutLoading(false);
+        setMicPermissionStatus(PermissionStatus.PERMISSION_STATUS_UNSPECIFIED);
+        setDevices([]);
+      } finally {
+        if (!cancelledRef.current) {
+          setIsMicLoading(false);
+        }
+      }
+    }
+
+    void loadSettings();
+    return () => {
+      cancelledRef.current = true;
+      clearMicPermissionPolling();
+    };
   }, []);
+
+  useEffect(() => {
+    if (micPermissionStatus !== PermissionStatus.PERMISSION_STATUS_GRANTED) {
+      clearMicPermissionPolling();
+      return;
+    }
+
+    const mediaDevices = navigator.mediaDevices;
+    const refreshDevices = (): void => { void loadAudioDevices(); };
+    mediaDevices.addEventListener('devicechange', refreshDevices);
+    return () => {
+      mediaDevices.removeEventListener('devicechange', refreshDevices);
+    };
+  }, [micPermissionStatus]);
 
   // Suspend the global shortcut during key capture so the current hotkey
   // doesn't fire while the user is pressing a new one.
@@ -122,8 +254,37 @@ export function GeneralPage(): React.JSX.Element {
     await settingsService.setDontSaveAudio(value);
   }
 
+  async function handleMicPermissionAction(): Promise<void> {
+    setIsMicPermissionActionLoading(true);
+    try {
+      if (micPermissionStatus === PermissionStatus.PERMISSION_STATUS_DENIED) {
+        await permissionsService.openSystemSettings(PermissionType.PERMISSION_TYPE_MICROPHONE);
+        startMicPermissionPolling();
+        return;
+      }
+
+      await permissionsService.requestPermission(PermissionType.PERMISSION_TYPE_MICROPHONE);
+      const updatedStatus = await refreshMicPermissionStatus();
+      if (updatedStatus === PermissionStatus.PERMISSION_STATUS_GRANTED) {
+        await loadAudioDevices();
+      }
+    } finally {
+      setIsMicPermissionActionLoading(false);
+    }
+  }
+
   const isPredefined = PREDEFINED_SHORTCUTS.some((s) => s.value === shortcutKey);
   const customLabel  = !isPredefined && shortcutKey !== '' ? shortcutKey : null;
+  const isMicPermissionGranted = micPermissionStatus === PermissionStatus.PERMISSION_STATUS_GRANTED;
+  const isMicPermissionDenied = micPermissionStatus === PermissionStatus.PERMISSION_STATUS_DENIED;
+  const micPermissionTitle = isMicPermissionDenied
+    ? 'Microphone access is off'
+    : 'Microphone access is needed';
+  const micPermissionDescription = isMicPermissionDenied
+    ? 'Open System Settings and enable microphone access for moVoice, then return here.'
+    : 'Allow microphone access to choose your input device.';
+  const micPermissionButtonLabel = isMicPermissionDenied ? 'Open System Settings' : 'Allow Access';
+  const isMicPermissionButtonDisabled = isMicPermissionActionLoading || isMicPermissionPolling;
 
   return (
     <div className="general-page">
@@ -159,6 +320,35 @@ export function GeneralPage(): React.JSX.Element {
         <span className="general-section__label">Input</span>
         {isMicLoading ? (
           <div className="general-skeleton" />
+        ) : !isMicPermissionGranted ? (
+          <div className="general-permission-card">
+            <span className="general-permission-card__title">{micPermissionTitle}</span>
+            <span className="general-permission-card__description">
+              {micPermissionDescription}
+            </span>
+            <button
+              type="button"
+              className="general-permission-card__link"
+              disabled={isMicPermissionButtonDisabled}
+              onClick={() => { void handleMicPermissionAction(); }}
+            >
+              {isMicPermissionPolling ? 'Checking...' : micPermissionButtonLabel}
+            </button>
+          </div>
+        ) : devices.length === 0 ? (
+          <div className="general-permission-card">
+            <span className="general-permission-card__title">No microphone devices available</span>
+            <span className="general-permission-card__description">
+              Open the Permissions page and allow microphone access, then return here.
+            </span>
+            <button
+              type="button"
+              className="general-permission-card__link"
+              onClick={onOpenPermissions}
+            >
+              Open Permissions
+            </button>
+          </div>
         ) : (
           <div className="general-field">
             <label htmlFor="mic-select" className="toggle-row__label">Microphone</label>

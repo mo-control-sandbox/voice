@@ -74,6 +74,30 @@
   animation: spin var(--duration-slow) var(--ease-linear) infinite;
 }
 
+/* ─── Permission notice ─────────────────────────────────────────────────── */
+
+.permissions-page__notice {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 1);
+  padding: calc(var(--spacing) * 4);
+  border-radius: var(--radius-lg);
+  border: 1px solid color-mix(in oklch, var(--accent) 45%, var(--border));
+  background-color: color-mix(in oklch, var(--accent) 22%, var(--background));
+}
+
+.permissions-page__notice-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.429;
+}
+
+.permissions-page__notice-text {
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
 /* ─── Permission list ────────────────────────────────────────────────────── */
 
 .permissions-page__list {

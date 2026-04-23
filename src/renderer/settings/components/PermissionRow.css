@@ -56,6 +56,7 @@
 .permission-row__badge {
   display: inline-flex;
   align-items: center;
+  gap: calc(var(--spacing) * 1);
   flex-shrink: 0;
   padding: 0 calc(var(--spacing) * 2.5);  /* 0 10px */
   height: 22px;
@@ -71,14 +72,27 @@
 }
 
 .permission-row__badge[data-status="denied"] {
-  background-color: var(--destructive);
-  color: var(--destructive-foreground);
+  background-color: color-mix(in oklch, var(--accent) 38%, var(--background));
+  color: var(--foreground);
+  border: 1px solid color-mix(in oklch, var(--accent) 60%, var(--border));
 }
 
 .permission-row__badge[data-status="unknown"] {
-  background-color: transparent;
+  background-color: color-mix(in oklch, var(--secondary) 60%, var(--background));
   color: var(--muted-foreground);
   border: 1px solid var(--border);
+}
+
+.permission-row__badge[data-status="requesting"] {
+  background-color: var(--secondary);
+  color: var(--secondary-foreground);
+}
+
+.permission-row__status-icon {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  animation: spin var(--duration-slow) var(--ease-linear) infinite;
 }
 
 /* ─── Request / Open Settings button ────────────────────────────────────── */
@@ -106,4 +120,20 @@
 .permission-row__action:focus-visible {
   outline: 3px solid var(--ring);
   outline-offset: 2px;
+}
+
+.permission-row__action:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.permission-row__action:disabled:hover {
+  background-color: transparent;
+  color: var(--muted-foreground);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .permission-row__status-icon {
+    animation: none;
+  }
 }

@@ -1,4 +1,4 @@
-import { BrowserWindow } from '@mobrowser/api';
+import { BrowserWindow, type RequestPermissionsParams } from '@mobrowser/api';
 import type { RecordingSessionController } from './RecordingSessionController';
 import { rendererWindowUrl } from '../RendererWindowUrl';
 
@@ -49,6 +49,10 @@ export class RecordingWindow {
       resizable: false,
       transparentBackground: true,
       //windowDisplayPolicy: 'appearOnAllDesktops',
+    });
+    win.browser.handle('requestPermissions', async (params: RequestPermissionsParams) => {
+      if (params.permissionType === 'microphone' || params.permissionType === 'AudioCapture') return 'grant';
+      return 'deny';
     });
 
     win.setWindowButtonVisible('close', false);

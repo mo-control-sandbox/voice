@@ -1,7 +1,10 @@
+import { Loader2 } from 'lucide-react';
 import { PermissionStatus, type PermissionStatusProto } from '../../gen/permissions';
 import './PermissionRow.css';
 
-/** Display metadata for a single permission entry -- provided by the caller. */
+/**
+ * Display metadata for a single permission entry -- provided by the caller.
+ */
 export interface PermissionMeta {
   readonly label: string;
   readonly description: string;
@@ -11,21 +14,26 @@ export interface PermissionMeta {
 interface PermissionRowProps {
   readonly permission: PermissionStatusProto;
   readonly meta: PermissionMeta;
-  readonly onRequest: () => void;
+  readonly isRequesting: boolean;
+  readonly onAction: () => void;
 }
 
-function statusLabel(status: PermissionStatus): string {
+function statusLabel(status: PermissionStatus, isRequesting: boolean): string {
+  if (isRequesting) return 'Setting up...';
+
   switch (status) {
-    case PermissionStatus.PERMISSION_STATUS_GRANTED:        return 'Granted';
-    case PermissionStatus.PERMISSION_STATUS_DENIED:         return 'Denied';
+    case PermissionStatus.PERMISSION_STATUS_GRANTED:        return 'Ready';
+    case PermissionStatus.PERMISSION_STATUS_DENIED:         return 'Needs setup';
     case PermissionStatus.PERMISSION_STATUS_NOT_DETERMINED:
     case PermissionStatus.PERMISSION_STATUS_UNSPECIFIED:
     case PermissionStatus.UNRECOGNIZED:
-    default:                                                return 'Not requested';
+    default:                                                return 'Pending';
   }
 }
 
-function statusDataAttr(status: PermissionStatus): string {
+function statusDataAttr(status: PermissionStatus, isRequesting: boolean): string {
+  if (isRequesting) return 'requesting';
+
   switch (status) {
     case PermissionStatus.PERMISSION_STATUS_GRANTED:        return 'granted';
     case PermissionStatus.PERMISSION_STATUS_DENIED:         return 'denied';
@@ -36,11 +44,22 @@ function statusDataAttr(status: PermissionStatus): string {
   }
 }
 
-/** One row in the Permissions page -- icon, name, description, status badge, optional action. */
-export function PermissionRow({ permission, meta, onRequest }: PermissionRowProps): React.JSX.Element {
+function actionLabel(status: PermissionStatus, isRequesting: boolean): string {
+  if (isRequesting) return 'Applying...';
+  return status === PermissionStatus.PERMISSION_STATUS_DENIED ? 'Open System Settings' : 'Allow Access';
+}
+
+/**
+ * One row in the Permissions page -- icon, name, description, status badge, optional action.
+ */
+export function PermissionRow({
+  permission,
+  meta,
+  isRequesting,
+  onAction,
+}: PermissionRowProps): React.JSX.Element {
   const { icon: Icon } = meta;
   const isGranted = permission.status === PermissionStatus.PERMISSION_STATUS_GRANTED;
-  const isDenied  = permission.status === PermissionStatus.PERMISSION_STATUS_DENIED;
 
   return (
     <div className="permission-row">
@@ -55,14 +74,22 @@ export function PermissionRow({ permission, meta, onRequest }: PermissionRowProp
 
       <span
         className="permission-row__badge"
-        data-status={statusDataAttr(permission.status)}
+        data-status={statusDataAttr(permission.status, isRequesting)}
       >
-        {statusLabel(permission.status)}
+        {isRequesting && (
+          <Loader2 className="permission-row__status-icon" aria-hidden="true" />
+        )}
+        {statusLabel(permission.status, isRequesting)}
       </span>
 
       {!isGranted && (
-        <button type="button" className="permission-row__action" onClick={onRequest}>
-          {isDenied ? 'Open Settings' : 'Request'}
+        <button
+          type="button"
+          className="permission-row__action"
+          disabled={isRequesting}
+          onClick={onAction}
+        >
+          {actionLabel(permission.status, isRequesting)}
         </button>
       )}
     </div>

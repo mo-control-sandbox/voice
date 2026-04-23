@@ -1,4 +1,4 @@
-import { BrowserWindow } from '@mobrowser/api';
+import { BrowserWindow, type RequestPermissionsParams } from '@mobrowser/api';
 import type { DockManager } from '../system/DockManager';
 import { rendererWindowUrl } from '../RendererWindowUrl';
 
@@ -21,6 +21,10 @@ export class SettingsWindow {
         minimumSize: { width: 960, height: 700 },
         title: 'Settings',
         resizable: false
+      });
+      this.window.browser.handle('requestPermissions', async (params: RequestPermissionsParams) => {
+        if (params.permissionType === 'microphone' || params.permissionType === 'AudioCapture') return 'grant';
+        return 'deny';
       });
       this.window.setWindowButtonVisible('zoom', false);
       this.dockManager.track(this.window);

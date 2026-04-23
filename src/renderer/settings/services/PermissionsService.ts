@@ -8,17 +8,30 @@ import type { PermissionType, PermissionsResponse } from '../../gen/permissions'
  * component does not depend on the IPC module directly.
  */
 export class PermissionsService {
-  /** Returns the current status of all macOS permissions required by moVoice. */
+  /**
+   * Returns the current status of all macOS permissions required by moVoice.
+   */
   async getPermissions(): Promise<PermissionsResponse> {
     return ipc.permissions.GetPermissions({});
   }
 
-  /** Re-queries the OS for the latest permission statuses. */
+  /**
+   * Re-queries the OS for the latest permission statuses.
+   */
   async refreshPermissions(): Promise<PermissionsResponse> {
     return ipc.permissions.RefreshPermissions({});
   }
 
-  /** Triggers the macOS permission request dialog for the given permission type. */
+  /**
+   * Opens the macOS privacy settings pane for the given permission type.
+   */
+  async openSystemSettings(type: PermissionType): Promise<void> {
+    await ipc.permissions.OpenSystemSettings({ type });
+  }
+
+  /**
+   * Triggers the macOS permission request dialog for the given permission type.
+   */
   async requestPermission(type: PermissionType): Promise<void> {
     await ipc.permissions.RequestPermission({ type });
   }

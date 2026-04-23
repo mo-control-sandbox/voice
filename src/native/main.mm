@@ -35,6 +35,25 @@ static PermissionStatus sfAuthStatus(SFSpeechRecognizerAuthorizationStatus s) {
   return PERMISSION_STATUS_NOT_DETERMINED;
 }
 
+static PermissionStatus axAuthStatus() {
+  auto isTrusted = []() -> bool {
+    NSDictionary* options = @{
+      (__bridge NSString*)kAXTrustedCheckOptionPrompt: @NO,
+    };
+    return AXIsProcessTrustedWithOptions((__bridge CFDictionaryRef)options);
+  };
+
+  if ([NSThread isMainThread]) {
+    return isTrusted() ? PERMISSION_STATUS_GRANTED : PERMISSION_STATUS_DENIED;
+  }
+
+  __block bool trusted = false;
+  dispatch_sync(dispatch_get_main_queue(), ^{
+    trusted = isTrusted();
+  });
+  return trusted ? PERMISSION_STATUS_GRANTED : PERMISSION_STATUS_DENIED;
+}
+
 // ─── SystemPermissionsServiceImpl ────────────────────────────────────────────
 
 class SystemPermissionsServiceImpl : public SystemPermissionsService {
@@ -56,7 +75,7 @@ class SystemPermissionsServiceImpl : public SystemPermissionsService {
 
     auto* acc = response.add_permissions();
     acc->set_type(PERMISSION_TYPE_ACCESSIBILITY);
-    acc->set_status(AXIsProcessTrusted() ? PERMISSION_STATUS_GRANTED : PERMISSION_STATUS_DENIED);
+    acc->set_status(axAuthStatus());
 
     std::move(done).Complete(response);
   }
@@ -66,10 +85,7 @@ class SystemPermissionsServiceImpl : public SystemPermissionsService {
   // supported on macOS 13+.
   void OpenSystemSettings(const PermissionTypeRequest* request,
                           Callback<google::protobuf::Empty> done) override {
-    NSString* url = settingsPaneUrl(request->type());
-    if (url != nil) {
-      [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:url]];
-    }
+    openSystemSettings(request->type());
     std::move(done).Complete(google::protobuf::Empty{});
   }
 
@@ -88,13 +104,9 @@ class SystemPermissionsServiceImpl : public SystemPermissionsService {
       case PERMISSION_TYPE_SPEECH_RECOGNITION:
         requestSpeechPermission();
         break;
-      case PERMISSION_TYPE_ACCESSIBILITY: {
-        NSString* url = settingsPaneUrl(request->type());
-        if (url != nil) {
-          [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:url]];
-        }
+      case PERMISSION_TYPE_ACCESSIBILITY:
+        requestAccessibilityPermission();
         break;
-      }
       default:
         break;
     }
@@ -103,19 +115,68 @@ class SystemPermissionsServiceImpl : public SystemPermissionsService {
   }
 
  private:
-  static NSString* settingsPaneUrl(PermissionType type) {
+  static NSArray<NSString*>* settingsPaneUrls(PermissionType type) {
     switch (type) {
       case PERMISSION_TYPE_MICROPHONE:
-        return @"x-apple.systempreferences:com.apple.preference.security"
-                "?Privacy_Microphone";
+        return @[
+          @"x-apple.systempreferences:com.apple.settings.PrivacySecurity.extension",
+          @"x-apple.systempreferences:com.apple.settings.PrivacySecurity.extension?Privacy_Microphone",
+          @"x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone"
+        ];
       case PERMISSION_TYPE_SPEECH_RECOGNITION:
-        return @"x-apple.systempreferences:com.apple.preference.security"
-                "?Privacy_SpeechRecognition";
+        return @[
+          @"x-apple.systempreferences:com.apple.settings.PrivacySecurity.extension",
+          @"x-apple.systempreferences:com.apple.settings.PrivacySecurity.extension?Privacy_SpeechRecognition",
+          @"x-apple.systempreferences:com.apple.preference.security?Privacy_SpeechRecognition"
+        ];
       case PERMISSION_TYPE_ACCESSIBILITY:
-        return @"x-apple.systempreferences:com.apple.preference.security"
-                "?Privacy_Accessibility";
+        return @[
+          @"x-apple.systempreferences:com.apple.settings.PrivacySecurity.extension",
+          @"x-apple.systempreferences:com.apple.settings.PrivacySecurity.extension?Privacy_Accessibility",
+          @"x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"
+        ];
       default:
         return nil;
+    }
+  }
+
+  static void openSystemSettings(PermissionType type) {
+    NSArray<NSString*>* urls = settingsPaneUrls(type);
+    if (urls == nil || urls.count == 0) return;
+
+    dispatch_async(dispatch_get_main_queue(), ^{
+      for (NSUInteger i = 0; i < urls.count; i++) {
+        dispatch_after(
+            dispatch_time(DISPATCH_TIME_NOW, static_cast<int64_t>(i * 150 * NSEC_PER_MSEC)),
+            dispatch_get_main_queue(), ^{
+              NSURL* url = [NSURL URLWithString:urls[i]];
+              if (url != nil) {
+                [[NSWorkspace sharedWorkspace] openURL:url];
+              }
+            });
+      }
+    });
+  }
+
+  static void requestAccessibilityPermission() {
+    auto requestPrompt = []() -> bool {
+      NSDictionary* options = @{
+        (__bridge NSString*)kAXTrustedCheckOptionPrompt: @YES,
+      };
+      return AXIsProcessTrustedWithOptions((__bridge CFDictionaryRef)options);
+    };
+
+    __block bool isTrusted = false;
+    if ([NSThread isMainThread]) {
+      isTrusted = requestPrompt();
+    } else {
+      dispatch_sync(dispatch_get_main_queue(), ^{
+        isTrusted = requestPrompt();
+      });
+    }
+
+    if (!isTrusted) {
+      openSystemSettings(PERMISSION_TYPE_ACCESSIBILITY);
     }
   }
 

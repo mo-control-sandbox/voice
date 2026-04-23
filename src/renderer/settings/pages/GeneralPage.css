@@ -45,6 +45,49 @@
   color: var(--muted-foreground);
 }
 
+/* ─── Permission gate ───────────────────────────────────────────────────── */
+
+.general-permission-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: calc(var(--spacing) * 1.5);
+  padding: calc(var(--spacing) * 4);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background-color: var(--card);
+}
+
+.general-permission-card__title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.429;
+}
+
+.general-permission-card__description {
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+.general-permission-card__link {
+  padding: 0;
+  border: none;
+  background-color: transparent;
+  color: var(--info);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.general-permission-card__link:hover {
+  text-decoration: underline;
+}
+
+.general-permission-card__link:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
+}
+
 /* ─── Loading skeleton ───────────────────────────────────────────────────── */
 
 .general-skeleton {
