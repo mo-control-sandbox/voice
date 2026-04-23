@@ -22,6 +22,7 @@ export class HistoryWindow {
         title: 'History',
       });
       this.window.setWindowButtonVisible('zoom', false);
+      this.window.centerWindow();
       this.dockManager.track(this.window);
     }
     if (this.window.isVisible) {

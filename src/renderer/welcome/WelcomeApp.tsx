@@ -34,12 +34,12 @@ const REQUIRED_PERMISSION_TYPES = new Set<PermissionType>([
 const PERMISSION_META: Partial<Record<PermissionType, PermissionMeta>> = {
   [PermissionType.PERMISSION_TYPE_MICROPHONE]: {
     label: 'Microphone',
-    description: 'Allow microphone access so moVoice can capture your voice.',
+    description: 'Allow microphone access so MoVoice can capture your voice.',
     icon: Mic,
   },
   [PermissionType.PERMISSION_TYPE_ACCESSIBILITY]: {
     label: 'Accessibility',
-    description: 'Allow Accessibility so moVoice can paste text into other apps.',
+    description: 'Allow Accessibility so MoVoice can paste text into other apps.',
     icon: Keyboard,
   },
 };
@@ -228,7 +228,7 @@ export function WelcomeApp(): React.JSX.Element {
     <div className="welcome-app">
       <header className="welcome-header">
         <div className="welcome-header__top">
-          <span className="welcome-header__brand">moVoice</span>
+          <span className="welcome-header__brand">MoVoice</span>
           <div className="welcome-step-indicator" aria-hidden="true">
             <span
               className="welcome-step-dot"
@@ -253,7 +253,7 @@ export function WelcomeApp(): React.JSX.Element {
           <div className="welcome-step-info">
             <p className="welcome-step-label">Step 2 of 2 — Grant Permissions</p>
             <p className="welcome-step-description">
-              moVoice needs a few permissions before it can record and paste for you.
+              MoVoice needs a few permissions before it can record and paste for you.
             </p>
           </div>
         )}

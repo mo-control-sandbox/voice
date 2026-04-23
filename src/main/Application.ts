@@ -20,6 +20,7 @@ import { registerReverseIpcBridge } from './ipc/ReverseIpcBridge';
 import { registerSettingsIpc } from './settings/SettingsStore';
 import { registerStatsIpc } from './settings/StatsCalculator';
 import { registerHistoryIpc } from './history/HistoryStore';
+import { registerDesktopIpc } from './system/DesktopService';
 
 /**
  * The application entry point.
@@ -66,6 +67,7 @@ export class Application {
     dock.hide();
     this.registerShortcut();
 
+    registerDesktopIpc();
     registerPermissionsIpc(native.systemPermissions);
     registerReverseIpcBridge(this.recordingController);
     registerRecordingIpc(this.recordingController);

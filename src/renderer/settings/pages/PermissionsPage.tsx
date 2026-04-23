@@ -22,12 +22,12 @@ function hasMissingRequiredPermissions(permissions: readonly PermissionStatusPro
 const PERMISSION_META: Partial<Record<PermissionType, PermissionMeta>> = {
   [PermissionType.PERMISSION_TYPE_MICROPHONE]: {
     label: 'Microphone',
-    description: 'Allow microphone access so moVoice can capture your voice.',
+    description: 'Allow microphone access so MoVoice can capture your voice.',
     icon: Mic,
   },
   [PermissionType.PERMISSION_TYPE_ACCESSIBILITY]: {
     label: 'Accessibility',
-    description: 'Allow Accessibility so moVoice can paste text into other apps.',
+    description: 'Allow Accessibility so MoVoice can paste text into other apps.',
     icon: Keyboard,
   },
 };
@@ -158,7 +158,7 @@ export function PermissionsPage(): React.JSX.Element {
         <div className="permissions-page__title-block">
           <h1 className="permissions-page__heading">Before You Start</h1>
           <p className="permissions-page__description">
-            Before using the application, complete this quick setup so moVoice can record and paste for you.
+            Before using the application, complete this quick setup so MoVoice can record and paste for you.
           </p>
         </div>
         <button

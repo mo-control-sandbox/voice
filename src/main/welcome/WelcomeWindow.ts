@@ -16,7 +16,7 @@ export class WelcomeWindow {
         url: rendererWindowUrl('welcome'),
         size: { width: 680, height: 620 },
         minimumSize: { width: 680, height: 620 },
-        title: 'Welcome to moVoice',
+        title: 'Welcome to MoVoice',
         resizable: false,
       });
       this.window.browser.handle('requestPermissions', async (params: RequestPermissionsParams) => {
@@ -24,6 +24,7 @@ export class WelcomeWindow {
         return 'deny';
       });
       this.window.setWindowButtonVisible('zoom', false);
+      this.window.centerWindow();
       this.dockManager.track(this.window);
     }
 

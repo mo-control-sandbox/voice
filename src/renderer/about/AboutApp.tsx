@@ -17,17 +17,17 @@ export function AboutApp(): React.JSX.Element {
           <img
             className="about-window__icon"
             src={appIconUrl}
-            alt="moVoice application icon"
+            alt="MoVoice application icon"
           />
         </button>
 
         <div className="about-window__identity">
-          <span className="about-window__name">moVoice</span>
+          <span className="about-window__name">MoVoice</span>
           <span className="about-window__version">Version 1.0.0</span>
         </div>
 
         <div className="about-window__credits">
-          <span className="about-window__powered-by-label">Powered by </span><button className="about-window__powered-by" onClick={openMoBrowser}>MōBrowser</button>
+          <span className="about-window__powered-by-label">Powered by&nbsp;</span><button className="about-window__powered-by" onClick={openMoBrowser}>MōBrowser</button>
         </div>
       </div>
     </div>

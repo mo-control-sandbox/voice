@@ -27,6 +27,7 @@ export class SettingsWindow {
         return 'deny';
       });
       this.window.setWindowButtonVisible('zoom', false);
+      this.window.centerWindow();
       this.dockManager.track(this.window);
     }
     if (this.window.isVisible) {

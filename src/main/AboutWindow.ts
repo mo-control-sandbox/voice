@@ -16,11 +16,12 @@ export class AboutWindow {
         url: rendererWindowUrl('about'),
         size: { width: 400, height: 300 },
         minimumSize: { width: 400, height: 300 },
-        title: 'About moVoice',
+        title: 'About MoVoice',
         windowTitlebarVisible: true,
         resizable: false
       });
       this.window.setWindowButtonVisible('zoom', false);
+      this.window.centerWindow();
       this.dockManager.track(this.window);
     }
 

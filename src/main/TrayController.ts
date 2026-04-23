@@ -8,7 +8,7 @@ import type { WelcomeWindow } from './welcome/WelcomeWindow';
 import type { AppReadinessService } from './readiness/AppReadinessService';
 
 /**
- * Manages the menu-bar tray icon for moVoice.
+ * Manages the menu-bar tray icon for MoVoice.
  */
 export class TrayController {
   private tray: Tray | null = null;
@@ -28,7 +28,7 @@ export class TrayController {
    */
   initialize(): void {
     const imagePath = `${app.getPath('appResources')}/imageTemplate.png`;
-    this.tray = new Tray({ imagePath, tooltip: 'moVoice' });
+    this.tray = new Tray({ imagePath, tooltip: 'MoVoice' });
     this.tray.on('mouseUp', () => { this.tray?.openMenu(); });
     this.refresh();
   }
@@ -79,7 +79,7 @@ export class TrayController {
           }),
           new MenuItem({
             id: 'openAbout',
-            label: 'About moVoice',
+            label: 'About MoVoice',
             action: () => { this.aboutWindow.show(); },
           }),
           'separator',

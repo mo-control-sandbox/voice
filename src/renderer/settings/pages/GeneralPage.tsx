@@ -281,7 +281,7 @@ export function GeneralPage({ onOpenPermissions }: GeneralPageProps): React.JSX.
     ? 'Microphone access is off'
     : 'Microphone access is needed';
   const micPermissionDescription = isMicPermissionDenied
-    ? 'Open System Settings and enable microphone access for moVoice, then return here.'
+    ? 'Open System Settings and enable microphone access for MoVoice, then return here.'
     : 'Allow microphone access to choose your input device.';
   const micPermissionButtonLabel = isMicPermissionDenied ? 'Open System Settings' : 'Allow Access';
   const isMicPermissionButtonDisabled = isMicPermissionActionLoading || isMicPermissionPolling;

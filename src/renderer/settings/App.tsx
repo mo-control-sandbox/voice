@@ -70,7 +70,7 @@ export function SettingsApp(): React.JSX.Element {
     <div className="settings-app">
       <aside className="settings-sidebar">
         <div className="settings-sidebar__header">
-          <span className="settings-sidebar__app-name">moVoice</span>
+          <span className="settings-sidebar__app-name">MoVoice</span>
         </div>
         <nav className="settings-sidebar__nav">
           {NAV_ITEMS.map(({ id, label, Icon }) => (
