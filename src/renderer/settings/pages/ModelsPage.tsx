@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import type { ModelDefinition, ModelEntry } from '../../types/models';
+import type { ModelEntry } from '../../types/models';
 import { RendererModelCatalog } from '../../services/RendererModelCatalog';
 import { RendererModelCache } from '../../services/RendererModelCache';
 import { RendererModelStateStore } from '../../services/RendererModelStateStore';
 import { RendererModelRepository } from '../../services/RendererModelRepository';
+import { reportModelReadiness } from '../../services/ModelReadinessReporter';
 import { ModelCard } from '../components/ModelCard';
-import { Switch } from '../components/Switch';
 import './ModelsPage.css';
 
 const POLL_INTERVAL_MS = 500;
@@ -13,7 +13,7 @@ const POLL_INTERVAL_MS = 500;
 const _catalog = new RendererModelCatalog();
 const repository = new RendererModelRepository(
   _catalog,
-  new RendererModelCache(_catalog.getDefinitions().filter((d): d is ModelDefinition => !d.isBuiltin)),
+  new RendererModelCache(_catalog.getDefinitions()),
   new RendererModelStateStore(),
 );
 
@@ -28,7 +28,9 @@ export function ModelsPage(): React.JSX.Element {
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const refreshModels = useCallback(async (): Promise<void> => {
-    setModels(await repository.getModels());
+    const models = await repository.getModels();
+    setModels(models);
+    void reportModelReadiness(models);
   }, []);
 
   useEffect(() => { void refreshModels(); }, [refreshModels]);
@@ -49,21 +51,6 @@ export function ModelsPage(): React.JSX.Element {
       }
     };
   }, [models, refreshModels]);
-
-  const builtinEntry        = models.find((m) => m.definition.isBuiltin);
-  const whisperModels       = models.filter((m) => !m.definition.isBuiltin);
-  const isBuiltinActive     = builtinEntry?.isActive ?? false;
-  const hasDownloadedWhisper = whisperModels.some((m) => m.isDownloaded);
-
-  async function handleToggleBuiltin(checked: boolean): Promise<void> {
-    if (checked) {
-      await repository.setActiveModel('builtin');
-    } else {
-      const first = whisperModels.find((m) => m.isDownloaded);
-      if (first !== undefined) await repository.setActiveModel(first.definition.id);
-    }
-    await refreshModels();
-  }
 
   async function handleDownload(id: string): Promise<void> {
     setDownloadErrors((prev) => { const m = new Map(prev); m.delete(id); return m; });
@@ -98,22 +85,8 @@ export function ModelsPage(): React.JSX.Element {
         </p>
       </div>
 
-      {/* Built-in macOS toggle */}
-      <div className="builtin-toggle">
-        <div className="builtin-toggle__text">
-          <span className="builtin-toggle__name">Built-in macOS Speech Recognition</span>
-          <span className="builtin-toggle__hint">No download required. English only.</span>
-        </div>
-        <Switch
-          checked={isBuiltinActive}
-          disabled={!isBuiltinActive && !hasDownloadedWhisper}
-          onChange={(v) => { void handleToggleBuiltin(v); }}
-        />
-      </div>
-
-      {/* Whisper model list */}
       <div className="models-page__list">
-        {whisperModels.map((model) => (
+        {models.map((model) => (
           <ModelCard
             key={model.definition.id}
             model={model}

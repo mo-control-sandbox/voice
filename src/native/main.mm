@@ -7,7 +7,6 @@
 #include <string>
 
 #include "rpc.h"
-#include "gen/builtin_speech.rpc.h"
 #include "gen/clipboard.rpc.h"
 #include "gen/permissions.rpc.h"
 
@@ -240,90 +239,9 @@ class AutomationServiceImpl : public AutomationService {
   }
 };
 
-// ─── BuiltinSpeechServiceImpl ─────────────────────────────────────────────────
-
-class BuiltinSpeechServiceImpl : public BuiltinSpeechService {
- public:
-  // Transcribes raw 16 kHz mono Float32 PCM audio using SFSpeechRecognizer.
-  // Blocks the calling thread until recognition completes or the 30-second
-  // hard timeout elapses.
-  void RunBuiltinSpeechRecognition(const SpeechRequest* request,
-                                   Callback<SpeechResponse> done) override {
-    SFSpeechRecognizer* recognizer = buildRecognizer(request->language());
-
-    if (recognizer == nil || !recognizer.isAvailable) {
-      std::move(done).Complete(SpeechResponse{});
-      return;
-    }
-
-    AVAudioPCMBuffer* buffer = buildPcmBuffer(request->pcm());
-    if (buffer == nil) {
-      std::move(done).Complete(SpeechResponse{});
-      return;
-    }
-
-    SFSpeechAudioBufferRecognitionRequest* speechReq =
-        [[SFSpeechAudioBufferRecognitionRequest alloc] init];
-    speechReq.requiresOnDeviceRecognition = YES;
-    [speechReq appendAudioPCMBuffer:buffer];
-    [speechReq endAudio];
-
-    dispatch_semaphore_t sem = dispatch_semaphore_create(0);
-    __block std::string text;
-
-    [recognizer
-        recognitionTaskWithRequest:speechReq
-                     resultHandler:^(SFSpeechRecognitionResult* result,
-                                     NSError* /*error*/) {
-                       if (result.isFinal) {
-                         text = result.bestTranscription.formattedString
-                                    .UTF8String;
-                         dispatch_semaphore_signal(sem);
-                       }
-                     }];
-
-    dispatch_semaphore_wait(
-        sem, dispatch_time(DISPATCH_TIME_NOW, 30 * NSEC_PER_SEC));
-
-    SpeechResponse response;
-    response.set_text(text);
-    std::move(done).Complete(response);
-  }
-
- private:
-  static SFSpeechRecognizer* buildRecognizer(const std::string& language) {
-    if (language.empty()) {
-      return [[SFSpeechRecognizer alloc] init];
-    }
-    NSLocale* locale = [NSLocale
-        localeWithLocaleIdentifier:[NSString
-                                       stringWithUTF8String:language.c_str()]];
-    return [[SFSpeechRecognizer alloc] initWithLocale:locale];
-  }
-
-  // Wraps raw Float32 PCM bytes (16 kHz, mono) in an AVAudioPCMBuffer.
-  static AVAudioPCMBuffer* buildPcmBuffer(const std::string& pcmBytes) {
-    NSUInteger frameCount = pcmBytes.size() / sizeof(float);
-    if (frameCount == 0) return nil;
-
-    AVAudioFormat* format =
-        [[AVAudioFormat alloc] initWithCommonFormat:AVAudioPCMFormatFloat32
-                                         sampleRate:16000.0
-                                           channels:1
-                                        interleaved:NO];
-    AVAudioPCMBuffer* buffer =
-        [[AVAudioPCMBuffer alloc] initWithPCMFormat:format
-                                      frameCapacity:(AVAudioFrameCount)frameCount];
-    buffer.frameLength = (AVAudioFrameCount)frameCount;
-    memcpy(buffer.floatChannelData[0], pcmBytes.data(), pcmBytes.size());
-    return buffer;
-  }
-};
-
 // ─── Registration ─────────────────────────────────────────────────────────────
 
 void launch() {
   mo::rpc::RegisterService(new SystemPermissionsServiceImpl());
   mo::rpc::RegisterService(new AutomationServiceImpl());
-  mo::rpc::RegisterService(new BuiltinSpeechServiceImpl());
 }

@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react';
-import type { ModelDefinition } from '../types/models';
 import { WaveformVisualizer } from './components/WaveformVisualizer';
 import { ProcessingIndicator } from './components/ProcessingIndicator';
 import { CancelButton } from './components/CancelButton';
@@ -14,12 +13,9 @@ import './RecordingApp.css';
 
 // Singletons shared for the lifetime of the recording window.
 const catalog = new RendererModelCatalog();
-const whisperDefs = catalog.getDefinitions().filter(
-  (d): d is ModelDefinition => !d.isBuiltin,
-);
 const modelRepository = new RendererModelRepository(
   catalog,
-  new RendererModelCache(whisperDefs),
+  new RendererModelCache(catalog.getDefinitions()),
   new RendererModelStateStore(),
 );
 const controller = new RecordingController(modelRepository, new MoVoiceBackendFactory());

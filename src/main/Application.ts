@@ -12,11 +12,10 @@ import { RecordingWindow } from './recording/RecordingWindow';
 import { SettingsWindow } from './settings/SettingsWindow';
 import { HistoryWindow } from './history/HistoryWindow';
 import { AboutWindow } from './AboutWindow';
+import { WelcomeWindow } from './welcome/WelcomeWindow';
+import { AppReadinessService } from './readiness/AppReadinessService';
 import { registerPermissionsIpc } from './system/PermissionsService';
-import {
-  registerRecordingIpc,
-  registerBuiltinSpeechIpc,
-} from './recording/RecordingSessionController';
+import { registerRecordingIpc } from './recording/RecordingSessionController';
 import { registerReverseIpcBridge } from './ipc/ReverseIpcBridge';
 import { registerSettingsIpc } from './settings/SettingsStore';
 import { registerStatsIpc } from './settings/StatsCalculator';
@@ -41,6 +40,8 @@ export class Application {
   private readonly settingsWindow = new SettingsWindow(this.dockManager);
   private readonly historyWindow = new HistoryWindow(this.dockManager);
   private readonly aboutWindow = new AboutWindow(this.dockManager);
+  private readonly welcomeWindow = new WelcomeWindow(this.dockManager);
+  private readonly readiness = new AppReadinessService(this.settings, native.systemPermissions);
 
   private readonly trayController = new TrayController(
     this.recordingController,
@@ -48,6 +49,8 @@ export class Application {
     this.settingsWindow,
     this.historyWindow,
     this.aboutWindow,
+    this.welcomeWindow,
+    this.readiness,
   );
 
   private readonly shortcutManager = new ShortcutManager();
@@ -66,12 +69,15 @@ export class Application {
     registerPermissionsIpc(native.systemPermissions);
     registerReverseIpcBridge(this.recordingController);
     registerRecordingIpc(this.recordingController);
-    registerBuiltinSpeechIpc(native.builtinSpeech, this.recordingController);
     registerSettingsIpc(this.settings, this.shortcutManager);
     registerStatsIpc(this.historyStore);
     registerHistoryIpc(this.historyStore, this.sessionStorage);
 
     this.recordingWindow.initialize();
+
+    if (!this.settings.hasCompletedOnboarding()) {
+      this.welcomeWindow.show();
+    }
 
     this.recordingController.onStateChange(() => { this.trayController.refresh(); });
     this.settings.onShortcutKeyChanged(() => { this.trayController.refresh(); });
@@ -83,6 +89,18 @@ export class Application {
 
   private registerShortcut(): void {
     const { shortcutKey } = this.settings.get();
-    this.shortcutManager.register(shortcutKey, () => { this.recordingController.toggle(); });
+    this.shortcutManager.register(shortcutKey, () => {
+      if (this.recordingController.getState() !== 'idle') {
+        this.recordingController.toggle();
+        return;
+      }
+      void this.readiness.isReady().then((ready) => {
+        if (!ready) {
+          this.welcomeWindow.show();
+        } else {
+          this.recordingController.toggle();
+        }
+      });
+    });
   }
 }

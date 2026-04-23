@@ -3,7 +3,7 @@ import type { ModelStateStore } from './ModelStateStore';
 const KEY_ACTIVE_MODEL_ID = 'movoice:activeModelId';
 const KEY_PRIMARY_LANGUAGE = 'movoice:primaryLanguage';
 
-const DEFAULT_ACTIVE_MODEL_ID = 'builtin';
+const DEFAULT_ACTIVE_MODEL_ID = '';
 const DEFAULT_LANGUAGE = 'auto';
 
 /**
@@ -12,7 +12,7 @@ const DEFAULT_LANGUAGE = 'auto';
  */
 export class RendererModelStateStore implements ModelStateStore {
   /**
-   * Returns the stored active model ID, falling back to 'builtin' if not set.
+   * Returns the stored active model ID, falling back to empty string if not set.
    */
   getActiveModelId(): string {
     return localStorage.getItem(KEY_ACTIVE_MODEL_ID) ?? DEFAULT_ACTIVE_MODEL_ID;

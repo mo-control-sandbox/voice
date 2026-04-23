@@ -1,4 +1,4 @@
-import type { ModelEntry } from '../types/models';
+import type { ModelDefinition, ModelEntry } from '../types/models';
 import type { RendererModelCatalog } from './RendererModelCatalog';
 import type { ModelFileStore } from './ModelFileStore';
 import type { ModelStateStore } from './ModelStateStore';
@@ -20,7 +20,6 @@ export class RendererModelRepository {
 
   /**
    * Returns all model entries with up-to-date runtime state.
-   * The built-in entry is always marked as downloaded.
    */
   async getModels(): Promise<ModelEntry[]> {
     const definitions = this.catalog.getDefinitions();
@@ -28,15 +27,6 @@ export class RendererModelRepository {
 
     return Promise.all(
       definitions.map(async (definition): Promise<ModelEntry> => {
-        if (definition.isBuiltin) {
-          return {
-            definition,
-            isDownloaded: true,
-            isActive: activeId === 'builtin',
-            downloadProgress: this.downloadProgress.get('builtin') ?? null,
-          };
-        }
-
         const isDownloaded = await this.fileStore.isDownloaded(definition.id);
         return {
           definition,
@@ -49,9 +39,8 @@ export class RendererModelRepository {
   }
 
   /**
-   * Returns the currently active model entry.
-   * Falls back to the built-in entry if the stored ID is not found.
-   * The catalog always has at least one entry (builtin), so models is non-empty.
+   * Returns the currently active model entry, or the first catalog entry if
+   * no valid selection is stored.
    */
   async getActiveModel(): Promise<ModelEntry> {
     const models = await this.getModels();
@@ -60,25 +49,17 @@ export class RendererModelRepository {
     if (found !== undefined) {
       return found;
     }
-    // models is always non-empty because the catalog always contains the built-in entry.
-    // Array index access without noUncheckedIndexedAccess returns T (not T | undefined),
-    // so we fall back to the first element safely.
     return models[0];
   }
 
   /**
-   * Sets the active model. Whisper models must be fully downloaded before
-   * they can be selected; the built-in entry can always be set as active.
+   * Sets the active model. The model must be fully downloaded before
+   * it can be selected.
    */
   async setActiveModel(id: string): Promise<void> {
-    if (id === 'builtin') {
-      this.stateStore.setActiveModelId('builtin');
-      return;
-    }
-
     const definitions = this.catalog.getDefinitions();
     const definition = definitions.find((d) => d.id === id);
-    if (definition === undefined || definition.isBuiltin) {
+    if (definition === undefined) {
       throw new Error(`Unknown model id: ${id}`);
     }
 
@@ -94,16 +75,16 @@ export class RendererModelRepository {
 
   /**
    * Downloads the model with the given ID and reports fractional progress.
-   * After a successful first-time download, auto-selects the model if the
-   * current active model is still the built-in.
+   * Auto-selects the model after a successful download if no downloaded
+   * model is currently active.
    */
   async download(
     id: string,
     onProgress: (fraction: number) => void,
   ): Promise<void> {
     const definitions = this.catalog.getDefinitions();
-    const definition = definitions.find((d) => d.id === id);
-    if (definition === undefined || definition.isBuiltin) {
+    const definition: ModelDefinition | undefined = definitions.find((d) => d.id === id);
+    if (definition === undefined) {
       throw new Error(`Cannot download model with id: ${id}`);
     }
 
@@ -118,32 +99,34 @@ export class RendererModelRepository {
       this.downloadProgress.delete(id);
     }
 
-    // Auto-select on first download: if user has not yet chosen a Whisper model.
-    if (this.stateStore.getActiveModelId() === 'builtin') {
+    // Auto-select after download if no downloaded model is currently active.
+    const currentActiveId = this.stateStore.getActiveModelId();
+    const isCurrentActiveDownloaded =
+      currentActiveId !== '' && (await this.fileStore.isDownloaded(currentActiveId));
+    if (!isCurrentActiveDownloaded) {
       this.stateStore.setActiveModelId(id);
     }
   }
 
   /**
    * Deletes the cached model files. If the model being deleted is currently
-   * active, switches to another downloaded Whisper model or the built-in.
+   * active, switches to another downloaded model or clears the selection.
    */
   async delete(id: string): Promise<void> {
     const definitions = this.catalog.getDefinitions();
     const definition = definitions.find((d) => d.id === id);
-    if (definition === undefined || definition.isBuiltin) {
+    if (definition === undefined) {
       throw new Error(`Cannot delete model with id: ${id}`);
     }
 
     const isActive = this.stateStore.getActiveModelId() === id;
 
     if (isActive) {
-      // Find another downloaded Whisper model to fall back to, or use builtin.
       const allModels = await this.getModels();
       const fallback = allModels.find(
         (m) => m.isDownloaded && m.definition.id !== id,
       );
-      this.stateStore.setActiveModelId(fallback?.definition.id ?? 'builtin');
+      this.stateStore.setActiveModelId(fallback?.definition.id ?? '');
     }
 
     await this.fileStore.delete(id);

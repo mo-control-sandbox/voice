@@ -1,5 +1,5 @@
 import catalog from '../../../resources/models.json';
-import type { AnyModelDefinition, BuiltinModelDefinition, InferenceMode, ModelDefinition } from '../types/models';
+import type { InferenceMode, ModelDefinition } from '../types/models';
 
 /** Shape of each entry in the bundled models.json catalog. */
 interface CatalogEntry {
@@ -14,38 +14,25 @@ interface CatalogEntry {
   readonly isMultilingual: boolean;
 }
 
-const BUILTIN_DEFINITION: BuiltinModelDefinition = {
-  id: 'builtin',
-  label: 'Built-in Speech Recognition',
-  description: 'Uses the macOS built-in speech recogniser. No download required.',
-  isBuiltin: true,
-};
-
 /**
- * Provides the full list of model definitions available to the application,
- * combining the bundled JSON catalog with the synthetic built-in entry.
+ * Provides the full list of model definitions available to the application
+ * from the bundled JSON catalog.
  */
 export class RendererModelCatalog {
   /**
-   * Returns all model definitions with the built-in entry prepended.
-   * JSON catalog entries lacking `isBuiltin` are treated as Whisper models.
+   * Returns all model definitions from the bundled JSON catalog.
    */
-  getDefinitions(): AnyModelDefinition[] {
-    const whisperModels: ModelDefinition[] = (catalog as CatalogEntry[]).map(
-      (entry) => ({
-        id: entry.id,
-        label: entry.label,
-        description: entry.description,
-        huggingFaceRepo: entry.huggingFaceRepo,
-        inferenceMode: entry.inferenceMode,
-        speedScore: entry.speedScore,
-        accuracyScore: entry.accuracyScore,
-        fileSizeBytes: entry.fileSizeBytes,
-        isMultilingual: entry.isMultilingual,
-        isBuiltin: false,
-      }),
-    );
-
-    return [BUILTIN_DEFINITION, ...whisperModels];
+  getDefinitions(): ModelDefinition[] {
+    return (catalog as CatalogEntry[]).map((entry) => ({
+      id: entry.id,
+      label: entry.label,
+      description: entry.description,
+      huggingFaceRepo: entry.huggingFaceRepo,
+      inferenceMode: entry.inferenceMode,
+      speedScore: entry.speedScore,
+      accuracyScore: entry.accuracyScore,
+      fileSizeBytes: entry.fileSizeBytes,
+      isMultilingual: entry.isMultilingual,
+    }));
   }
 }

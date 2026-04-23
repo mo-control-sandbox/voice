@@ -25,35 +25,6 @@
   color: var(--muted-foreground);
 }
 
-/* ─── Built-in toggle card ───────────────────────────────────────────────── */
-
-.builtin-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: calc(var(--spacing) * 4);
-  padding: calc(var(--spacing) * 4);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border);
-  background-color: var(--card);
-}
-
-.builtin-toggle__text {
-  display: flex;
-  flex-direction: column;
-  gap: calc(var(--spacing) * 0.5);
-}
-
-.builtin-toggle__name {
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-
-.builtin-toggle__hint {
-  font-size: 0.75rem;
-  color: var(--muted-foreground);
-}
-
 /* ─── Model list ─────────────────────────────────────────────────────────── */
 
 .models-page__list {

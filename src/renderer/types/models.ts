@@ -15,23 +15,11 @@ export interface ModelDefinition {
   readonly accuracyScore: number;
   readonly fileSizeBytes: number;
   readonly isMultilingual: boolean;
-  readonly isBuiltin: false;
 }
-
-/** Synthetic entry representing the macOS built-in speech recogniser. */
-export interface BuiltinModelDefinition {
-  readonly id: 'builtin';
-  readonly label: string;
-  readonly description: string;
-  readonly isBuiltin: true;
-}
-
-/** Union of all model definition types. */
-export type AnyModelDefinition = ModelDefinition | BuiltinModelDefinition;
 
 /** A model entry combining its definition with runtime state. */
 export interface ModelEntry {
-  readonly definition: AnyModelDefinition;
+  readonly definition: ModelDefinition;
   /** Whether the model files are fully cached in the browser. */
   readonly isDownloaded: boolean;
   /** Whether this is the currently selected inference backend. */

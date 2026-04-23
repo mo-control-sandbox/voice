@@ -8,6 +8,7 @@ import type {
   SetShortcutKeyRequest,
   SettingsProto,
 } from '../gen/settings';
+import type { Empty } from '../gen/google/protobuf/empty';
 import type { ShortcutManager } from '../system/ShortcutManager';
 
 const DEFAULTS: SettingsProto = {
@@ -74,6 +75,36 @@ export class SettingsStore {
     prefs.setString('audioInputDeviceId', value);
     prefs.persist();
   }
+
+  /**
+   * Returns whether the user has completed the first-launch onboarding wizard.
+   */
+  hasCompletedOnboarding(): boolean {
+    return prefs.getBoolean('hasCompletedOnboarding', false);
+  }
+
+  /**
+   * Marks the onboarding wizard as completed and persists to disk.
+   */
+  setOnboardingCompleted(): void {
+    prefs.setBoolean('hasCompletedOnboarding', true);
+    prefs.persist();
+  }
+
+  /**
+   * Returns whether the renderer has reported a downloaded, active model.
+   */
+  isModelReady(): boolean {
+    return prefs.getBoolean('modelReady', false);
+  }
+
+  /**
+   * Stores the latest model readiness state reported by the renderer.
+   */
+  setModelReady(value: boolean): void {
+    prefs.setBoolean('modelReady', value);
+    prefs.persist();
+  }
 }
 
 /**
@@ -123,6 +154,16 @@ class SettingsService implements SettingsServiceInterface {
     } else {
       this.shortcutManager.resume();
     }
+    return Promise.resolve({});
+  }
+
+  MarkOnboardingComplete(_request: Empty): Promise<Empty> {
+    this.settings.setOnboardingCompleted();
+    return Promise.resolve({});
+  }
+
+  SetModelReady(request: SetBooleanSettingRequest): Promise<Empty> {
+    this.settings.setModelReady(request.value);
     return Promise.resolve({});
   }
 }

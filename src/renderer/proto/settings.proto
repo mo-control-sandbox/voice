@@ -34,4 +34,6 @@ service SettingsService {
   rpc SetDontSaveTranscripts(SetBooleanSettingRequest)        returns (google.protobuf.Empty);
   rpc SetDontSaveAudio(SetBooleanSettingRequest)              returns (google.protobuf.Empty);
   rpc SetShortcutCaptureMode(SetShortcutCaptureModeRequest)   returns (google.protobuf.Empty);
+  rpc MarkOnboardingComplete(google.protobuf.Empty)           returns (google.protobuf.Empty);
+  rpc SetModelReady(SetBooleanSettingRequest)                 returns (google.protobuf.Empty);
 }

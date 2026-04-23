@@ -1,7 +1,6 @@
-import type { AnyModelDefinition } from '../../types/models';
+import type { ModelDefinition } from '../../types/models';
 import type { BackendFactory } from './BackendFactory';
 import type { TranscriptionBackend } from './TranscriptionBackend';
-import { BuiltinBackend } from './BuiltinBackend';
 import { VoxtralRealtimeBackend } from './VoxtralRealtimeBackend';
 import { WhisperBackend } from './WhisperBackend';
 
@@ -17,20 +16,16 @@ interface LocalModelBackend extends TranscriptionBackend {
 /**
  * BackendFactory for moVoice.
  *
- * Routes to BuiltinBackend (macOS speech recognition), WhisperBackend, or
- * VoxtralRealtimeBackend based on the model definition's `inferenceMode`.
- * Local model backends are cached per model and reused across consecutive
- * transcriptions, avoiding redundant worker spawns and model reloads.
+ * Routes to WhisperBackend or VoxtralRealtimeBackend based on the model
+ * definition's `inferenceMode`. Backends are cached per model and reused
+ * across consecutive transcriptions, avoiding redundant worker spawns and
+ * model reloads.
  */
 export class MoVoiceBackendFactory implements BackendFactory {
   private cachedBackend: LocalModelBackend | null = null;
   private cachedModelId = '';
 
-  createBackend(model: AnyModelDefinition): TranscriptionBackend {
-    if (model.isBuiltin) {
-      return new BuiltinBackend();
-    }
-
+  createBackend(model: ModelDefinition): TranscriptionBackend {
     const modelId = model.huggingFaceRepo;
     if (this.cachedBackend === null || this.cachedModelId !== modelId) {
       this.cachedBackend?.dispose();

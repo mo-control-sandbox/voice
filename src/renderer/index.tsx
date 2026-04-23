@@ -6,8 +6,9 @@ import './index.css';
 import { initTheme } from './lib/theme';
 import { RecordingApp } from './recording/RecordingApp';
 import { SettingsApp } from './settings/App';
+import { WelcomeApp } from './welcome/WelcomeApp';
 
-type RendererWindowKind = 'about' | 'history' | 'recording' | 'settings';
+type RendererWindowKind = 'about' | 'history' | 'recording' | 'settings' | 'welcome';
 
 const RENDERER_WINDOW_PARAM = 'window';
 
@@ -16,6 +17,7 @@ const APP_BY_WINDOW: Record<RendererWindowKind, () => React.JSX.Element> = {
   history: HistoryApp,
   recording: RecordingApp,
   settings: SettingsApp,
+  welcome: WelcomeApp,
 };
 
 const TITLE_BY_WINDOW: Record<RendererWindowKind, string> = {
@@ -23,11 +25,12 @@ const TITLE_BY_WINDOW: Record<RendererWindowKind, string> = {
   history: 'moVoice - History',
   recording: 'moVoice',
   settings: 'moVoice - Settings',
+  welcome: 'Welcome to moVoice',
 };
 
 function parseRendererWindowKind(searchParams: URLSearchParams): RendererWindowKind | null {
   const value = searchParams.get(RENDERER_WINDOW_PARAM);
-  if (value === 'about' || value === 'history' || value === 'recording' || value === 'settings') {
+  if (value === 'about' || value === 'history' || value === 'recording' || value === 'settings' || value === 'welcome') {
     return value;
   }
   return null;

@@ -1,13 +1,9 @@
 import { ipc } from '@mobrowser/api';
 import {
-  BuiltinSpeechService as createBuiltinSpeechService,
   RecordingService as createRecordingService,
-  type BuiltinSpeechService as BuiltinSpeechServiceInterface,
   type RecordingService as RecordingServiceInterface,
 } from '../gen/ipc_service';
-import type { TranscribeRequest } from '../gen/builtin_speech';
 import type { CancelRecordingRequest, SubmitTranscriptionRequest } from '../gen/recording';
-import type { BuiltinSpeechService as NativeBuiltinSpeechService } from '../gen/native/builtin_speech';
 import type { SettingsStore } from '../settings/SettingsStore';
 import type { HistoryStore, SessionRecord } from '../history/HistoryStore';
 import type { SessionStorage } from './SessionStorage';
@@ -219,40 +215,4 @@ class RecordingService implements RecordingServiceInterface {
   }
 }
 
-/**
- * Registers the BuiltinSpeech IPC service.
- *
- * Guards on FSM state: only accepts transcription requests while the
- * recording controller is in the `processing` state, preventing stale
- * or out-of-order calls from reaching the native speech recogniser.
- */
-export function registerBuiltinSpeechIpc(
-  nativeSpeech: NativeBuiltinSpeechService,
-  controller: RecordingSessionController,
-): void {
-  ipc.registerService(createBuiltinSpeechService(new BuiltinSpeechService(nativeSpeech, controller)));
-}
-
-class BuiltinSpeechService implements BuiltinSpeechServiceInterface {
-  constructor(
-    private readonly nativeSpeech: NativeBuiltinSpeechService,
-    private readonly controller: RecordingSessionController,
-  ) {}
-
-  async Transcribe(request: TranscribeRequest) {
-    if (this.controller.getState() !== 'processing') {
-      return { text: '', detectedLanguage: '' };
-    }
-
-    const response = await this.nativeSpeech.RunBuiltinSpeechRecognition({
-      pcm: Buffer.from(request.pcm),
-      language: request.language,
-    });
-
-    return {
-      text: response.text,
-      detectedLanguage: response.detectedLanguage,
-    };
-  }
-}
 

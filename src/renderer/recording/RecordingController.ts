@@ -202,9 +202,9 @@ export class RecordingController {
     const inferenceStartMs = Date.now();
     const activeModel = await this.modelRepository.getActiveModel();
 
-    const language = activeModel.definition.isBuiltin
-      ? null
-      : (activeModel.definition.isMultilingual ? this.modelRepository.getLanguage() : null);
+    const language = activeModel.definition.isMultilingual
+      ? this.modelRepository.getLanguage()
+      : null;
 
     const backend = this.backendFactory.createBackend(activeModel.definition);
 
@@ -223,9 +223,7 @@ export class RecordingController {
     const audioDurationSeconds = audio.samples.length / audio.sampleRate;
 
     if (result !== null) {
-      const engineLabel = activeModel.definition.isBuiltin
-        ? 'Built-in'
-        : activeModel.definition.label;
+      const engineLabel = activeModel.definition.label;
 
       const pcmBytes = dontSaveAudio
         ? new Uint8Array(0)

@@ -1,4 +1,4 @@
-import type { AnyModelDefinition } from '../../types/models';
+import type { ModelDefinition } from '../../types/models';
 import type { TranscriptionBackend } from './TranscriptionBackend';
 
 /**
@@ -12,7 +12,7 @@ export interface BackendFactory {
    * Returns a backend suitable for the given model definition.
    * Implementations may cache and reuse instances across calls.
    */
-  createBackend(model: AnyModelDefinition): TranscriptionBackend;
+  createBackend(model: ModelDefinition): TranscriptionBackend;
 
   /**
    * Releases all cached backend resources.

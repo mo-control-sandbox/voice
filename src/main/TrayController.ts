@@ -4,6 +4,8 @@ import type { SettingsStore } from './settings/SettingsStore';
 import type { SettingsWindow } from './settings/SettingsWindow';
 import type { HistoryWindow } from './history/HistoryWindow';
 import type { AboutWindow } from './AboutWindow';
+import type { WelcomeWindow } from './welcome/WelcomeWindow';
+import type { AppReadinessService } from './readiness/AppReadinessService';
 
 /**
  * Manages the menu-bar tray icon for moVoice.
@@ -17,6 +19,8 @@ export class TrayController {
     private readonly settingsWindow: SettingsWindow,
     private readonly historyWindow: HistoryWindow,
     private readonly aboutWindow: AboutWindow,
+    private readonly welcomeWindow: WelcomeWindow,
+    private readonly readiness: AppReadinessService,
   ) {}
 
   /**
@@ -52,7 +56,15 @@ export class TrayController {
                 label: 'Start Recording',
                 shortcut: shortcutKey,
                 enabled: state === 'idle',
-                action: () => { this.controller.start(); },
+                action: () => {
+                  void this.readiness.isReady().then((ready) => {
+                    if (!ready) {
+                      this.welcomeWindow.show();
+                    } else {
+                      this.controller.start();
+                    }
+                  });
+                },
               }),
           new MenuItem({
             id: 'openHistory',
