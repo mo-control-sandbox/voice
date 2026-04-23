@@ -45,9 +45,17 @@ interface FeatureExtractorConfig {
  * possibly undefined, but they are always present for this model. A single
  * cast to this interface avoids non-null assertions on every access.
  */
-interface ProcessorFacade extends VoxtralRealtimeProcessor {
+interface ProcessorFacade {
+  readonly num_mel_frames_first_audio_chunk: number;
+  readonly num_samples_first_audio_chunk: number;
+  readonly num_samples_per_audio_chunk: number;
+  readonly audio_length_per_tok: number;
   readonly feature_extractor: { readonly config: FeatureExtractorConfig };
   readonly tokenizer: PreTrainedTokenizer;
+  _call(
+    audio: Float32Array | Float64Array,
+    options: { readonly is_streaming: true; readonly is_first_audio_chunk: boolean },
+  ): Promise<FirstChunkOutput | SubsequentChunkOutput>;
 }
 
 /** Messages sent from the main thread to the worker. */
@@ -73,7 +81,7 @@ let currentModelId: string | null = null;
 // literals inside async closures. CFA does not narrow function-call return
 // types, so isStopped() / isAudioSealed() always evaluate to `boolean`.
 const runFlags = { stopRequested: false, audioSealed: false };
-let audioBuffer = new Float32Array(0);
+let audioBuffer: Float32Array = new Float32Array(0);
 
 function isStopped(): boolean { return runFlags.stopRequested; }
 function isAudioSealed(): boolean { return runFlags.audioSealed; }
@@ -209,7 +217,7 @@ async function runStreamingTranscription(
   const { hop_length, n_fft } = voxtralProcessor.feature_extractor.config;
   const winHalf = Math.floor(n_fft / 2);
   const samplesPerTok: number = voxtralProcessor.audio_length_per_tok * hop_length;
-  const samplesPerChunk: number = voxtralProcessor.num_samples_per_audio_chunk as number;
+  const samplesPerChunk: number = voxtralProcessor.num_samples_per_audio_chunk;
 
   async function* inputFeaturesGenerator(): AsyncGenerator<FeaturesTensor> {
     yield firstChunkInputs.input_features;
@@ -290,6 +298,7 @@ async function runStreamingTranscription(
     await voxtralModel.generate({
       input_ids: firstChunkInputs.input_ids,
       input_features: inputFeaturesGenerator(),
+      stopping_criteria: null,
       max_new_tokens: 4096,
       streamer,
     });

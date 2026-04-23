@@ -1,5 +1,6 @@
-import { app, BrowserWindow } from '@mobrowser/api';
+import { BrowserWindow } from '@mobrowser/api';
 import type { DockManager } from './system/DockManager';
+import { rendererWindowUrl } from './RendererWindowUrl';
 
 /**
  * Manages the About dialog as a singleton window.
@@ -12,6 +13,7 @@ export class AboutWindow {
   show(): void {
     if (this.window === null || this.window.isClosed) {
       this.window = new BrowserWindow({
+        url: rendererWindowUrl('about'),
         size: { width: 400, height: 300 },
         minimumSize: { width: 400, height: 300 },
         title: 'About moVoice',
@@ -21,7 +23,6 @@ export class AboutWindow {
       this.window.setWindowButtonVisible('zoom', false);
       this.dockManager.track(this.window);
     }
-    this.window.browser.loadUrl(new URL('about/index.html', app.url).href);
 
     if (this.window.isVisible) {
       this.window.focus();

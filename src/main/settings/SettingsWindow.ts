@@ -1,5 +1,6 @@
-import { app, BrowserWindow } from '@mobrowser/api';
+import { BrowserWindow } from '@mobrowser/api';
 import type { DockManager } from '../system/DockManager';
+import { rendererWindowUrl } from '../RendererWindowUrl';
 
 /**
  * Manages the Settings dialog as a singleton window.
@@ -15,13 +16,13 @@ export class SettingsWindow {
   show(): void {
     if (this.window === null || this.window.isClosed) {
       this.window = new BrowserWindow({
+        url: rendererWindowUrl('settings'),
         size: { width: 960, height: 700 },
         minimumSize: { width: 960, height: 700 },
         title: 'Settings',
         resizable: false
       });
       this.window.setWindowButtonVisible('zoom', false);
-      this.window.browser.loadUrl(new URL('settings/index.html', app.url).href);
       this.dockManager.track(this.window);
     }
     if (this.window.isVisible) {

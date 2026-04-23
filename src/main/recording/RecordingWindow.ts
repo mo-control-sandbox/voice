@@ -1,5 +1,6 @@
-import { app, BrowserWindow } from '@mobrowser/api';
+import { BrowserWindow } from '@mobrowser/api';
 import type { RecordingSessionController } from './RecordingSessionController';
+import { rendererWindowUrl } from '../RendererWindowUrl';
 
 const RECORDING_WINDOW_WIDTH = 320;
 const RECORDING_WINDOW_HEIGHT = 72;
@@ -37,6 +38,7 @@ export class RecordingWindow {
 
   private createWindow(): BrowserWindow {
     const win = new BrowserWindow({
+      url: rendererWindowUrl('recording'),
       size: { width: RECORDING_WINDOW_WIDTH, height: RECORDING_WINDOW_HEIGHT },
       alwaysOnTop: true,
       hasShadow: true,
@@ -48,7 +50,6 @@ export class RecordingWindow {
       transparentBackground: true,
       //windowDisplayPolicy: 'appearOnAllDesktops',
     });
-    win.browser.loadUrl(new URL('recording/index.html', app.url).href);
 
     win.setWindowButtonVisible('close', false);
     win.setWindowButtonVisible('minimize', false);

@@ -1,6 +1,6 @@
-html,
-body,
-#root {
+html[data-renderer-window="recording"],
+body[data-renderer-window="recording"],
+[data-renderer-window-root="recording"] {
   width: 100%;
   height: 100%;
   margin: 0;
@@ -8,8 +8,8 @@ body,
   background-color: transparent;
 }
 
-body,
-#root {
+body[data-renderer-window="recording"],
+[data-renderer-window-root="recording"] {
   display: flex;
 }
 
