@@ -76,9 +76,6 @@
   outline-offset: 2px;
 }
 
-.settings-nav-item:active {
-  transform: translateY(1px);
-}
 
 .settings-nav-item[aria-current="page"] {
   background-color: var(--sidebar-primary);

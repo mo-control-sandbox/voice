@@ -145,7 +145,6 @@
 .toggle-row__label {
   font-size: 0.875rem;
   line-height: 1.429;
-  user-select: none;
 }
 
 .toggle-row__hint {

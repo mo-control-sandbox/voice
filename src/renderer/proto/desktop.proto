@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+message OpenUrlRequest {
+  string url = 1;
+}
+
+service DesktopService {
+  rpc OpenUrl(OpenUrlRequest) returns (google.protobuf.Empty);
+}

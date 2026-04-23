@@ -267,6 +267,7 @@
   *::after {
     box-sizing: border-box;
     border-color: var(--border);
+    user-select: none;      /* system.md §10.3 — text selection is an editing affordance only */
   }
 
   html {
@@ -282,6 +283,13 @@
     line-height: 1.5;       /* leading-normal */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Re-enable selection only where the user edits or copies text (system.md §10.3) */
+  input,
+  textarea,
+  [contenteditable] {
+    user-select: text;
   }
 
   /* ── Desktop cursor conventions (system.md §10.4) ───────────────────────
