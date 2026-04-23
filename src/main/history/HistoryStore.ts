@@ -25,6 +25,7 @@ export interface SessionRecord {
 export class HistoryStore {
   private sessions: SessionRecord[] = [];
   private readonly historyPath: string;
+  private revision = 0;
 
   constructor(private readonly sessionStorage: SessionStorage) {
     this.historyPath = path.join(app.getPath('userData'), 'history.json');
@@ -47,6 +48,13 @@ export class HistoryStore {
   }
 
   /**
+   * Monotonically increasing counter incremented on every mutation.
+   */
+  getRevision(): number {
+    return this.revision;
+  }
+
+  /**
    * All session records in insertion order.
    */
   getSessions(): SessionRecord[] {
@@ -65,6 +73,7 @@ export class HistoryStore {
    */
   addSession(record: SessionRecord): void {
     this.sessions.push(record);
+    this.revision++;
     this.persist();
   }
 
@@ -75,6 +84,7 @@ export class HistoryStore {
     const index = this.sessions.findIndex((s) => s.id === id);
     if (index === -1) return;
     this.sessions.splice(index, 1);
+    this.revision++;
     this.persist();
     await this.sessionStorage.deleteSessionFiles(id);
   }

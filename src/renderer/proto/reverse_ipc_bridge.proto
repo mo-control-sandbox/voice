@@ -13,6 +13,7 @@ message RecordingSignalSnapshotProto {
 
 message ReverseIpcBridgeResponse {
   RecordingSignalSnapshotProto recording = 1;
+  int32 history_revision                 = 2;
 }
 
 service ReverseIpcBridgeService {

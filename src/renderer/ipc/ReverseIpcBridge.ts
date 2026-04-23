@@ -18,6 +18,7 @@ class ReverseIpcBridgeBus {
   private readonly services = new Set<SignalServiceInstance>();
   private intervalId: ReturnType<typeof setInterval> | null = null;
   private lastRecordingKey = '';
+  private lastHistoryRevision = -1;
 
   /**
    * Registers a signal service handler.
@@ -63,6 +64,16 @@ class ReverseIpcBridgeBus {
         const snapshot = resp.recording;
         for (const svc of this.services) {
           await svc.onRecordingChanged?.(snapshot);
+        }
+      }
+    }
+
+    if (resp.historyRevision !== this.lastHistoryRevision) {
+      const isFirstPoll = this.lastHistoryRevision === -1;
+      this.lastHistoryRevision = resp.historyRevision;
+      if (!isFirstPoll) {
+        for (const svc of this.services) {
+          await svc.onHistoryRevisionChanged?.(resp.historyRevision);
         }
       }
     }

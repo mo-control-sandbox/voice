@@ -1,4 +1,4 @@
-import { MicOff } from 'lucide-react';
+import { ScrollText } from 'lucide-react';
 import type { SessionRecordProto } from '../../gen/history';
 import { SessionItem } from './SessionItem';
 import './SessionList.css';
@@ -21,7 +21,7 @@ export function SessionList({ sessions, selectedId, onSelect, onDelete }: Sessio
   if (sessions.length === 0) {
     return (
       <div className="empty-history">
-        <MicOff className="empty-history__icon" aria-hidden="true" />
+        <ScrollText className="empty-history__icon" aria-hidden="true" />
         <span className="empty-history__title">No recordings yet</span>
         <span className="empty-history__hint">
           Press your shortcut key to start recording.

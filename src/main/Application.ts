@@ -69,7 +69,7 @@ export class Application {
 
     registerDesktopIpc();
     registerPermissionsIpc(native.systemPermissions);
-    registerReverseIpcBridge(this.recordingController);
+    registerReverseIpcBridge(this.recordingController, this.historyStore);
     registerRecordingIpc(this.recordingController);
     registerSettingsIpc(this.settings, this.shortcutManager);
     registerStatsIpc(this.historyStore);
