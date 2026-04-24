@@ -18,18 +18,36 @@ export class DockManager {
    * Call this once per BrowserWindow instance, immediately after creation.
    */
   track(window: BrowserWindow): void {
-    window.on('shown', () => {
+    let isTrackedAsVisible = false;
+
+    const markVisible = (): void => {
+      if (isTrackedAsVisible) {
+        return;
+      }
+      isTrackedAsVisible = true;
       this.openCount++;
       if (this.openCount === 1) {
         dock.show();
       }
-    });
+    };
 
-    window.on('closed', () => {
-      this.openCount--;
+    const markHidden = (): void => {
+      if (!isTrackedAsVisible) {
+        return;
+      }
+      isTrackedAsVisible = false;
+      this.openCount = Math.max(0, this.openCount - 1);
       if (this.openCount === 0) {
         dock.hide();
       }
-    });
+    };
+
+    if (window.isVisible) {
+      markVisible();
+    }
+
+    window.on('shown', markVisible);
+    window.on('hidden', markHidden);
+    window.on('closed', markHidden);
   }
 }

@@ -57,7 +57,7 @@
   --color-info:                var(--info);
   --color-info-foreground:     var(--info-foreground);
 
-  /* Colors — moVoice product */
+  /* Colors — MoVoice product */
   --color-recording:            var(--recording);
   --color-recording-foreground: var(--recording-foreground);
 
@@ -130,7 +130,7 @@
   --info:               oklch(54.6% 0.245 262.9deg);
   --info-foreground:    oklch(98.5% 0 0deg);
 
-  /* moVoice — recording state */
+  /* MoVoice — recording state */
   --recording:            oklch(62.7% 0.218 20.8deg);
   --recording-foreground: oklch(98.5% 0 0deg);
 
@@ -228,7 +228,7 @@
   --info:               oklch(62.3% 0.214 259.8deg);
   --info-foreground:    oklch(98.5% 0 0deg);
 
-  /* moVoice — recording state */
+  /* MoVoice — recording state */
   --recording:            oklch(72% 0.185 18.0deg);
   --recording-foreground: oklch(98.5% 0 0deg);
 

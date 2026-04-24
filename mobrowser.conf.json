@@ -12,7 +12,7 @@
     "bundle": {
       "macOS": {
         "icon": "assets/app.icns",
-        "bundleID": "com.teamdev.moVoice",
+        "bundleID": "com.teamdev.MoVoice",
         "codesignIdentity": "${MACOS_CODESIGN_IDENTITY}",
         "codesignKeychain": "${KEYCHAIN_PATH}",
         "codesignEntitlements": "assets/entitlements.plist",

@@ -14,7 +14,7 @@ interface LocalModelBackend extends TranscriptionBackend {
 }
 
 /**
- * BackendFactory for moVoice.
+ * BackendFactory for MoVoice.
  *
  * Routes to WhisperBackend or VoxtralRealtimeBackend based on the model
  * definition's `inferenceMode`. Backends are cached per model and reused

@@ -1,4 +1,4 @@
-import { BrowserWindow, type RequestPermissionsParams } from '@mobrowser/api';
+import { BrowserWindow, type RequestPermissionsParams, Notification } from '@mobrowser/api';
 import type { DockManager } from '../system/DockManager';
 import { rendererWindowUrl } from '../RendererWindowUrl';
 
@@ -27,7 +27,6 @@ export class WelcomeWindow {
           zoom: false,
         },
       });
-      this.window.browser.devTools.open();
       this.window.browser.handle('requestPermissions', async (params: RequestPermissionsParams) => {
         if (params.permissionType === 'microphone' || params.permissionType === 'AudioCapture') return 'grant';
         return 'deny';

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { CheckCircle2, CircleAlert, Download, Mic, Settings2, X } from 'lucide-react';
+import { CheckCircle2, CircleAlert, Download, Settings2, X } from 'lucide-react';
 import { PermissionStatus, PermissionType, type PermissionStatusProto } from '../gen/permissions';
 import { ipc } from '../gen/ipc';
 import type { ModelEntry } from '../types/models';
@@ -10,6 +10,7 @@ import { RendererModelRepository } from '../services/RendererModelRepository';
 import { reportModelReadiness } from '../services/ModelReadinessReporter';
 import { PermissionsService } from '../settings/services/PermissionsService';
 import { SettingsService } from '../settings/services/SettingsService';
+import microphonePermissionPreview from './assets/microphone-permission.webp';
 import './WelcomeApp.css';
 
 const MODEL_POLL_INTERVAL_MS = 500;
@@ -35,27 +36,8 @@ const WIZARD_STEPS = [
 
 type WizardStep = (typeof WIZARD_STEPS)[number];
 type FeedbackState = 'idle' | 'loading' | 'success' | 'info';
-
-/**
- * Converts a keyboard event into a MoBrowser shortcut accelerator string.
- */
-function buildAccelerator(event: KeyboardEvent): string | null {
-  const modifierKeys = new Set(['Meta', 'Control', 'Shift', 'Alt', 'Command']);
-  if (modifierKeys.has(event.key)) return null;
-
-  const parts: string[] = [];
-  if (event.metaKey) parts.push('Command');
-  if (event.ctrlKey) parts.push('Control');
-  if (event.altKey) parts.push('Alt');
-  if (event.shiftKey) parts.push('Shift');
-  if (parts.length === 0) return null;
-
-  let key = event.key;
-  if (key === ' ') key = 'Space';
-  else if (key.length === 1) key = key.toUpperCase();
-
-  parts.push(key);
-  return parts.join('+');
+interface LoadAudioDevicesOptions {
+  readonly showLoading?: boolean;
 }
 
 /**
@@ -91,13 +73,33 @@ function findPermissionStatus(
 }
 
 /**
+ * Maps permission status to a short label shown in setup guidance.
+ */
+function permissionStatusLabel(status: PermissionStatus): string {
+  switch (status) {
+    case PermissionStatus.PERMISSION_STATUS_GRANTED:
+      return 'Granted';
+    case PermissionStatus.PERMISSION_STATUS_DENIED:
+      return 'Denied';
+    case PermissionStatus.PERMISSION_STATUS_NOT_DETERMINED:
+      return 'Not determined';
+    case PermissionStatus.PERMISSION_STATUS_UNSPECIFIED:
+      return 'Unknown';
+    case PermissionStatus.UNRECOGNIZED:
+      return 'Unknown';
+    default:
+      return 'Unknown';
+  }
+}
+
+/**
  * Formats model size using GB for values at or above 1 GB, otherwise MB.
  */
 function formatModelSize(fileSizeBytes: number): string {
   if (fileSizeBytes >= 1_000_000_000) {
     const sizeGb = fileSizeBytes / 1_000_000_000;
     const rounded = Math.round(sizeGb * 10) / 10;
-    return `${Number.isInteger(rounded) ? String(rounded.toFixed(0)) : String(rounded.toFixed(1))} GB`;
+    return `${Number.isInteger(rounded) ? rounded.toFixed(0) : rounded.toFixed(1)} GB`;
   }
   return `${String(Math.round(fileSizeBytes / 1_000_000))} MB`;
 }
@@ -105,20 +107,27 @@ function formatModelSize(fileSizeBytes: number): string {
 /**
  * Renders a shortcut accelerator as a row of keycap-style tokens.
  */
-function ShortcutKeycaps({ shortcut }: { shortcut: string }): React.JSX.Element {
+function ShortcutKeycaps({ shortcut, large = false }: { shortcut: string; large?: boolean }): React.JSX.Element {
   const tokens = shortcut.split('+').filter((token) => token.trim() !== '');
-  const visibleTokens = tokens.map((token) => {
-    if (token === 'CommandOrControl') return 'Cmd';
-    if (token === 'Command') return 'Cmd';
-    if (token === 'Control') return 'Ctrl';
-    if (token === 'Alt') return 'Option';
-    return token;
+  const visibleTokens = tokens.map((token): { symbol: string; label: string } => {
+    if (token === 'CommandOrControl' || token === 'Command') return { symbol: '⌘', label: 'Command' };
+    if (token === 'Control') return { symbol: '⌃', label: 'Control' };
+    if (token === 'Alt') return { symbol: '⌥', label: 'Option' };
+    if (token === 'Shift') return { symbol: '⇧', label: 'Shift' };
+    if (token === 'Space') return { symbol: '␣', label: 'Space' };
+    return { symbol: token, label: token };
   });
 
   return (
-    <div className="shortcut-keycaps" aria-label={`Shortcut ${shortcut}`}>
+    <div
+      className={`shortcut-keycaps ${large ? 'shortcut-keycaps--large' : ''}`}
+      aria-label={`Shortcut ${shortcut}`}
+    >
       {visibleTokens.map((token, index) => (
-        <kbd key={`${token}-${String(index)}`} className="shortcut-keycaps__key">{token}</kbd>
+        <kbd key={`${token.label}-${String(index)}`} className="shortcut-keycaps__key">
+          <span className="shortcut-keycaps__symbol">{token.symbol}</span>
+          <span className="shortcut-keycaps__label">{token.label}</span>
+        </kbd>
       ))}
     </div>
   );
@@ -144,14 +153,13 @@ export function WelcomeApp(): React.JSX.Element {
   const [audioDevicesLoading, setAudioDevicesLoading] = useState(false);
   const [selectedAudioDeviceId, setSelectedAudioDeviceId] = useState('');
   const [shortcutKey, setShortcutKey] = useState('CommandOrControl+Shift+Space');
-  const [shortcutHint, setShortcutHint] = useState('Press a shortcut combination');
-  const [isShortcutFocused, setIsShortcutFocused] = useState(false);
   const [onboardingMarked, setOnboardingMarked] = useState(false);
 
   const modelPollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const accessibilityPollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const autoAdvanceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const shortcutInputRef = useRef<HTMLInputElement | null>(null);
+  const finalStageTextAreaRef = useRef<HTMLTextAreaElement | null>(null);
+  const hasLoadedAudioDevicesRef = useRef(false);
 
   const stepIndex = WIZARD_STEPS.indexOf(step);
   const hasReadyDownloadedModel = useMemo(
@@ -203,8 +211,11 @@ export function WelcomeApp(): React.JSX.Element {
     setAccessibilityStatus(findPermissionStatus(response.permissions, PermissionType.PERMISSION_TYPE_ACCESSIBILITY));
   }, []);
 
-  const loadAudioDevices = useCallback(async (): Promise<void> => {
-    setAudioDevicesLoading(true);
+  const loadAudioDevices = useCallback(async (options?: LoadAudioDevicesOptions): Promise<void> => {
+    const showLoading = options?.showLoading ?? !hasLoadedAudioDevicesRef.current;
+    if (showLoading) {
+      setAudioDevicesLoading(true);
+    }
     try {
       const devices = await getAudioInputDevices();
       setAudioDevices(devices);
@@ -216,7 +227,10 @@ export function WelcomeApp(): React.JSX.Element {
         }
       }
     } finally {
-      setAudioDevicesLoading(false);
+      hasLoadedAudioDevicesRef.current = true;
+      if (showLoading) {
+        setAudioDevicesLoading(false);
+      }
     }
   }, [selectedAudioDeviceId]);
 
@@ -301,8 +315,8 @@ export function WelcomeApp(): React.JSX.Element {
 
   useEffect(() => {
     if (step === 'microphone-selection' && microphoneStatus === PermissionStatus.PERMISSION_STATUS_GRANTED) {
-      void loadAudioDevices();
-      const onDeviceChange = (): void => { void loadAudioDevices(); };
+      void loadAudioDevices({ showLoading: !hasLoadedAudioDevicesRef.current });
+      const onDeviceChange = (): void => { void loadAudioDevices({ showLoading: false }); };
       navigator.mediaDevices.addEventListener('devicechange', onDeviceChange);
       return () => {
         navigator.mediaDevices.removeEventListener('devicechange', onDeviceChange);
@@ -313,7 +327,7 @@ export function WelcomeApp(): React.JSX.Element {
 
   useEffect(() => {
     if (step === 'final-shortcut') {
-      shortcutInputRef.current?.focus();
+      finalStageTextAreaRef.current?.focus();
     }
   }, [step]);
 
@@ -330,11 +344,8 @@ export function WelcomeApp(): React.JSX.Element {
       if (modelPollingRef.current !== null) clearInterval(modelPollingRef.current);
       if (accessibilityPollingRef.current !== null) clearInterval(accessibilityPollingRef.current);
       clearAutoAdvance();
-      if (isShortcutFocused) {
-        void settingsService.setShortcutCaptureMode(false);
-      }
     };
-  }, [clearAutoAdvance, isShortcutFocused]);
+  }, [clearAutoAdvance]);
 
   async function handleModelDownload(id: string): Promise<void> {
     if (downloadingModelId !== null && downloadingModelId !== id) return;
@@ -398,39 +409,31 @@ export function WelcomeApp(): React.JSX.Element {
     }
   }
 
+  async function handleRefreshAccessibilityStatus(): Promise<void> {
+    setAccessibilityFeedback('loading');
+    clearAutoAdvance();
+    try {
+      const response = await permissionsService.refreshPermissions();
+      const latestAccessibility = findPermissionStatus(
+        response.permissions,
+        PermissionType.PERMISSION_TYPE_ACCESSIBILITY,
+      );
+      setAccessibilityStatus(latestAccessibility);
+      setMicrophoneStatus(findPermissionStatus(response.permissions, PermissionType.PERMISSION_TYPE_MICROPHONE));
+      if (latestAccessibility === PermissionStatus.PERMISSION_STATUS_GRANTED) {
+        setAccessibilityFeedback('success');
+        scheduleAutoAdvance('microphone-selection');
+      } else {
+        setAccessibilityFeedback('info');
+      }
+    } catch {
+      setAccessibilityFeedback('info');
+    }
+  }
+
   async function handleAudioDeviceChange(deviceId: string): Promise<void> {
     setSelectedAudioDeviceId(deviceId);
     await settingsService.setAudioInputDevice(deviceId);
-  }
-
-  async function handleShortcutFocus(): Promise<void> {
-    setIsShortcutFocused(true);
-    setShortcutHint('Press keys now. Escape cancels.');
-    await settingsService.setShortcutCaptureMode(true);
-  }
-
-  async function handleShortcutBlur(): Promise<void> {
-    setIsShortcutFocused(false);
-    setShortcutHint('Press a shortcut combination');
-    await settingsService.setShortcutCaptureMode(false);
-  }
-
-  async function handleShortcutKeyDown(event: React.KeyboardEvent<HTMLInputElement>): Promise<void> {
-    event.preventDefault();
-    if (event.key === 'Escape') {
-      setShortcutHint('Shortcut capture cancelled');
-      return;
-    }
-
-    const accelerator = buildAccelerator(event.nativeEvent);
-    if (accelerator === null) {
-      setShortcutHint('Include at least one modifier key');
-      return;
-    }
-
-    setShortcutKey(accelerator);
-    setShortcutHint('Shortcut updated');
-    await settingsService.setShortcutKey(accelerator);
   }
 
   return (
@@ -515,36 +518,28 @@ export function WelcomeApp(): React.JSX.Element {
           <section className="welcome-stage">
             <h2 className="welcome-stage__title">Allow microphone access</h2>
             <p className="welcome-stage__description">
-              moVoice needs your microphone to capture speech before transcription begins.
+              MoVoice needs your microphone to capture speech.
             </p>
-            <div className="welcome-stage__body">
-              <div className="welcome-permission-shell">
-                <div className="welcome-permission-shell__visual" aria-hidden="true">
-                  <span className="welcome-permission-shell__caption">Dummy screenshot placeholder</span>
-                  <span className="welcome-permission-shell__title">macOS microphone dialog preview</span>
-                </div>
-                <div className="welcome-permission-shell__body">
-                  <div className="welcome-status" data-state={microphoneFeedback}>
-                    {microphoneFeedback === 'success' && <CheckCircle2 size={16} aria-hidden="true" />}
-                    {microphoneFeedback === 'info' && <CircleAlert size={16} aria-hidden="true" />}
-                    {microphoneFeedback === 'idle' && <Mic size={16} aria-hidden="true" />}
-                    {microphoneFeedback === 'loading' && <Mic size={16} aria-hidden="true" />}
-                    <span>
-                      {microphoneFeedback === 'success' && 'Microphone permission granted.'}
-                      {microphoneFeedback === 'loading' && 'Requesting permission...'}
-                      {microphoneFeedback === 'info' && 'Permission not granted yet. Please try again.'}
-                      {microphoneFeedback === 'idle' && 'Press the button to request permission.'}
-                    </span>
-                  </div>
+            <div className="welcome-stage__body welcome-stage__body--permission">
+              <div className="welcome-permission-guide">
+                <div className="welcome-stage__bottom-action">
                   <button
                     type="button"
-                    className="welcome-btn welcome-btn--primary welcome-no-drag"
+                    className="welcome-btn welcome-btn--friendly welcome-no-drag"
                     disabled={microphoneFeedback === 'loading'}
                     onClick={() => { void handleRequestMicrophonePermission(); }}
                   >
-                    Request Microphone Permission
+                    Press to request microphone permissions
                   </button>
                 </div>
+                <p className="welcome-permission-guide__label">
+                  Press "Allow" when this dialog pops up
+                </p>
+                <img
+                  className="welcome-permission-guide__image"
+                  src={microphonePermissionPreview}
+                  alt="macOS dialog asking to allow microphone access for MoVoice"
+                />
               </div>
             </div>
           </section>
@@ -554,13 +549,20 @@ export function WelcomeApp(): React.JSX.Element {
           <section className="welcome-stage">
             <h2 className="welcome-stage__title">Allow Accessibility access</h2>
             <p className="welcome-stage__description">
-              Accessibility permission lets moVoice paste transcription into the app you were using.
+              Accessibility permission lets MoVoice paste transcription into the app you were using.
             </p>
             <div className="welcome-stage__body">
               <div className="welcome-permission-shell">
                 <div className="welcome-permission-shell__visual" aria-hidden="true">
-                  <span className="welcome-permission-shell__caption">Dummy screenshot placeholder</span>
-                  <span className="welcome-permission-shell__title">System Settings region preview</span>
+                  <span className="welcome-permission-shell__caption">System Settings checklist</span>
+                  <ol className="welcome-accessibility-steps">
+                    <li>Open System Settings.</li>
+                    <li>Go to Privacy and Security, then Accessibility.</li>
+                    <li>Enable MoVoice, then confirm macOS asks to allow control.</li>
+                  </ol>
+                  <span className="welcome-permission-shell__title">
+                    Current status: {permissionStatusLabel(accessibilityStatus)}
+                  </span>
                 </div>
                 <div className="welcome-permission-shell__body">
                   <div className="welcome-status" data-state={accessibilityFeedback}>
@@ -574,18 +576,28 @@ export function WelcomeApp(): React.JSX.Element {
                       {accessibilityFeedback === 'loading' && 'Opening System Settings...'}
                       {accessibilityFeedback === 'info' && accessibilityStatus === PermissionStatus.PERMISSION_STATUS_GRANTED && 'Permission detected. Preparing next step...'}
                       {accessibilityFeedback === 'info' && accessibilityStatus !== PermissionStatus.PERMISSION_STATUS_GRANTED && 'After enabling access, return here. Status is checked automatically.'}
-                      {accessibilityFeedback === 'idle' && 'Open System Settings and enable moVoice in Accessibility.'}
+                      {accessibilityFeedback === 'idle' && 'Open System Settings and enable MoVoice in Accessibility.'}
                     </span>
                   </div>
                   {accessibilityStatus !== PermissionStatus.PERMISSION_STATUS_GRANTED && (
-                    <button
-                      type="button"
-                      className="welcome-btn welcome-btn--primary welcome-no-drag"
-                      disabled={accessibilityFeedback === 'loading'}
-                      onClick={() => { void handleOpenAccessibilitySettings(); }}
-                    >
-                      Open System Settings
-                    </button>
+                    <div className="welcome-permission-shell__actions">
+                      <button
+                        type="button"
+                        className="welcome-btn welcome-btn--primary welcome-no-drag"
+                        disabled={accessibilityFeedback === 'loading'}
+                        onClick={() => { void handleOpenAccessibilitySettings(); }}
+                      >
+                        Open System Settings
+                      </button>
+                      <button
+                        type="button"
+                        className="welcome-btn welcome-btn--ghost welcome-no-drag"
+                        disabled={accessibilityFeedback === 'loading'}
+                        onClick={() => { void handleRefreshAccessibilityStatus(); }}
+                      >
+                        Check again
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>
@@ -630,32 +642,24 @@ export function WelcomeApp(): React.JSX.Element {
 
         {step === 'final-shortcut' && (
           <section className="welcome-stage">
-            <h2 className="welcome-stage__title">You are ready to dictate</h2>
-            <p className="welcome-stage__description">
-              Default shortcut shown below. You can set a custom shortcut now or later in Settings.
-            </p>
+            <h2 className="welcome-stage__title">You are ready to speak</h2>
             <div className="welcome-stage__body">
               <div className="welcome-final-card">
-                <div className="welcome-final-card__row">
+                <div className="welcome-final-card__row welcome-final-card__row--stack">
                   <span className="welcome-final-card__label">Current shortcut</span>
-                  <ShortcutKeycaps shortcut={shortcutKey} />
+                  <ShortcutKeycaps shortcut={shortcutKey} large />
                 </div>
                 <div className="welcome-final-card__row welcome-final-card__row--stack">
-                  <label htmlFor="welcome-shortcut-input" className="welcome-final-card__label">Set custom shortcut</label>
-                  <input
-                    ref={shortcutInputRef}
-                    id="welcome-shortcut-input"
-                    className="welcome-shortcut-input welcome-no-drag"
-                    value={shortcutKey}
-                    readOnly
-                    onFocus={() => { void handleShortcutFocus(); }}
-                    onBlur={() => { void handleShortcutBlur(); }}
-                    onKeyDown={(event) => { void handleShortcutKeyDown(event); }}
+                  <textarea
+                    ref={finalStageTextAreaRef}
+                    id="welcome-dictation-preview"
+                    className="welcome-dictation-preview welcome-no-drag"
+                    rows={4}
+                    placeholder="Transcribed text will appear here"
                   />
-                  <span className="welcome-final-card__hint">{shortcutHint}</span>
                 </div>
-                <p className="welcome-final-card__try">
-                  Try it now: focus any text field, press your shortcut, and start dictating.
+                <p className="welcome-final-card__instruction">
+                  Press the shortcut, speak, then press it again.
                 </p>
               </div>
             </div>
@@ -689,7 +693,7 @@ export function WelcomeApp(): React.JSX.Element {
             </button>
           )}
           {step === 'final-shortcut' && (
-            <span className="welcome-wizard__ready">Setup completed. Close this window to start using moVoice.</span>
+            <span className="welcome-wizard__ready">Setup completed. Close this window to start using MoVoice.</span>
           )}
         </div>
       </footer>

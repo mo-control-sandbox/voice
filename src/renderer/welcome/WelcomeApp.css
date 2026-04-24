@@ -74,6 +74,28 @@
   padding-top: calc(var(--spacing) * 2);
 }
 
+.welcome-stage__body--permission {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.welcome-permission-guide {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 2.5);
+  max-width: 540px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.welcome-permission-guide__label {
+  font-size: 0.9rem;
+  color: var(--muted-foreground);
+  text-align: center;
+}
+
 .welcome-stage__body--static {
   overflow: hidden;
   display: grid;
@@ -86,8 +108,7 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 132px));
   grid-template-rows: repeat(3, 132px);
-  justify-content: flex-start;
-  align-content: flex-start;
+  place-content: flex-start;
   gap: calc(var(--spacing) * 1.25);
   overflow: hidden;
   min-height: 0;
@@ -207,6 +228,10 @@
   gap: calc(var(--spacing) * 3);
 }
 
+.welcome-permission-shell--single {
+  grid-template-columns: 1fr;
+}
+
 .welcome-permission-shell__visual {
   border-radius: var(--radius-xl);
   border: 1px dashed color-mix(in oklch, var(--border) 70%, var(--foreground));
@@ -232,6 +257,23 @@
   font-size: 0.85rem;
   line-height: 1.35;
   color: var(--foreground);
+}
+
+.welcome-accessibility-steps {
+  margin: 0;
+  padding-left: calc(var(--spacing) * 2.5);
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 0.75);
+  text-align: left;
+  font-size: 0.81rem;
+  color: var(--muted-foreground);
+}
+
+.welcome-permission-shell__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--spacing) * 1.5);
 }
 
 .welcome-permission-shell__body {
@@ -275,6 +317,23 @@
   color: color-mix(in oklch, var(--warning) 75%, var(--foreground));
 }
 
+.welcome-stage__bottom-action {
+  display: flex;
+  justify-content: center;
+}
+
+.welcome-permission-guide__image {
+  width: 100%;
+  max-width: 304px;
+  height: auto;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  object-fit: cover;
+  margin: 0 auto;
+  display: block;
+}
+
 .welcome-input-card,
 .welcome-final-card {
   border-radius: var(--radius-xl);
@@ -301,7 +360,7 @@
 }
 
 .welcome-select,
-.welcome-shortcut-input {
+.welcome-dictation-preview {
   width: 100%;
   border-radius: var(--radius-md);
   border: 1px solid var(--input);
@@ -311,8 +370,13 @@
   font-size: 0.88rem;
 }
 
+.welcome-dictation-preview {
+  min-height: 104px;
+  resize: none;
+}
+
 .welcome-select:focus-visible,
-.welcome-shortcut-input:focus-visible {
+.welcome-dictation-preview:focus-visible {
   outline: 3px solid color-mix(in oklch, var(--ring) 45%, transparent);
   outline-offset: 2px;
 }
@@ -336,13 +400,8 @@
 }
 
 .welcome-final-card__label,
-.welcome-final-card__hint,
-.welcome-final-card__try {
+.welcome-final-card__instruction {
   font-size: 0.83rem;
-}
-
-.welcome-final-card__label,
-.welcome-final-card__hint {
   color: var(--muted-foreground);
 }
 
@@ -353,8 +412,17 @@
   gap: calc(var(--spacing) * 1);
 }
 
+.shortcut-keycaps--large {
+  gap: calc(var(--spacing) * 1.5);
+}
+
 .shortcut-keycaps__key {
   min-width: 34px;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--spacing) * 0.25);
   text-align: center;
   border-radius: var(--radius-md);
   border: 1px solid color-mix(in oklch, var(--border) 80%, var(--foreground));
@@ -363,6 +431,23 @@
   font-size: 0.76rem;
   font-weight: 600;
   padding: calc(var(--spacing) * 1) calc(var(--spacing) * 1.6);
+}
+
+.shortcut-keycaps--large .shortcut-keycaps__key {
+  min-width: 84px;
+  padding: calc(var(--spacing) * 1.2) calc(var(--spacing) * 2.6);
+}
+
+.shortcut-keycaps__symbol {
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+.shortcut-keycaps__label {
+  font-size: 0.69rem;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .welcome-wizard__footer {
@@ -405,6 +490,17 @@
 
 .welcome-btn--primary:hover:not(:disabled) {
   opacity: 0.92;
+}
+
+.welcome-btn--friendly {
+  background-color: color-mix(in oklch, var(--muted) 50%, transparent);
+  border-color: color-mix(in oklch, var(--border) 88%, var(--background));
+  color: color-mix(in oklch, var(--foreground) 82%, var(--muted-foreground));
+}
+
+.welcome-btn--friendly:hover:not(:disabled) {
+  background-color: color-mix(in oklch, var(--muted) 70%, transparent);
+  border-color: color-mix(in oklch, var(--border) 96%, var(--background));
 }
 
 .welcome-btn--ghost {
