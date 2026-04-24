@@ -29,7 +29,8 @@
   width: 8px;
   height: 8px;
   border-radius: var(--radius-full);
-  background-color: color-mix(in oklch, var(--muted) 80%, var(--background));
+  background-color: color-mix(in oklch, var(--muted-foreground) 45%, var(--background));
+  border: 1px solid color-mix(in oklch, var(--foreground) 24%, var(--background));
   transition: transform var(--duration-normal) var(--ease-spring),
               background-color var(--duration-fast) var(--ease-out);
 }
@@ -334,16 +335,12 @@
   display: block;
 }
 
-.welcome-input-card,
-.welcome-final-card {
+.welcome-input-card {
   border-radius: var(--radius-xl);
   border: 1px solid color-mix(in oklch, var(--border) 75%, var(--background));
   background-color: color-mix(in oklch, var(--card) 94%, var(--background));
   padding: calc(var(--spacing) * 4);
   box-shadow: var(--shadow-sm);
-}
-
-.welcome-input-card {
   display: flex;
   flex-direction: column;
   gap: calc(var(--spacing) * 2);
@@ -371,38 +368,56 @@
 }
 
 .welcome-dictation-preview {
+  max-width: 620px;
   min-height: 104px;
   resize: none;
 }
 
-.welcome-select:focus-visible,
-.welcome-dictation-preview:focus-visible {
+.welcome-select:focus-visible {
   outline: 3px solid color-mix(in oklch, var(--ring) 45%, transparent);
   outline-offset: 2px;
 }
 
-.welcome-final-card {
+.welcome-final-stage {
   display: flex;
   flex-direction: column;
-  gap: calc(var(--spacing) * 3);
-}
-
-.welcome-final-card__row {
-  display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: calc(var(--spacing) * 3);
+  gap: calc(var(--spacing) * 5.5);
+  max-width: 700px;
+  width: 100%;
+  margin: 0 auto;
 }
 
-.welcome-final-card__row--stack {
-  align-items: flex-start;
-  flex-direction: column;
-}
-
-.welcome-final-card__label,
-.welcome-final-card__instruction {
-  font-size: 0.83rem;
+.welcome-final-stage__instruction {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: calc(var(--spacing) * 2.25);
+  font-size: 0.98rem;
+  line-height: 1.4;
   color: var(--muted-foreground);
+  text-align: center;
+}
+
+.welcome-final-stage__step {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--spacing) * 1.4);
+}
+
+.welcome-final-stage__step-badge {
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in oklch, var(--border) 90%, var(--foreground));
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.74rem;
+  font-weight: 600;
+  line-height: 1;
+  color: color-mix(in oklch, var(--foreground) 86%, var(--muted-foreground));
 }
 
 .shortcut-keycaps {

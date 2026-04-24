@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { CheckCircle2, CircleAlert, Download, Settings2, X } from 'lucide-react';
 import { PermissionStatus, PermissionType, type PermissionStatusProto } from '../gen/permissions';
 import { ipc } from '../gen/ipc';
@@ -39,6 +39,45 @@ type FeedbackState = 'idle' | 'loading' | 'success' | 'info';
 interface LoadAudioDevicesOptions {
   readonly showLoading?: boolean;
 }
+type WizardEventType = 'CONTINUE' | 'MODEL_READY' | 'MIC_GRANTED' | 'ACCESSIBILITY_GRANTED';
+interface WizardEvent {
+  readonly type: WizardEventType;
+}
+interface WizardState {
+  readonly step: WizardStep;
+}
+
+/**
+ * Determines wizard stage transitions from explicit events.
+ */
+function reduceWizard(state: WizardState, event: WizardEvent): WizardState {
+  switch (state.step) {
+    case 'welcome-model':
+      if (event.type === 'CONTINUE' || event.type === 'MODEL_READY') {
+        return { step: 'microphone-permission' };
+      }
+      return state;
+    case 'microphone-permission':
+      if (event.type === 'MIC_GRANTED') {
+        return { step: 'accessibility-permission' };
+      }
+      return state;
+    case 'accessibility-permission':
+      if (event.type === 'ACCESSIBILITY_GRANTED') {
+        return { step: 'microphone-selection' };
+      }
+      return state;
+    case 'microphone-selection':
+      if (event.type === 'CONTINUE') {
+        return { step: 'final-shortcut' };
+      }
+      return state;
+    case 'final-shortcut':
+      return state;
+    default:
+      return state;
+  }
+}
 
 /**
  * Enumerates available audio input devices after a permission-safe warm-up.
@@ -70,26 +109,6 @@ function findPermissionStatus(
 ): PermissionStatus {
   const permission = permissions.find((entry) => entry.type === type);
   return permission?.status ?? PermissionStatus.PERMISSION_STATUS_UNSPECIFIED;
-}
-
-/**
- * Maps permission status to a short label shown in setup guidance.
- */
-function permissionStatusLabel(status: PermissionStatus): string {
-  switch (status) {
-    case PermissionStatus.PERMISSION_STATUS_GRANTED:
-      return 'Granted';
-    case PermissionStatus.PERMISSION_STATUS_DENIED:
-      return 'Denied';
-    case PermissionStatus.PERMISSION_STATUS_NOT_DETERMINED:
-      return 'Not determined';
-    case PermissionStatus.PERMISSION_STATUS_UNSPECIFIED:
-      return 'Unknown';
-    case PermissionStatus.UNRECOGNIZED:
-      return 'Unknown';
-    default:
-      return 'Unknown';
-  }
 }
 
 /**
@@ -137,7 +156,7 @@ function ShortcutKeycaps({ shortcut, large = false }: { shortcut: string; large?
  * First-launch onboarding wizard that collects required setup for recording.
  */
 export function WelcomeApp(): React.JSX.Element {
-  const [step, setStep] = useState<WizardStep>('welcome-model');
+  const [wizard, dispatchWizard] = useReducer(reduceWizard, { step: 'welcome-model' as const });
   const [settingsLoaded, setSettingsLoaded] = useState(false);
   const [models, setModels] = useState<ModelEntry[]>([]);
   const [downloadErrors, setDownloadErrors] = useState<ReadonlyMap<string, string>>(new Map());
@@ -161,9 +180,10 @@ export function WelcomeApp(): React.JSX.Element {
   const finalStageTextAreaRef = useRef<HTMLTextAreaElement | null>(null);
   const hasLoadedAudioDevicesRef = useRef(false);
 
+  const step = wizard.step;
   const stepIndex = WIZARD_STEPS.indexOf(step);
-  const hasReadyDownloadedModel = useMemo(
-    () => models.some((model) => model.isDownloaded && model.downloadProgress === null),
+  const hasReadyActiveModel = useMemo(
+    () => models.some((model) => model.isActive && model.isDownloaded && model.downloadProgress === null),
     [models],
   );
   const downloadingModelId = useMemo(
@@ -172,10 +192,10 @@ export function WelcomeApp(): React.JSX.Element {
   );
 
   const canContinue = useMemo((): boolean => {
-    if (step === 'welcome-model') return hasReadyDownloadedModel;
+    if (step === 'welcome-model') return hasReadyActiveModel;
     if (step === 'microphone-selection') return audioDevices.length > 0;
     return false;
-  }, [audioDevices.length, hasReadyDownloadedModel, step]);
+  }, [audioDevices.length, hasReadyActiveModel, step]);
 
   const clearAutoAdvance = useCallback((): void => {
     if (autoAdvanceRef.current !== null) {
@@ -185,17 +205,14 @@ export function WelcomeApp(): React.JSX.Element {
   }, []);
 
   const moveToNextStep = useCallback((): void => {
-    setStep((currentStep) => {
-      const currentIndex = WIZARD_STEPS.indexOf(currentStep);
-      if (currentIndex >= WIZARD_STEPS.length - 1) return currentStep;
-      return WIZARD_STEPS[currentIndex + 1];
-    });
+    dispatchWizard({ type: 'CONTINUE' });
   }, []);
 
-  const scheduleAutoAdvance = useCallback((nextStep: WizardStep): void => {
+  const scheduleAutoAdvance = useCallback((eventType: WizardEventType): void => {
     clearAutoAdvance();
     autoAdvanceRef.current = setTimeout(() => {
-      setStep(nextStep);
+      autoAdvanceRef.current = null;
+      dispatchWizard({ type: eventType });
     }, AUTO_ADVANCE_DELAY_MS);
   }, [clearAutoAdvance]);
 
@@ -268,14 +285,14 @@ export function WelcomeApp(): React.JSX.Element {
   }, [models, refreshModels]);
 
   useEffect(() => {
-    if (step === 'welcome-model' && hasReadyDownloadedModel && downloadingModelId === null) {
-      scheduleAutoAdvance('microphone-permission');
+    if (step === 'welcome-model' && hasReadyActiveModel && downloadingModelId === null) {
+      scheduleAutoAdvance('MODEL_READY');
       return;
     }
     if (step === 'welcome-model') {
       clearAutoAdvance();
     }
-  }, [clearAutoAdvance, downloadingModelId, hasReadyDownloadedModel, scheduleAutoAdvance, step]);
+  }, [clearAutoAdvance, downloadingModelId, hasReadyActiveModel, scheduleAutoAdvance, step]);
 
   useEffect(() => {
     if (step !== 'accessibility-permission') {
@@ -299,7 +316,7 @@ export function WelcomeApp(): React.JSX.Element {
           clearInterval(accessibilityPollingRef.current);
           accessibilityPollingRef.current = null;
         }
-        scheduleAutoAdvance('microphone-selection');
+        scheduleAutoAdvance('ACCESSIBILITY_GRANTED');
       }
     };
 
@@ -388,7 +405,7 @@ export function WelcomeApp(): React.JSX.Element {
 
       if (latestMicrophone === PermissionStatus.PERMISSION_STATUS_GRANTED) {
         setMicrophoneFeedback('success');
-        scheduleAutoAdvance('accessibility-permission');
+        scheduleAutoAdvance('MIC_GRANTED');
       } else {
         setMicrophoneFeedback('info');
       }
@@ -398,37 +415,10 @@ export function WelcomeApp(): React.JSX.Element {
   }
 
   async function handleOpenAccessibilitySettings(): Promise<void> {
-    setAccessibilityFeedback('loading');
-    clearAutoAdvance();
     try {
-      await permissionsService.openSystemSettings(PermissionType.PERMISSION_TYPE_ACCESSIBILITY);
-      setAccessibilityFeedback('info');
+      await permissionsService.requestPermission(PermissionType.PERMISSION_TYPE_ACCESSIBILITY);
       await refreshPermissions();
-    } catch {
-      setAccessibilityFeedback('info');
-    }
-  }
-
-  async function handleRefreshAccessibilityStatus(): Promise<void> {
-    setAccessibilityFeedback('loading');
-    clearAutoAdvance();
-    try {
-      const response = await permissionsService.refreshPermissions();
-      const latestAccessibility = findPermissionStatus(
-        response.permissions,
-        PermissionType.PERMISSION_TYPE_ACCESSIBILITY,
-      );
-      setAccessibilityStatus(latestAccessibility);
-      setMicrophoneStatus(findPermissionStatus(response.permissions, PermissionType.PERMISSION_TYPE_MICROPHONE));
-      if (latestAccessibility === PermissionStatus.PERMISSION_STATUS_GRANTED) {
-        setAccessibilityFeedback('success');
-        scheduleAutoAdvance('microphone-selection');
-      } else {
-        setAccessibilityFeedback('info');
-      }
-    } catch {
-      setAccessibilityFeedback('info');
-    }
+    } catch {}
   }
 
   async function handleAudioDeviceChange(deviceId: string): Promise<void> {
@@ -551,55 +541,39 @@ export function WelcomeApp(): React.JSX.Element {
             <p className="welcome-stage__description">
               Accessibility permission lets MoVoice paste transcription into the app you were using.
             </p>
-            <div className="welcome-stage__body">
-              <div className="welcome-permission-shell">
+            <div className="welcome-stage__body welcome-stage__body--permission">
+              <div className="welcome-permission-guide">
                 <div className="welcome-permission-shell__visual" aria-hidden="true">
-                  <span className="welcome-permission-shell__caption">System Settings checklist</span>
-                  <ol className="welcome-accessibility-steps">
-                    <li>Open System Settings.</li>
-                    <li>Go to Privacy and Security, then Accessibility.</li>
-                    <li>Enable MoVoice, then confirm macOS asks to allow control.</li>
-                  </ol>
-                  <span className="welcome-permission-shell__title">
-                    Current status: {permissionStatusLabel(accessibilityStatus)}
+                  <span className="welcome-permission-shell__caption">Dummy screenshot placeholder</span>
+                  <span className="welcome-permission-shell__title">System Settings region preview</span>
+                </div>
+                <div className="welcome-status" data-state={accessibilityFeedback}>
+                  {accessibilityFeedback === 'success' && <CheckCircle2 size={16} aria-hidden="true" />}
+                  {accessibilityFeedback === 'info' && <CircleAlert size={16} aria-hidden="true" />}
+                  {(accessibilityFeedback === 'idle' || accessibilityFeedback === 'loading') && (
+                    <Settings2 size={16} aria-hidden="true" />
+                  )}
+                  <span>
+                    {accessibilityFeedback === 'success' && 'Accessibility permission granted.'}
+                    {accessibilityFeedback === 'loading' && 'Opening System Settings...'}
+                    {accessibilityFeedback === 'info' && accessibilityStatus === PermissionStatus.PERMISSION_STATUS_GRANTED && 'Permission detected. Preparing next step...'}
+                    {accessibilityFeedback === 'info' && accessibilityStatus !== PermissionStatus.PERMISSION_STATUS_GRANTED && 'After enabling access, return here. Status is checked automatically.'}
+                    {accessibilityFeedback === 'idle' && 'Waiting for Accessibility permission.'}
                   </span>
                 </div>
-                <div className="welcome-permission-shell__body">
-                  <div className="welcome-status" data-state={accessibilityFeedback}>
-                    {accessibilityFeedback === 'success' && <CheckCircle2 size={16} aria-hidden="true" />}
-                    {accessibilityFeedback === 'info' && <CircleAlert size={16} aria-hidden="true" />}
-                    {(accessibilityFeedback === 'idle' || accessibilityFeedback === 'loading') && (
-                      <Settings2 size={16} aria-hidden="true" />
-                    )}
-                    <span>
-                      {accessibilityFeedback === 'success' && 'Accessibility permission granted.'}
-                      {accessibilityFeedback === 'loading' && 'Opening System Settings...'}
-                      {accessibilityFeedback === 'info' && accessibilityStatus === PermissionStatus.PERMISSION_STATUS_GRANTED && 'Permission detected. Preparing next step...'}
-                      {accessibilityFeedback === 'info' && accessibilityStatus !== PermissionStatus.PERMISSION_STATUS_GRANTED && 'After enabling access, return here. Status is checked automatically.'}
-                      {accessibilityFeedback === 'idle' && 'Open System Settings and enable MoVoice in Accessibility.'}
-                    </span>
-                  </div>
-                  {accessibilityStatus !== PermissionStatus.PERMISSION_STATUS_GRANTED && (
-                    <div className="welcome-permission-shell__actions">
-                      <button
-                        type="button"
-                        className="welcome-btn welcome-btn--primary welcome-no-drag"
-                        disabled={accessibilityFeedback === 'loading'}
-                        onClick={() => { void handleOpenAccessibilitySettings(); }}
-                      >
-                        Open System Settings
-                      </button>
-                      <button
-                        type="button"
-                        className="welcome-btn welcome-btn--ghost welcome-no-drag"
-                        disabled={accessibilityFeedback === 'loading'}
-                        onClick={() => { void handleRefreshAccessibilityStatus(); }}
-                      >
-                        Check again
-                      </button>
-                    </div>
-                  )}
-                </div>
+                <p className="welcome-permission-guide__label">
+                  Open System Settings and enable MoVoice in Accessibility.
+                </p>
+                {accessibilityStatus !== PermissionStatus.PERMISSION_STATUS_GRANTED && (
+                  <button
+                    type="button"
+                    className="welcome-btn welcome-btn--primary welcome-no-drag"
+                    disabled={accessibilityFeedback === 'loading'}
+                    onClick={() => { void handleOpenAccessibilitySettings(); }}
+                  >
+                    Open System Settings
+                  </button>
+                )}
               </div>
             </div>
           </section>
@@ -644,23 +618,29 @@ export function WelcomeApp(): React.JSX.Element {
           <section className="welcome-stage">
             <h2 className="welcome-stage__title">You are ready to speak</h2>
             <div className="welcome-stage__body">
-              <div className="welcome-final-card">
-                <div className="welcome-final-card__row welcome-final-card__row--stack">
-                  <span className="welcome-final-card__label">Current shortcut</span>
-                  <ShortcutKeycaps shortcut={shortcutKey} large />
-                </div>
-                <div className="welcome-final-card__row welcome-final-card__row--stack">
-                  <textarea
-                    ref={finalStageTextAreaRef}
-                    id="welcome-dictation-preview"
-                    className="welcome-dictation-preview welcome-no-drag"
-                    rows={4}
-                    placeholder="Transcribed text will appear here"
-                  />
-                </div>
-                <p className="welcome-final-card__instruction">
-                  Press the shortcut, speak, then press it again.
+              <div className="welcome-final-stage">
+                <p className="welcome-final-stage__instruction">
+                  <span className="welcome-final-stage__step">
+                    <span className="welcome-final-stage__step-badge" aria-hidden="true">1</span>
+                    <span>Press the shortcut</span>
+                  </span>
+                  <span className="welcome-final-stage__step">
+                    <span className="welcome-final-stage__step-badge" aria-hidden="true">2</span>
+                    <span>Speak</span>
+                  </span>
+                  <span className="welcome-final-stage__step">
+                    <span className="welcome-final-stage__step-badge" aria-hidden="true">3</span>
+                    <span>Press it again</span>
+                  </span>
                 </p>
+                <ShortcutKeycaps shortcut={shortcutKey} large />
+                <textarea
+                  ref={finalStageTextAreaRef}
+                  id="welcome-dictation-preview"
+                  className="welcome-dictation-preview welcome-no-drag"
+                  rows={4}
+                  placeholder="Transcribed text will appear here"
+                />
               </div>
             </div>
           </section>
@@ -691,9 +671,6 @@ export function WelcomeApp(): React.JSX.Element {
             >
               Continue
             </button>
-          )}
-          {step === 'final-shortcut' && (
-            <span className="welcome-wizard__ready">Setup completed. Close this window to start using MoVoice.</span>
           )}
         </div>
       </footer>
