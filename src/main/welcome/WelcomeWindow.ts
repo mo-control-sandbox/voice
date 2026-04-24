@@ -27,6 +27,7 @@ export class WelcomeWindow {
           zoom: false,
         },
       });
+      this.window.browser.devTools.open();
       this.window.browser.handle('requestPermissions', async (params: RequestPermissionsParams) => {
         if (params.permissionType === 'microphone' || params.permissionType === 'AudioCapture') return 'grant';
         return 'deny';
