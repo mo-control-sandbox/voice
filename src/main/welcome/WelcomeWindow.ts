@@ -16,14 +16,21 @@ export class WelcomeWindow {
         url: rendererWindowUrl('welcome'),
         size: { width: 680, height: 620 },
         minimumSize: { width: 680, height: 620 },
-        title: 'Welcome to MoVoice',
+        title: 'MoVoice Initial Configuration',
         resizable: false,
+        windowTitleVisible: false,
+        windowTitlebarVisible: false,
+        windowButtonVisible: {
+          close: true,
+          minimize: false,
+          maximize: false,
+          zoom: false,
+        },
       });
       this.window.browser.handle('requestPermissions', async (params: RequestPermissionsParams) => {
         if (params.permissionType === 'microphone' || params.permissionType === 'AudioCapture') return 'grant';
         return 'deny';
       });
-      this.window.setWindowButtonVisible('zoom', false);
       this.window.centerWindow();
       this.dockManager.track(this.window);
     }

@@ -1,163 +1,416 @@
-/* ─── Welcome App ─────────────────────────────────────────────────────────── */
-
-.welcome-app {
-  display: flex;
-  flex-direction: column;
+.welcome-wizard {
+  display: grid;
+  grid-template-rows: 1fr auto;
   height: 100vh;
   overflow: hidden;
-  background-color: var(--background);
-  color: var(--foreground);
+  background:
+    radial-gradient(120% 90% at 0% 0%, color-mix(in oklch, var(--info) 14%, transparent), transparent 60%),
+    radial-gradient(80% 70% at 100% 100%, color-mix(in oklch, var(--warning) 18%, transparent), transparent 55%),
+    var(--background);
 }
 
-/* ─── Header ─────────────────────────────────────────────────────────────── */
-
-.welcome-header {
-  display: flex;
-  flex-direction: column;
-  gap: calc(var(--spacing) * 4);
-  padding: calc(var(--spacing) * 6) calc(var(--spacing) * 8);
-  border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
+.welcome-no-drag {
+  -webkit-app-region: no-drag;
 }
 
-.welcome-header__top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.welcome-header__brand {
-  font-size: 0.875rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-}
-
-/* ─── Step indicator ─────────────────────────────────────────────────────── */
-
-.welcome-step-indicator {
+.welcome-progress {
   display: flex;
   align-items: center;
   gap: calc(var(--spacing) * 1.5);
 }
 
-.welcome-step-dot {
+.welcome-progress__label {
+  font-size: 0.78rem;
+  color: var(--muted-foreground);
+  margin-left: calc(var(--spacing) * 0.5);
+}
+
+.welcome-progress__dot {
   width: 8px;
   height: 8px;
   border-radius: var(--radius-full);
-  background-color: var(--muted);
-  transition: background-color var(--duration-fast) var(--ease-out);
+  background-color: color-mix(in oklch, var(--muted) 80%, var(--background));
+  transition: transform var(--duration-normal) var(--ease-spring),
+              background-color var(--duration-fast) var(--ease-out);
 }
 
-.welcome-step-dot[data-active="true"] {
+.welcome-progress__dot[data-complete="true"] {
+  background-color: color-mix(in oklch, var(--success) 75%, var(--background));
+}
+
+.welcome-progress__dot[data-active="true"] {
+  transform: scale(1.35);
   background-color: var(--primary);
 }
 
-/* ─── Step info ──────────────────────────────────────────────────────────── */
-
-.welcome-step-label {
-  font-size: 1rem;
-  font-weight: 600;
-  line-height: 1.5;
+.welcome-wizard__content {
+  overflow: hidden;
+  padding: calc(var(--spacing) * 8) calc(var(--spacing) * 8) calc(var(--spacing) * 5);
+  min-height: 0;
 }
 
-.welcome-step-description {
-  font-size: 0.875rem;
+.welcome-stage {
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  gap: calc(var(--spacing) * 2);
+  height: 100%;
+  min-height: 0;
+}
+
+.welcome-stage__title {
+  font-size: 1.35rem;
+  line-height: 1.3;
+  font-weight: 620;
+}
+
+.welcome-stage__description {
+  font-size: 0.92rem;
   color: var(--muted-foreground);
-  margin-top: calc(var(--spacing) * 1);
 }
 
-/* ─── Content area ───────────────────────────────────────────────────────── */
-
-.welcome-content {
-  flex: 1;
+.welcome-stage__body {
   overflow-y: auto;
-  padding: calc(var(--spacing) * 6) calc(var(--spacing) * 8);
+  min-height: 0;
+  padding-top: calc(var(--spacing) * 2);
 }
 
-/* ─── Model list ─────────────────────────────────────────────────────────── */
+.welcome-stage__body--static {
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  gap: calc(var(--spacing) * 2);
+  min-height: 0;
+}
 
-.welcome-models {
+.welcome-model-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 132px));
+  grid-template-rows: repeat(3, 132px);
+  justify-content: flex-start;
+  align-content: flex-start;
+  gap: calc(var(--spacing) * 1.25);
+  overflow: hidden;
+  min-height: 0;
+  padding: 1px;
+}
+
+.welcome-model-tile {
+  text-align: left;
+  position: relative;
+  border: 1px solid color-mix(in oklch, var(--border) 75%, var(--background));
+  border-radius: var(--radius-xl);
+  background: linear-gradient(
+    120deg,
+    color-mix(in oklch, var(--card) 93%, var(--background)),
+    color-mix(in oklch, var(--secondary) 35%, var(--card))
+  );
+  padding: calc(var(--spacing) * 1.9);
   display: flex;
   flex-direction: column;
-  gap: calc(var(--spacing) * 3);
+  gap: calc(var(--spacing) * 0.8);
+  box-shadow: var(--shadow-sm);
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  transition: border-color var(--duration-fast) var(--ease-out),
+              opacity var(--duration-fast) var(--ease-out);
 }
 
-/* ─── Permissions ────────────────────────────────────────────────────────── */
-
-.welcome-permissions__list {
-  display: flex;
-  flex-direction: column;
-  gap: calc(var(--spacing) * 3);
+.welcome-model-tile[data-downloaded="true"] {
+  border-color: color-mix(in oklch, var(--success) 40%, var(--border));
 }
 
-.welcome-permissions-loading {
-  display: flex;
-  justify-content: center;
-  padding: calc(var(--spacing) * 12) 0;
+.welcome-model-tile[data-disabled="true"] {
+  opacity: 0.55;
 }
 
-.welcome-permissions-loading__icon {
-  width: 20px;
-  height: 20px;
+.welcome-model-tile__tag {
+  font-size: 0.62rem;
+  font-weight: 400;
+  align-self: flex-start;
+  margin-top: calc(var(--spacing) * 0.9);
   color: var(--muted-foreground);
-  animation: spin var(--duration-slow) var(--ease-linear) infinite;
 }
 
-/* ─── Footer ─────────────────────────────────────────────────────────────── */
+.welcome-model-tile__size {
+  font-size: 0.7rem;
+  color: var(--muted-foreground);
+}
 
-.welcome-footer {
+.welcome-model-tile__statusbar {
+  margin-top: auto;
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: calc(var(--spacing) * 1);
+  min-height: 20px;
+}
+
+.welcome-model-tile__tools {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: calc(var(--spacing) * 0.8);
+}
+
+.welcome-model-tile__icon-btn {
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: 0;
+  background-color: transparent;
+  color: var(--muted-foreground);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.welcome-model-tile__icon-btn--danger {
+  color: color-mix(in oklch, var(--destructive) 85%, var(--foreground));
+}
+
+.welcome-model-tile__icon-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.welcome-model-tile__progress {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-full);
+  display: inline-block;
+  border: 1px solid color-mix(in oklch, var(--border) 75%, var(--background));
+}
+
+.welcome-model-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: calc(var(--spacing) * 1.5);
+}
+
+.welcome-model-card__name {
+  font-size: 0.76rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.welcome-model-card__error {
+  font-size: 0.72rem;
+  color: var(--destructive);
+}
+
+.welcome-permission-shell {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.9fr) minmax(280px, 1fr);
+  gap: calc(var(--spacing) * 3);
+}
+
+.welcome-permission-shell__visual {
+  border-radius: var(--radius-xl);
+  border: 1px dashed color-mix(in oklch, var(--border) 70%, var(--foreground));
+  background-color: color-mix(in oklch, var(--card) 92%, var(--background));
+  min-height: 170px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--spacing) * 1.5);
+  text-align: center;
+  padding: calc(var(--spacing) * 3);
+}
+
+.welcome-permission-shell__caption {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted-foreground);
+}
+
+.welcome-permission-shell__title {
+  font-size: 0.85rem;
+  line-height: 1.35;
+  color: var(--foreground);
+}
+
+.welcome-permission-shell__body {
+  border-radius: var(--radius-xl);
+  border: 1px solid color-mix(in oklch, var(--border) 75%, var(--background));
+  background-color: color-mix(in oklch, var(--card) 94%, var(--background));
+  padding: calc(var(--spacing) * 3.5);
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 3);
+}
+
+.welcome-status {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--spacing) * 1.5);
+  font-size: 0.85rem;
+  border-radius: var(--radius-lg);
+  padding: calc(var(--spacing) * 2);
+  border: 1px solid color-mix(in oklch, var(--border) 70%, var(--background));
+  background-color: color-mix(in oklch, var(--secondary) 55%, var(--background));
+  color: var(--muted-foreground);
+  transition: transform var(--duration-normal) var(--ease-spring),
+              background-color var(--duration-normal) var(--ease-out),
+              color var(--duration-normal) var(--ease-out);
+}
+
+.welcome-status[data-state="loading"] {
+  background-color: color-mix(in oklch, var(--info) 12%, var(--background));
+  color: color-mix(in oklch, var(--info) 85%, var(--foreground));
+}
+
+.welcome-status[data-state="success"] {
+  background-color: color-mix(in oklch, var(--success) 16%, var(--background));
+  color: color-mix(in oklch, var(--success) 88%, var(--foreground));
+  transform: translateY(-2px);
+}
+
+.welcome-status[data-state="info"] {
+  background-color: color-mix(in oklch, var(--warning) 18%, var(--background));
+  color: color-mix(in oklch, var(--warning) 75%, var(--foreground));
+}
+
+.welcome-input-card,
+.welcome-final-card {
+  border-radius: var(--radius-xl);
+  border: 1px solid color-mix(in oklch, var(--border) 75%, var(--background));
+  background-color: color-mix(in oklch, var(--card) 94%, var(--background));
+  padding: calc(var(--spacing) * 4);
+  box-shadow: var(--shadow-sm);
+}
+
+.welcome-input-card {
+  display: flex;
+  flex-direction: column;
   gap: calc(var(--spacing) * 2);
-  padding: calc(var(--spacing) * 4) calc(var(--spacing) * 8);
-  border-top: 1px solid var(--border);
-  flex-shrink: 0;
 }
 
-.welcome-footer__gap {
-  flex: 1;
+.welcome-input-card__label {
+  font-size: 0.82rem;
+  color: var(--muted-foreground);
 }
 
-/* ─── Buttons ────────────────────────────────────────────────────────────── */
+.welcome-input-card__hint {
+  font-size: 0.84rem;
+  color: var(--muted-foreground);
+}
+
+.welcome-select,
+.welcome-shortcut-input {
+  width: 100%;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--input);
+  background-color: var(--background);
+  color: var(--foreground);
+  padding: calc(var(--spacing) * 2) calc(var(--spacing) * 2.5);
+  font-size: 0.88rem;
+}
+
+.welcome-select:focus-visible,
+.welcome-shortcut-input:focus-visible {
+  outline: 3px solid color-mix(in oklch, var(--ring) 45%, transparent);
+  outline-offset: 2px;
+}
+
+.welcome-final-card {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 3);
+}
+
+.welcome-final-card__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(var(--spacing) * 3);
+}
+
+.welcome-final-card__row--stack {
+  align-items: flex-start;
+  flex-direction: column;
+}
+
+.welcome-final-card__label,
+.welcome-final-card__hint,
+.welcome-final-card__try {
+  font-size: 0.83rem;
+}
+
+.welcome-final-card__label,
+.welcome-final-card__hint {
+  color: var(--muted-foreground);
+}
+
+.shortcut-keycaps {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: calc(var(--spacing) * 1);
+}
+
+.shortcut-keycaps__key {
+  min-width: 34px;
+  text-align: center;
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in oklch, var(--border) 80%, var(--foreground));
+  background: linear-gradient(180deg, color-mix(in oklch, var(--background) 85%, white), var(--background));
+  box-shadow: inset 0 -2px 0 color-mix(in oklch, var(--border) 80%, var(--background));
+  font-size: 0.76rem;
+  font-weight: 600;
+  padding: calc(var(--spacing) * 1) calc(var(--spacing) * 1.6);
+}
+
+.welcome-wizard__footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: calc(var(--spacing) * 3);
+  min-height: 74px;
+  padding: calc(var(--spacing) * 3) calc(var(--spacing) * 8) calc(var(--spacing) * 5);
+}
+
+.welcome-wizard__footer-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-left: auto;
+}
 
 .welcome-btn {
   display: inline-flex;
   align-items: center;
-  gap: calc(var(--spacing) * 1.5);
-  padding: calc(var(--spacing) * 2) calc(var(--spacing) * 4);
+  justify-content: center;
+  gap: calc(var(--spacing) * 1);
+  padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3.5);
   border-radius: var(--radius-md);
-  font-size: 0.875rem;
-  font-weight: 500;
   border: 1px solid transparent;
+  font-size: 0.84rem;
+  font-weight: 560;
   transition: background-color var(--duration-fast) var(--ease-out),
               color var(--duration-fast) var(--ease-out),
+              border-color var(--duration-fast) var(--ease-out),
               opacity var(--duration-fast) var(--ease-out);
-}
-
-.welcome-btn:focus-visible {
-  outline: 3px solid var(--ring);
-  outline-offset: 2px;
-}
-
-.welcome-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
 }
 
 .welcome-btn--primary {
   background-color: var(--primary);
-  color: var(--primary-foreground);
   border-color: var(--primary);
+  color: var(--primary-foreground);
 }
 
 .welcome-btn--primary:hover:not(:disabled) {
-  opacity: 0.9;
+  opacity: 0.92;
 }
 
 .welcome-btn--ghost {
   background-color: transparent;
-  color: var(--muted-foreground);
   border-color: var(--border);
+  color: var(--muted-foreground);
 }
 
 .welcome-btn--ghost:hover:not(:disabled) {
@@ -165,14 +418,32 @@
   color: var(--accent-foreground);
 }
 
-.welcome-btn__icon {
-  width: 14px;
-  height: 14px;
-  flex-shrink: 0;
+.welcome-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.welcome-btn:focus-visible {
+  outline: 3px solid color-mix(in oklch, var(--ring) 45%, transparent);
+  outline-offset: 2px;
+}
+
+.welcome-wizard__ready {
+  font-size: 0.84rem;
+  color: color-mix(in oklch, var(--success) 86%, var(--foreground));
+}
+
+@media (width <= 900px) {
+  .welcome-permission-shell {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .welcome-permissions-loading__icon {
-    animation: none;
+  .welcome-progress__dot,
+  .welcome-status,
+  .welcome-model-card__progress-fill,
+  .welcome-btn {
+    transition: none;
   }
 }

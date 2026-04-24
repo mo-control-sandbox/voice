@@ -83,6 +83,7 @@ export class Application {
 
     this.recordingController.onStateChange(() => { this.trayController.refresh(); });
     this.settings.onShortcutKeyChanged(() => { this.trayController.refresh(); });
+    this.settings.onOnboardingCompletionChanged(() => { this.trayController.refresh(); });
 
     this.recordingController.onTranscriptionCompleted((text) => {
       void this.clipboard.execute(text);

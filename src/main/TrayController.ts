@@ -41,17 +41,17 @@ export class TrayController {
 
     const state = this.controller.getState();
     const { shortcutKey } = this.settings.get();
-    this.tray.setMenu(
-      new Menu({
-        items: [
-          state === 'recording'
+    const hasCompletedOnboarding = this.settings.hasCompletedOnboarding();
+    const recordingMenuItem = state === 'recording'
+      ? new MenuItem({
+          id: 'stopRecording',
+          label: 'Stop Recording',
+          shortcut: shortcutKey,
+          action: () => { this.controller.stop(); },
+        })
+      : (
+          hasCompletedOnboarding
             ? new MenuItem({
-                id: 'stopRecording',
-                label: 'Stop Recording',
-                shortcut: shortcutKey,
-                action: () => { this.controller.stop(); },
-              })
-            : new MenuItem({
                 id: 'startRecording',
                 label: 'Start Recording',
                 shortcut: shortcutKey,
@@ -65,7 +65,18 @@ export class TrayController {
                     }
                   });
                 },
-              }),
+              })
+            : new MenuItem({
+                id: 'continueSetup',
+                label: 'Continue Setup',
+                enabled: state === 'idle',
+                action: () => { this.welcomeWindow.show(); },
+              })
+        );
+    this.tray.setMenu(
+      new Menu({
+        items: [
+          recordingMenuItem,
           new MenuItem({
             id: 'openHistory',
             label: 'History',

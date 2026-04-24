@@ -23,6 +23,7 @@ const DEFAULTS: SettingsProto = {
  */
 export class SettingsStore {
   private readonly shortcutKeyListeners: (() => void)[] = [];
+  private readonly onboardingCompletionListeners: (() => void)[] = [];
 
   /**
    * Returns the current settings read from disk.
@@ -87,8 +88,18 @@ export class SettingsStore {
    * Marks the onboarding wizard as completed and persists to disk.
    */
   setOnboardingCompleted(): void {
+    const wasCompleted = this.hasCompletedOnboarding();
+    if (wasCompleted) return;
     prefs.setBoolean('hasCompletedOnboarding', true);
     prefs.persist();
+    for (const listener of this.onboardingCompletionListeners) listener();
+  }
+
+  /**
+   * Registers a listener that fires after onboarding completion state changes.
+   */
+  onOnboardingCompletionChanged(listener: () => void): void {
+    this.onboardingCompletionListeners.push(listener);
   }
 
   /**
