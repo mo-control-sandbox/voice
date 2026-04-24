@@ -4,12 +4,14 @@ import {
   type AutomaticSpeechRecognitionPipeline,
   type AutomaticSpeechRecognitionOutput,
 } from '@huggingface/transformers';
-import { MODEL_CACHE_PARTITION } from '../../services/ModelCacheKey';
+import { OPFSModelCache } from '../../services/OPFSModelCache';
 
-// Configure Transformers.js to read pre-downloaded model files from the same
-// browser Cache API partition used by RendererModelCache.
-env.useBrowserCache = true;
-env.cacheKey = MODEL_CACHE_PARTITION;
+// Configure Transformers.js to read pre-downloaded model files from OPFS
+// via the shared OPFSModelCache. No model catalog is needed here -- workers
+// only call match() and put(), which are URL-keyed and catalog-independent.
+env.useBrowserCache = false;
+env.useCustomCache = true;
+env.customCache = new OPFSModelCache();
 
 /** Input payload for a transcription run. */
 interface RunInput {

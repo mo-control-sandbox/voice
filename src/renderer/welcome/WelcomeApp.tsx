@@ -4,7 +4,7 @@ import { PermissionStatus, PermissionType, type PermissionStatusProto } from '..
 import { ipc } from '../gen/ipc';
 import type { ModelEntry } from '../types/models';
 import { RendererModelCatalog } from '../services/RendererModelCatalog';
-import { RendererModelCache } from '../services/RendererModelCache';
+import { OPFSModelCache } from '../services/OPFSModelCache';
 import { RendererModelStateStore } from '../services/RendererModelStateStore';
 import { RendererModelRepository } from '../services/RendererModelRepository';
 import { reportModelReadiness } from '../services/ModelReadinessReporter';
@@ -20,7 +20,7 @@ const AUTO_ADVANCE_DELAY_MS = 900;
 const catalog = new RendererModelCatalog();
 const modelRepository = new RendererModelRepository(
   catalog,
-  new RendererModelCache(catalog.getDefinitions()),
+  new OPFSModelCache(catalog.getDefinitions()),
   new RendererModelStateStore(),
 );
 const permissionsService = new PermissionsService();

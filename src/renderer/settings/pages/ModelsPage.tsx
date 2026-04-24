@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import type { ModelEntry } from '../../types/models';
 import { RendererModelCatalog } from '../../services/RendererModelCatalog';
-import { RendererModelCache } from '../../services/RendererModelCache';
+import { OPFSModelCache } from '../../services/OPFSModelCache';
 import { RendererModelStateStore } from '../../services/RendererModelStateStore';
 import { RendererModelRepository } from '../../services/RendererModelRepository';
 import { reportModelReadiness } from '../../services/ModelReadinessReporter';
@@ -13,7 +13,7 @@ const POLL_INTERVAL_MS = 500;
 const _catalog = new RendererModelCatalog();
 const repository = new RendererModelRepository(
   _catalog,
-  new RendererModelCache(_catalog.getDefinitions()),
+  new OPFSModelCache(_catalog.getDefinitions()),
   new RendererModelStateStore(),
 );
 

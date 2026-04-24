@@ -3,7 +3,7 @@ import { WaveformVisualizer } from './components/WaveformVisualizer';
 import { ProcessingIndicator } from './components/ProcessingIndicator';
 import { CancelButton } from './components/CancelButton';
 import { RendererModelCatalog } from '../services/RendererModelCatalog';
-import { RendererModelCache } from '../services/RendererModelCache';
+import { OPFSModelCache } from '../services/OPFSModelCache';
 import { RendererModelStateStore } from '../services/RendererModelStateStore';
 import { RendererModelRepository } from '../services/RendererModelRepository';
 import { MoVoiceBackendFactory } from './services/MoVoiceBackendFactory';
@@ -15,7 +15,7 @@ import './RecordingApp.css';
 const catalog = new RendererModelCatalog();
 const modelRepository = new RendererModelRepository(
   catalog,
-  new RendererModelCache(catalog.getDefinitions()),
+  new OPFSModelCache(catalog.getDefinitions()),
   new RendererModelStateStore(),
 );
 const controller = new RecordingController(modelRepository, new MoVoiceBackendFactory());
