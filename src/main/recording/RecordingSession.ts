@@ -23,9 +23,5 @@ export class RecordingSession {
      * Whether the transcript should NOT be written to disk for this session.
      */
     readonly dontSaveTranscripts: boolean,
-    /**
-     * Maximum recording wall-clock duration in milliseconds.
-     */
-    readonly maxDurationMs: number,
   ) {}
 }

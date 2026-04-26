@@ -1,4 +1,4 @@
-import { BrowserWindow, type RequestPermissionsParams, Notification } from '@mobrowser/api';
+import { BrowserWindow, type RequestPermissionsParams } from '@mobrowser/api';
 import type { DockManager } from '../system/DockManager';
 import { rendererWindowUrl } from '../RendererWindowUrl';
 

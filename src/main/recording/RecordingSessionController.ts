@@ -3,7 +3,7 @@ import {
   RecordingService as createRecordingService,
   type RecordingService as RecordingServiceInterface,
 } from '../gen/ipc_service';
-import type { CancelRecordingRequest, SubmitTranscriptionRequest } from '../gen/recording';
+import type { CancelRecordingRequest, PastePartialTranscriptionRequest, StopRecordingRequest, SubmitTranscriptionRequest } from '../gen/recording';
 import type { SettingsStore } from '../settings/SettingsStore';
 import type { HistoryStore, SessionRecord } from '../history/HistoryStore';
 import type { SessionStorage } from './SessionStorage';
@@ -14,7 +14,8 @@ export type RecordingState = 'idle' | 'recording' | 'processing';
 /** Callback fired once per successfully completed transcription. */
 export type TranscriptionCompletedCallback = (text: string) => void;
 
-const MAX_DURATION_MS = 10 * 60 * 1000; // 10 minutes
+/** Callback fired for each partial transcription chunk during streaming. */
+export type PartialTranscriptionCallback = (text: string) => void;
 
 /**
  * Controls the recording session lifecycle: idle, recording, processing, and back to idle.
@@ -22,10 +23,10 @@ const MAX_DURATION_MS = 10 * 60 * 1000; // 10 minutes
 export class RecordingSessionController {
   private state: RecordingState = 'idle';
   private session: RecordingSession | null = null;
-  private maxDurationTimer: ReturnType<typeof setTimeout> | null = null;
 
   private readonly listeners: ((state: RecordingState) => void)[] = [];
   private readonly completionListeners: TranscriptionCompletedCallback[] = [];
+  private readonly partialListeners: PartialTranscriptionCallback[] = [];
 
   constructor(
     private readonly settings: SettingsStore,
@@ -63,6 +64,27 @@ export class RecordingSessionController {
   }
 
   /**
+   * Registers a callback that fires for each partial transcription chunk
+   * received during a streaming session.
+   */
+  onPartialTranscription(cb: PartialTranscriptionCallback): void {
+    this.partialListeners.push(cb);
+  }
+
+  /**
+   * Forwards a partial transcription chunk to all registered partial listeners.
+   *
+   * Returns false if the session ID does not match the active session.
+   */
+  pastePartialTranscription(payload: PastePartialTranscriptionRequest): boolean {
+    if (this.session?.id !== payload.sessionId) return false;
+    for (const cb of this.partialListeners) {
+      cb(payload.text);
+    }
+    return true;
+  }
+
+  /**
    * Toggles recording: starts if idle, stops if recording. No-op while processing.
    */
   toggle(): void {
@@ -85,10 +107,8 @@ export class RecordingSessionController {
     this.session = new RecordingSession(
       settings.dontSaveAudio,
       settings.dontSaveTranscripts,
-      MAX_DURATION_MS,
     );
 
-    this.scheduleMaxDurationStop(MAX_DURATION_MS);
     this.transition('recording');
   }
 
@@ -97,7 +117,6 @@ export class RecordingSessionController {
    */
   stop(): void {
     if (this.state !== 'recording') return;
-    this.clearMaxDurationTimer();
     this.transition('processing');
   }
 
@@ -106,7 +125,6 @@ export class RecordingSessionController {
    */
   cancel(): void {
     if (this.state === 'idle') return;
-    this.clearMaxDurationTimer();
     this.session = null;
     this.transition('idle');
   }
@@ -150,8 +168,10 @@ export class RecordingSessionController {
 
     this.session = null;
 
-    for (const cb of this.completionListeners) {
-      cb(payload.text);
+    if (!payload.streamed) {
+      for (const cb of this.completionListeners) {
+        cb(payload.text);
+      }
     }
 
     this.transition('idle');
@@ -176,19 +196,6 @@ export class RecordingSessionController {
     return text.split(/\s+/).filter(Boolean).length;
   }
 
-  private scheduleMaxDurationStop(ms: number): void {
-    this.maxDurationTimer = setTimeout(() => {
-      if (this.state === 'recording') {
-        console.info('[RecordingSessionController] Max duration reached — auto-stopping.');
-        this.stop();
-      }
-    }, ms);
-  }
-
-  private clearMaxDurationTimer(): void {
-    clearTimeout(this.maxDurationTimer ?? undefined);
-    this.maxDurationTimer = null;
-  }
 }
 
 /**
@@ -213,6 +220,16 @@ class RecordingService implements RecordingServiceInterface {
     await this.controller.completeTranscription(request);
     return {};
   }
+
+  PastePartialTranscription(request: PastePartialTranscriptionRequest) {
+    this.controller.pastePartialTranscription(request);
+    return Promise.resolve({});
+  }
+
+  StopRecording(request: StopRecordingRequest) {
+    if (this.controller.getActiveSession()?.id === request.sessionId) {
+      this.controller.stop();
+    }
+    return Promise.resolve({});
+  }
 }
-
-

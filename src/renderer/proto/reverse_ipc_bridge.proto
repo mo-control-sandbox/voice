@@ -8,7 +8,6 @@ message RecordingSignalSnapshotProto {
   int64  started_at          = 3;
   bool   dont_save_audio     = 4;
   bool   dont_save_transcripts = 5;
-  int64  max_duration_ms     = 6;
 }
 
 message ReverseIpcBridgeResponse {

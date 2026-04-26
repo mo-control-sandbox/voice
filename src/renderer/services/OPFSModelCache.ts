@@ -160,7 +160,7 @@ export class OPFSModelCache implements ModelFileStore {
   /**
    * Removes all OPFS files for the given model, including the completion marker.
    */
-  async delete(modelId: string): Promise<void> {
+  async remove(modelId: string): Promise<void> {
     const definition = this.modelToDefinition.get(modelId);
     if (definition === undefined) return;
     await this.removeModelDir(definition.huggingFaceRepo);

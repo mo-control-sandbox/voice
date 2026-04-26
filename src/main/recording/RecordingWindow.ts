@@ -41,14 +41,13 @@ export class RecordingWindow {
       url: rendererWindowUrl('recording'),
       size: { width: RECORDING_WINDOW_WIDTH, height: RECORDING_WINDOW_HEIGHT },
       alwaysOnTop: true,
-      hasShadow: true,
+      hasShadow: false,
       windowTitleVisible: false,
       windowTitlebarVisible: false,
       windowAnimationEnabled: false,
       activationIndependenceEnabled: true,
       resizable: false,
-      transparentBackground: true,
-      //windowDisplayPolicy: 'appearOnAllDesktops',
+      transparentBackground: true
     });
     win.browser.handle('requestPermissions', async (params: RequestPermissionsParams) => {
       if (params.permissionType === 'microphone' || params.permissionType === 'AudioCapture') return 'grant';

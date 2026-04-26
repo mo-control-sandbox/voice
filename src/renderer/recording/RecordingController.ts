@@ -1,13 +1,14 @@
 import { ipc } from '../gen/ipc';
 import { AudioPipeline } from './audio/AudioPipeline';
-import type { PcmAudio } from './audio/PcmAudio';
 import type { MoVoiceBackendFactory } from './services/MoVoiceBackendFactory';
-import { TranscriptionOrchestrator } from './services/TranscriptionOrchestrator';
+import type { StreamingSession, TranscriptionBackend } from './services/TranscriptionBackend';
 import type { RendererModelRepository } from '../services/RendererModelRepository';
 import { reverseIpcBridge } from '../ipc/ReverseIpcBridge';
 import { RecordingSignalService } from '../ipc/SignalService';
 
 export type RecordingPhase = 'idle' | 'recording' | 'processing' | 'error';
+
+const BATCH_MAX_DURATION_MS = 10 * 60 * 1000; // 10 minutes
 
 /*
  * The subset of recording state that the view layer needs to render.
@@ -54,6 +55,11 @@ export class RecordingController {
   private stateCallback: ((state: RecordingViewState) => void) | null = null;
   private errorMessage: string | null = null;
   private errorDismissTimer: ReturnType<typeof setTimeout> | null = null;
+  private activeBackend: TranscriptionBackend | null = null;
+  private streamingSession: StreamingSession | null = null;
+  private resolvedLanguage: string | null = null;
+  private recordingStartMs = 0;
+  private batchMaxDurationTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(
     private readonly modelRepository: RendererModelRepository,
@@ -104,7 +110,6 @@ export class RecordingController {
       active = false;
       this.stateCallback = null;
       unregister();
-      this.inferenceAbort?.abort();
       void this.cleanupPipeline();
     };
   }
@@ -115,12 +120,23 @@ export class RecordingController {
    */
   cancel(): void {
     this.clearErrorDismiss();
+    this.clearBatchMaxDurationTimer();
     const sessionId = this.lastSessionId;
     const pipeline = this.pipeline;
+    const session = this.streamingSession;
+
     this.pipeline = null;
+    this.streamingSession = null;
+    this.activeBackend = null;
+    this.inferenceAbort?.abort();
+    this.inferenceAbort = null;
+    this.resolvedLanguage = null;
+    this.recordingStartMs = 0;
     this.errorMessage = null;
     this.notifyState();
+
     void (async () => {
+      session?.cancel();
       await pipeline?.release();
       await ipc.recording.CancelRecording({ sessionId, reason: 'USER_CANCELLED' });
     })();
@@ -147,6 +163,13 @@ export class RecordingController {
     });
   }
 
+  private clearBatchMaxDurationTimer(): void {
+    if (this.batchMaxDurationTimer !== null) {
+      clearTimeout(this.batchMaxDurationTimer);
+      this.batchMaxDurationTimer = null;
+    }
+  }
+
   private clearErrorDismiss(): void {
     if (this.errorDismissTimer !== null) {
       clearTimeout(this.errorDismissTimer);
@@ -157,6 +180,18 @@ export class RecordingController {
   private async startAudio(sessionId: string, deviceId: string): Promise<void> {
     await this.cleanupPipeline();
 
+    const activeModel = await this.modelRepository.getActiveModel();
+    const language = activeModel.definition.isMultilingual
+      ? this.modelRepository.getLanguage()
+      : null;
+    this.resolvedLanguage = language === 'auto' ? null : (language ?? null);
+
+    const backend = this.backendFactory.createBackend(activeModel.definition);
+    this.activeBackend = backend;
+
+    const abortController = new AbortController();
+    this.inferenceAbort = abortController;
+
     const pipeline = new AudioPipeline();
     this.pipeline = pipeline;
 
@@ -165,17 +200,39 @@ export class RecordingController {
     });
 
     try {
-      await pipeline.start(deviceId);
+      // Streaming backends run the AudioContext at 16 kHz so the OS resamples
+      // before chunks reach the worklet -- no OfflineAudioContext step needed.
+      const pipelineSampleRate = backend.mode === 'streaming' ? 16000 : undefined;
+      await pipeline.start(deviceId, pipelineSampleRate);
+
       // A concurrent cleanup or new session may have replaced this.pipeline
       // while start() was awaited. Release and bail if so.
       if (this.pipeline !== pipeline) {
         await pipeline.release();
         return;
       }
+
+      if (backend.mode === 'streaming') {
+        const session = backend.beginSession(this.resolvedLanguage, abortController.signal);
+        this.streamingSession = session;
+        pipeline.onChunk((chunk) => { session.pushChunk(chunk); });
+        session.onPartialResult((text) => {
+          void ipc.recording.PastePartialTranscription({ sessionId, text });
+        });
+      } else {
+        this.batchMaxDurationTimer = setTimeout(() => {
+          this.batchMaxDurationTimer = null;
+          void ipc.recording.StopRecording({ sessionId });
+        }, BATCH_MAX_DURATION_MS);
+      }
+
+      this.recordingStartMs = Date.now();
       this.notifyState();
     } catch (err) {
       console.error('[RecordingController] Failed to start audio:', err);
       this.pipeline = null;
+      this.activeBackend = null;
+      this.inferenceAbort = null;
       await pipeline.release();
       this.errorMessage = classifyAudioError(err);
       this.notifyState();
@@ -188,51 +245,63 @@ export class RecordingController {
   }
 
   private async stopAudioAndProcess(sessionId: string, dontSaveAudio: boolean): Promise<void> {
+    this.clearBatchMaxDurationTimer();
     const pipeline = this.pipeline;
+    const session = this.streamingSession;
+    const backend = this.activeBackend;
+    const language = this.resolvedLanguage;
+    // inferenceAbort is always set by startAudio before this method runs.
+    const abortController = this.inferenceAbort as AbortController;
+
     this.pipeline = null;
+    this.streamingSession = null;
     this.notifyState();
 
-    let audio: PcmAudio;
-    if (pipeline !== null) {
-      audio = await pipeline.stop();
+    const recordingStopMs = Date.now();
+    const inferenceStartMs = recordingStopMs;
+    let result;
+    let audioDurationSeconds: number;
+    let pcmBytes: Uint8Array;
+
+    if (session !== null) {
+      // Streaming path: mic release and session finalization run concurrently.
+      // The session already has all audio via pushChunk -- pipeline.release()
+      // just tears down the AudioContext and clears the OS mic indicator.
+      const [transcriptionResult] = await Promise.all([
+        session.finalize(),
+        pipeline?.release(),
+      ]);
+      result = transcriptionResult;
+      audioDurationSeconds = (recordingStopMs - this.recordingStartMs) / 1000;
+      pcmBytes = new Uint8Array(0);
     } else {
-      audio = { samples: new Float32Array(0), sampleRate: 16000, channelCount: 1 };
+      // Batch path: resample the full accumulated buffer, then run inference.
+      const audio = pipeline !== null
+        ? await pipeline.stop()
+        : { samples: new Float32Array(0), sampleRate: 16000, channelCount: 1 };
+
+      audioDurationSeconds = audio.samples.length / audio.sampleRate;
+
+      if (backend !== null && backend.mode === 'batch') {
+        result = await backend.transcribe(audio, language, abortController.signal);
+      } else {
+        result = null;
+      }
+
+      pcmBytes = dontSaveAudio
+        ? new Uint8Array(0)
+        : new Uint8Array(audio.samples.buffer, audio.samples.byteOffset, audio.samples.byteLength);
     }
 
-    const inferenceStartMs = Date.now();
-    const activeModel = await this.modelRepository.getActiveModel();
-
-    const language = activeModel.definition.isMultilingual
-      ? this.modelRepository.getLanguage()
-      : null;
-
-    const backend = this.backendFactory.createBackend(activeModel.definition);
-
-    const abortController = new AbortController();
-    this.inferenceAbort = abortController;
-
-    const orchestrator = new TranscriptionOrchestrator(backend);
-    const result = await orchestrator.transcribe(
-      audio,
-      language === 'auto' ? null : (language ?? null),
-      abortController.signal,
-    );
     this.inferenceAbort = null;
+    this.activeBackend = null;
+    this.resolvedLanguage = null;
+    this.recordingStartMs = 0;
 
     const transcriptionDurationMs = Date.now() - inferenceStartMs;
-    const audioDurationSeconds = audio.samples.length / audio.sampleRate;
+    const engineLabel = (await this.modelRepository.getActiveModel()).definition.label;
 
     if (result !== null) {
-      const engineLabel = activeModel.definition.label;
-
-      const pcmBytes = dontSaveAudio
-        ? new Uint8Array(0)
-        : new Uint8Array(
-            audio.samples.buffer,
-            audio.samples.byteOffset,
-            audio.samples.byteLength,
-          );
-
       await ipc.recording.SubmitTranscription({
         sessionId,
         text: result.text,
@@ -241,6 +310,7 @@ export class RecordingController {
         transcriptionDurationMs,
         transcriptionEngineLabel: engineLabel,
         pcm: pcmBytes,
+        streamed: session !== null,
       });
     } else {
       await ipc.recording.CancelRecording({ sessionId, reason: 'CANCELLED' });
@@ -249,6 +319,18 @@ export class RecordingController {
 
   private async cleanupPipeline(): Promise<void> {
     this.clearErrorDismiss();
+    this.clearBatchMaxDurationTimer();
+
+    const session = this.streamingSession;
+    this.streamingSession = null;
+    session?.cancel();
+
+    this.inferenceAbort?.abort();
+    this.inferenceAbort = null;
+    this.activeBackend = null;
+    this.resolvedLanguage = null;
+    this.recordingStartMs = 0;
+
     const hadError = this.errorMessage !== null;
     this.errorMessage = null;
     const pipeline = this.pipeline;

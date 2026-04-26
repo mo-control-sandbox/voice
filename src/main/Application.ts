@@ -88,6 +88,10 @@ export class Application {
     this.recordingController.onTranscriptionCompleted((text) => {
       void this.clipboard.execute(text);
     });
+
+    this.recordingController.onPartialTranscription((text) => {
+      void this.clipboard.execute(text);
+    });
   }
 
   private registerShortcut(): void {

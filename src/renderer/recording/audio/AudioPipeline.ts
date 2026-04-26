@@ -8,8 +8,9 @@ import type { PcmAudio } from './PcmAudio';
  * - Acquires the configured microphone (or the system default) via getUserMedia.
  * - Accumulates raw Float32 PCM chunks via AudioWorkletNode.
  * - Drives real-time waveform display via AnalyserNode (no IPC needed).
+ * - Fires an optional per-chunk callback for streaming transcription consumers.
  * - On stop(), resamples accumulated PCM to 16 kHz mono via OfflineAudioContext.
- * - Notifies the caller when the MediaStreamTrack ends unexpectedly (§4.10).
+ * - Notifies the caller when the MediaStreamTrack ends unexpectedly.
  */
 export class AudioPipeline {
   private audioContext: AudioContext | null = null;
@@ -18,23 +19,26 @@ export class AudioPipeline {
   private pcmChunks: Float32Array[] = [];
   private trackEndedCallback: (() => void) | null = null;
   private workletNode: AudioWorkletNode | null = null;
+  private chunkCallback: ((samples: Float32Array) => void) | null = null;
 
   /**
    * Starts microphone capture.
    *
    * @param deviceId - MediaDevices deviceId for the audio input.
    *   Pass an empty string (or omit) to use the system default.
-   *
-   * Builds AudioContext → AudioWorkletNode (PCM accumulation) + AnalyserNode (waveform).
+   * @param sampleRate - AudioContext sample rate. Pass 16000 for streaming
+   *   backends so the OS resamples before chunks reach the worklet; omit to
+   *   use the device native rate (batch path resamples via OfflineAudioContext).
    */
-  async start(deviceId = ''): Promise<void> {
+  async start(deviceId = '', sampleRate?: number): Promise<void> {
     this.pcmChunks = [];
     const audioConstraint: MediaTrackConstraints = deviceId !== ''
       ? { deviceId: { exact: deviceId } }
       : {};
     this.stream = await navigator.mediaDevices.getUserMedia({ audio: audioConstraint, video: false });
 
-    this.audioContext = new AudioContext();
+    const contextOptions = sampleRate !== undefined ? { sampleRate } : undefined;
+    this.audioContext = new AudioContext(contextOptions);
     await this.audioContext.audioWorklet.addModule(
       new URL('./AudioWorkletProcessor.js', import.meta.url),
     );
@@ -48,6 +52,7 @@ export class AudioPipeline {
     this.workletNode = new AudioWorkletNode(this.audioContext, 'pcm-collector');
     this.workletNode.port.onmessage = (event: MessageEvent<Float32Array>) => {
       this.pcmChunks.push(event.data);
+      this.chunkCallback?.(event.data);
     };
     source.connect(this.workletNode);
     // MōBrowser only delivers real mic samples to nodes with an active path to
@@ -58,10 +63,19 @@ export class AudioPipeline {
     this.workletNode.connect(silencer);
     silencer.connect(this.audioContext.destination);
 
-    // Detect unexpected device disconnection (§4.10).
+    // Detect unexpected device disconnection.
     for (const track of this.stream.getAudioTracks()) {
       track.onended = () => { this.trackEndedCallback?.(); };
     }
+  }
+
+  /**
+   * Registers a callback that receives each raw PCM chunk as it arrives from
+   * the audio worklet. Used by streaming transcription backends to feed the
+   * model while recording is still active.
+   */
+  onChunk(cb: (samples: Float32Array) => void): void {
+    this.chunkCallback = cb;
   }
 
   /**
@@ -82,13 +96,15 @@ export class AudioPipeline {
 
   /**
    * Immediately releases the microphone and closes the AudioContext without
-   * resampling. Use this on all cancel / cleanup paths where PCM is not needed.
+   * resampling. Use this on cancel paths and on the streaming stop path where
+   * PCM is consumed by the worker rather than the pipeline.
    *
    * On macOS/Chromium the OS mic indicator does not clear until the AudioContext
-   * close promise resolves — this method awaits that promise before returning.
+   * close promise resolves -- this method awaits that promise before returning.
    */
   async release(): Promise<void> {
     this.trackEndedCallback = null;
+    this.chunkCallback = null;
     this.stream?.getAudioTracks().forEach((t) => { t.stop(); });
     this.stream = null;
     this.workletNode?.disconnect();
@@ -104,9 +120,10 @@ export class AudioPipeline {
   /**
    * Stops all tracks, disconnects the worklet, resamples the accumulated PCM to
    * 16 kHz mono, and returns a PcmAudio with explicit format metadata.
-   * Use this only when the PCM data is actually needed (Phase 4 inference path).
+   * Use this only on the batch transcription path where the full buffer is needed.
    */
   async stop(): Promise<PcmAudio> {
+    this.chunkCallback = null;
     this.stream?.getAudioTracks().forEach((t) => { t.stop(); });
     this.stream = null;
     this.workletNode?.disconnect();

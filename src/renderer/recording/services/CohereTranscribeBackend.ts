@@ -1,15 +1,16 @@
 import type { PcmAudio } from '../audio/PcmAudio';
-import type { WorkerResult } from '../workers/TransformersJsWorker';
+import type { WorkerResult } from '../workers/CohereTranscribeWorker';
 import type { BatchTranscriptionBackend, TranscriptionResult } from './TranscriptionBackend';
 
 /**
- * Batch transcription backend backed by a TransformersJsWorker running Whisper.
+ * Batch transcription backend backed by a CohereTranscribeWorker.
  *
- * The worker is loaded lazily on the first call to transcribe(). Subsequent calls
- * for the same modelId reuse the already-loaded pipeline inside the worker.
- * Expects audio at 16 kHz, mono, float32 -- the format produced by AudioPipeline.
+ * The worker is loaded lazily on the first call to transcribe(). Subsequent
+ * calls for the same modelId reuse the already-loaded pipeline inside the
+ * worker. Expects audio at 16 kHz, mono, float32 -- the format produced by
+ * AudioPipeline.
  */
-export class WhisperBackend implements BatchTranscriptionBackend {
+export class CohereTranscribeBackend implements BatchTranscriptionBackend {
   readonly mode = 'batch' as const;
   private worker: Worker | null = null;
   private nextRequestId = 0;
@@ -40,7 +41,7 @@ export class WhisperBackend implements BatchTranscriptionBackend {
 
   private ensureWorker(): Worker {
     this.worker ??= new Worker(
-      new URL('../workers/TransformersJsWorker.ts', import.meta.url),
+      new URL('../workers/CohereTranscribeWorker.ts', import.meta.url),
       { type: 'module' },
     );
     return this.worker;
@@ -100,7 +101,7 @@ export class WhisperBackend implements BatchTranscriptionBackend {
         } else if (msg.type === 'error' && msg.requestId === requestId) {
           signal.removeEventListener('abort', onAbort);
           worker.removeEventListener('message', onMessage);
-          console.error('[WhisperBackend] worker error:', msg.error);
+          console.error('[CohereTranscribeBackend] worker error:', msg.error);
           resolve(null);
         }
       };

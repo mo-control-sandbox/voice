@@ -10,15 +10,37 @@ import { PermissionStatus, PermissionType } from '../gen/native/permissions';
  * automatic paste is unavailable.
  */
 export class Clipboard {
+  private accessibilityGranted: boolean | null = null;
+  private queue: Promise<void> = Promise.resolve();
+
   /**
    * Writes text to the clipboard and synthesises Cmd+V if Accessibility is granted.
+   *
+   * Calls are serialised so that rapid partial-result pastes do not race:
+   * each Paste completes before the next clipboard write begins.
    */
-  async execute(text: string): Promise<void> {
+  execute(text: string): Promise<void> {
+    this.queue = this.queue.then(() => this.doExecute(text));
+    return this.queue;
+  }
+
+  /**
+   * Clears the cached accessibility status so the next execute() re-checks.
+   * Call this when the user may have changed the permission.
+   */
+  invalidateAccessibilityCache(): void {
+    this.accessibilityGranted = null;
+  }
+
+  private async doExecute(text: string): Promise<void> {
     clipboard.write('text/plain', text);
 
-    const accessible = await this.isAccessibilityGranted();
-    if (!accessible) {
-      console.warn('[Clipboard] Accessibility permission not granted — text placed on clipboard only.');
+    if (this.accessibilityGranted === null) {
+      this.accessibilityGranted = await this.isAccessibilityGranted();
+    }
+
+    if (!this.accessibilityGranted) {
+      console.warn('[Clipboard] Accessibility permission not granted -- text placed on clipboard only.');
       return;
     }
 

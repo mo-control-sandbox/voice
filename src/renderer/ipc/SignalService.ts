@@ -1,4 +1,4 @@
-import type { RecordingSignalSnapshotProto } from '../gen/main_signal';
+import type { RecordingSignalSnapshotProto } from '../gen/reverse_ipc_bridge';
 
 /** Symbol tag used to identify objects registered with ReverseIpcBridge. */
 export const signalServiceTag = Symbol('signalService');
@@ -23,7 +23,7 @@ export type SignalServiceInstance = AnySignalService & { readonly [signalService
 
 /**
  * Tags a RecordingSignalService implementation for registration with ReverseIpcBridge.
- * Mirrors the main-side pattern: RecordingService(impl) → impl & ServiceInstance.
+ * Returns the implementation merged with the SignalServiceInstance tag.
  */
 export function RecordingSignalService(
   impl: RecordingSignalService,
@@ -33,7 +33,7 @@ export function RecordingSignalService(
 
 /**
  * Tags a HistorySignalService implementation for registration with ReverseIpcBridge.
- * Mirrors the main-side pattern: HistoryService(impl) → impl & ServiceInstance.
+ * Returns the implementation merged with the SignalServiceInstance tag.
  */
 export function HistorySignalService(
   impl: HistorySignalService,

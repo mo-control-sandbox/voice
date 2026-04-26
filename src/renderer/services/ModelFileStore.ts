@@ -20,5 +20,5 @@ export interface ModelFileStore {
   /**
    * Removes all locally stored files for the given model.
    */
-  delete(modelId: string): Promise<void>;
+  remove(modelId: string): Promise<void>;
 }

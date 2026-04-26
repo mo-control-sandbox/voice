@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Mic, Keyboard, RotateCcw, Loader2 } from 'lucide-react';
+import { Mic, Keyboard, Loader2 } from 'lucide-react';
 import { PermissionStatus, PermissionType, type PermissionStatusProto } from '../../gen/permissions';
 import { PermissionRow, type PermissionMeta } from '../components/PermissionRow';
 import { PermissionsService } from '../services/PermissionsService';
@@ -46,8 +46,7 @@ const PERMISSION_POLL_TIMEOUT_MS = 30_000;
  */
 export function PermissionsPage(): React.JSX.Element {
   const [permissions, setPermissions] = useState<PermissionStatusProto[]>([]);
-  const [loading, setLoading]         = useState(true);
-  const [refreshing, setRefreshing]   = useState(false);
+  const [loading, setLoading] = useState(true);
   const [requestingPermission, setRequestingPermission] = useState<PermissionType | null>(null);
   const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const pollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -77,7 +76,6 @@ export function PermissionsPage(): React.JSX.Element {
 
   const startPermissionPolling = useCallback((): void => {
     clearPermissionPolling();
-    setRefreshing(true);
 
     let pollInFlight = false;
 
@@ -89,7 +87,6 @@ export function PermissionsPage(): React.JSX.Element {
         const latestPermissions = await refreshPermissionsSnapshot();
         if (!hasMissingRequiredPermissions(latestPermissions)) {
           clearPermissionPolling();
-          setRefreshing(false);
         }
       } finally {
         pollInFlight = false;
@@ -100,7 +97,6 @@ export function PermissionsPage(): React.JSX.Element {
     pollIntervalRef.current = setInterval(() => { void runPoll(); }, PERMISSION_POLL_INTERVAL_MS);
     pollTimeoutRef.current = setTimeout(() => {
       clearPermissionPolling();
-      setRefreshing(false);
     }, PERMISSION_POLL_TIMEOUT_MS);
   }, [clearPermissionPolling, refreshPermissionsSnapshot]);
 
@@ -113,16 +109,6 @@ export function PermissionsPage(): React.JSX.Element {
       clearPermissionPolling();
     };
   }, [clearPermissionPolling]);
-
-  async function handleRefresh(): Promise<void> {
-    clearPermissionPolling();
-    setRefreshing(true);
-    try {
-      await refreshPermissionsSnapshot();
-    } finally {
-      setRefreshing(false);
-    }
-  }
 
   async function handlePermissionAction(permission: PermissionStatusProto): Promise<void> {
     setRequestingPermission(permission.type);
@@ -156,20 +142,11 @@ export function PermissionsPage(): React.JSX.Element {
     <div className="permissions-page">
       <div className="permissions-page__header">
         <div className="permissions-page__title-block">
-          <h1 className="permissions-page__heading">Before You Start</h1>
+          <h1 className="permissions-page__heading">Permissions</h1>
           <p className="permissions-page__description">
-            Before using the application, complete this quick setup so MoVoice can record and paste for you.
+            macOS permissions required for MoVoice to record your voice and paste text into other apps.
           </p>
         </div>
-        <button
-          type="button"
-          className="permissions-page__refresh"
-          disabled={refreshing}
-          onClick={() => { void handleRefresh(); }}
-        >
-          <RotateCcw className="permissions-page__refresh-icon" aria-hidden="true" />
-          Check again
-        </button>
       </div>
 
       <div className="permissions-page__list">

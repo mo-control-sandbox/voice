@@ -1,7 +1,7 @@
 import { ipc } from '../gen/ipc';
 import { type SignalServiceInstance } from './SignalService';
 
-const POLL_INTERVAL_MS = 1000 / 30; // 30 fps — satisfies the fastest consumer (recording window)
+const POLL_INTERVAL_MS = 1000 / 30; // 30 fps, fast enough for the recording window waveform.
 
 /**
  * Singleton polling bus that drives all main-to-renderer signal delivery.

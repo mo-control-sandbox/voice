@@ -129,7 +129,7 @@ export class RendererModelRepository {
       this.stateStore.setActiveModelId(fallback?.definition.id ?? '');
     }
 
-    await this.fileStore.delete(id);
+    await this.fileStore.remove(id);
   }
 
   /**

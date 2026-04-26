@@ -218,7 +218,8 @@ class SystemPermissionsServiceImpl : public SystemPermissionsService {
 
 class AutomationServiceImpl : public AutomationService {
  public:
-  // Synthesises Cmd+V into the current frontmost app.
+  // Writes text to the macOS system pasteboard (NSPasteboard) and synthesises
+  // Cmd+V into the current frontmost app.
   //
   // Requires the Accessibility permission (AXIsProcessTrusted) so that
   // CGEventPost() is allowed to deliver keystrokes to other processes.

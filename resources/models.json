@@ -66,6 +66,28 @@
     "isMultilingual": false
   },
   {
+    "id": "openai/whisper-large-v3-turbo",
+    "label": "Whisper Large v3 Turbo",
+    "description": "High-accuracy multilingual model with significantly faster inference than Large v3.",
+    "huggingFaceRepo": "onnx-community/whisper-large-v3-turbo",
+    "inferenceMode": "whisper",
+    "speedScore": 2.0,
+    "accuracyScore": 4.8,
+    "fileSizeBytes": 950000000,
+    "isMultilingual": true
+  },
+  {
+    "id": "cohere/cohere-transcribe-03-2026",
+    "label": "Cohere Transcribe",
+    "description": "State-of-the-art 2B multilingual model with best-in-class accuracy, accelerated by WebGPU.",
+    "huggingFaceRepo": "onnx-community/cohere-transcribe-03-2026-ONNX",
+    "inferenceMode": "cohere-transcribe",
+    "speedScore": 1.0,
+    "accuracyScore": 5.0,
+    "fileSizeBytes": 1000000000,
+    "isMultilingual": true
+  },
+  {
     "id": "onnx-community/voxtral-mini-realtime",
     "label": "Voxtral Mini",
     "description": "State-of-the-art 4B multilingual model with real-time streaming inference.",

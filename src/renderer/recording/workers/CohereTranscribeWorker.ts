@@ -6,9 +6,6 @@ import {
 } from '@huggingface/transformers';
 import { OPFSModelCache } from '../../services/OPFSModelCache';
 
-// Configure Transformers.js to read pre-downloaded model files from OPFS
-// via the shared OPFSModelCache. No model catalog is needed here -- workers
-// only call match() and put(), which are URL-keyed and catalog-independent.
 env.useBrowserCache = false;
 env.useCustomCache = true;
 env.customCache = new OPFSModelCache();
@@ -63,17 +60,22 @@ async function loadModel(modelId: string): Promise<void> {
     return;
   }
 
-  // encoder_model stays at fp32: Whisper encoders are sensitive to quantisation.
-  // decoder_model_merged uses q4: reduces memory footprint without accuracy loss.
+  // Prefer WebGPU for Cohere Transcribe; fall back to WASM if unavailable.
+  // q4 keeps the download footprint to roughly 1 GB.
   try {
     asr = await pipeline('automatic-speech-recognition', modelId, {
-      dtype: { encoder_model: 'fp32', decoder_model_merged: 'q4' },
+      dtype: 'q4',
+      device: 'webgpu',
     });
-    currentModelId = modelId;
-    self.postMessage({ type: 'loaded' } satisfies WorkerResult);
-  } catch (err) {
-    console.error('[Worker] Failed to load model:', err);
+  } catch {
+    console.warn('[CohereTranscribeWorker] WebGPU unavailable, falling back to WASM');
+    asr = await pipeline('automatic-speech-recognition', modelId, {
+      dtype: 'q4',
+    });
   }
+
+  currentModelId = modelId;
+  self.postMessage({ type: 'loaded' } satisfies WorkerResult);
 }
 
 async function runInference(input: RunInput): Promise<void> {
@@ -82,7 +84,7 @@ async function runInference(input: RunInput): Promise<void> {
 
   try {
     if (asr === null) {
-      console.error('[Worker] run called but model is not loaded');
+      console.error('[CohereTranscribeWorker] run called but model is not loaded');
       self.postMessage({
         type: 'error',
         requestId,
@@ -93,8 +95,7 @@ async function runInference(input: RunInput): Promise<void> {
 
     const options = language !== null ? { language } : {};
     const raw = await asr(samples, options) as AutomaticSpeechRecognitionOutput | AutomaticSpeechRecognitionOutput[];
-
-    const text = extractText(raw);
+    const text = Array.isArray(raw) ? (raw[0]?.text ?? '') : raw.text;
 
     self.postMessage({
       type: 'result',
@@ -103,7 +104,7 @@ async function runInference(input: RunInput): Promise<void> {
       detectedLanguage: language ?? '',
     } satisfies WorkerResult);
   } catch (err) {
-    console.error(`[Worker] inference error: requestId=${requestId}`, err);
+    console.error(`[CohereTranscribeWorker] inference error: requestId=${requestId}`, err);
     self.postMessage({
       type: 'error',
       requestId,
@@ -118,15 +119,4 @@ async function runInference(input: RunInput): Promise<void> {
       await loadModel(modelToLoad);
     }
   }
-}
-
-/**
- * Extracts the transcription string from the Transformers.js pipeline output.
- * When the model returns a batch (array), we take the first element's text.
- */
-function extractText(raw: AutomaticSpeechRecognitionOutput | AutomaticSpeechRecognitionOutput[]): string {
-  if (Array.isArray(raw)) {
-    return raw[0]?.text ?? '';
-  }
-  return raw.text;
 }

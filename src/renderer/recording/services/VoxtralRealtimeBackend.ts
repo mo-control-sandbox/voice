@@ -1,31 +1,113 @@
-import type { PcmAudio } from '../audio/PcmAudio';
 import type { VoxtralWorkerResult } from '../workers/VoxtralWorker';
-import type { TranscriptionBackend, TranscriptionResult } from './TranscriptionBackend';
+import type {
+  StreamingSession,
+  StreamingTranscriptionBackend,
+  TranscriptionResult,
+} from './TranscriptionBackend';
 
 /**
- * Transcription backend that runs Voxtral Realtime inference in a dedicated Web Worker.
+ * Streaming transcription backend backed by a VoxtralWorker.
  *
- * The complete audio buffer is sent to the worker in a single message. The
- * worker processes it in streaming chunks until the buffer is exhausted, then
- * returns the accumulated transcription. Cancellation is signalled by a `stop`
- * message, which causes the worker to exit its generator loop early.
+ * Each call to beginSession() opens a new transcription session. Audio chunks
+ * are pushed to the worker as they arrive from the microphone, allowing the
+ * model to overlap inference with capture. finalize() signals end-of-audio and
+ * resolves with the complete transcript once the worker drains its buffer.
  */
-export class VoxtralRealtimeBackend implements TranscriptionBackend {
+export class VoxtralRealtimeBackend implements StreamingTranscriptionBackend {
+  readonly mode = 'streaming' as const;
   private worker: Worker | null = null;
   private nextRequestId = 0;
 
   constructor(private readonly modelId: string) {}
 
-  async transcribe(
-    audio: PcmAudio,
-    _language: string | null,
-    signal: AbortSignal,
-  ): Promise<TranscriptionResult | null> {
+  beginSession(_language: string | null, signal: AbortSignal): StreamingSession {
     const worker = this.ensureWorker();
-    await this.loadModel(worker, signal);
-    if (signal.aborted) return null;
+    const requestId = String(this.nextRequestId++);
+    const pendingChunks: Float32Array[] = [];
+    let workerReady = false;
+    let partialResultCallback: ((text: string) => void) | null = null;
 
-    return this.runInWorker(worker, audio.samples, signal);
+    // Persistent listener active for the entire session lifetime. Forwards
+    // partial-result messages to the registered callback as the model decodes.
+    const onWorkerMessage = (event: MessageEvent<VoxtralWorkerResult>): void => {
+      if (event.data.type === 'partial-result' && event.data.requestId === requestId) {
+        partialResultCallback?.(event.data.text);
+      }
+    };
+    worker.addEventListener('message', onWorkerMessage);
+
+    // Load the model asynchronously. Chunks that arrive before loading
+    // completes are queued in pendingChunks and flushed once the worker
+    // signals ready.
+    const loadPromise = this.loadModel(worker, signal).then(() => {
+      if (signal.aborted) return;
+      worker.postMessage({ type: 'start', requestId });
+      workerReady = true;
+      for (const chunk of pendingChunks) {
+        worker.postMessage({ type: 'push-chunk', samples: chunk });
+      }
+      pendingChunks.length = 0;
+    });
+
+    return {
+      pushChunk(samples: Float32Array): void {
+        if (signal.aborted) return;
+        // Slice to own the buffer -- the caller's Float32Array may be reused
+        // by the AudioWorklet after this call returns.
+        const copy = samples.slice();
+        if (workerReady) {
+          worker.postMessage({ type: 'push-chunk', samples: copy });
+        } else {
+          pendingChunks.push(copy);
+        }
+      },
+
+      onPartialResult(cb: (text: string) => void): void {
+        partialResultCallback = cb;
+      },
+
+      async finalize(): Promise<TranscriptionResult | null> {
+        await loadPromise;
+        if (signal.aborted) {
+          worker.removeEventListener('message', onWorkerMessage);
+          return null;
+        }
+
+        return new Promise((resolve) => {
+          const onAbort = (): void => {
+            worker.postMessage({ type: 'stop' });
+            worker.removeEventListener('message', onMessage);
+            worker.removeEventListener('message', onWorkerMessage);
+            resolve(null);
+          };
+
+          const onMessage = (event: MessageEvent<VoxtralWorkerResult>): void => {
+            const msg = event.data;
+            if (msg.type === 'result' && msg.requestId === requestId) {
+              signal.removeEventListener('abort', onAbort);
+              worker.removeEventListener('message', onMessage);
+              worker.removeEventListener('message', onWorkerMessage);
+              resolve({ text: msg.text, detectedLanguage: '' });
+            } else if (msg.type === 'error' && msg.requestId === requestId) {
+              signal.removeEventListener('abort', onAbort);
+              worker.removeEventListener('message', onMessage);
+              worker.removeEventListener('message', onWorkerMessage);
+              console.error('[VoxtralRealtimeBackend] worker error:', msg.error);
+              resolve(null);
+            }
+          };
+
+          signal.addEventListener('abort', onAbort, { once: true });
+          worker.addEventListener('message', onMessage);
+          worker.postMessage({ type: 'seal' });
+        });
+      },
+
+      cancel(): void {
+        worker.removeEventListener('message', onWorkerMessage);
+        worker.postMessage({ type: 'stop' });
+      },
+    };
   }
 
   /**
@@ -36,7 +118,7 @@ export class VoxtralRealtimeBackend implements TranscriptionBackend {
     this.worker = null;
   }
 
-  // ── Private helpers ──────────────────────────────────────────────────────────
+  // -- Private helpers -------------------------------------------------------
 
   private ensureWorker(): Worker {
     this.worker ??= new Worker(
@@ -69,46 +151,6 @@ export class VoxtralRealtimeBackend implements TranscriptionBackend {
       signal.addEventListener('abort', onAbort, { once: true });
       worker.addEventListener('message', onMessage);
       worker.postMessage({ type: 'load', modelId: this.modelId });
-    });
-  }
-
-  private runInWorker(
-    worker: Worker,
-    samples: Float32Array,
-    signal: AbortSignal,
-  ): Promise<TranscriptionResult | null> {
-    const requestId = String(this.nextRequestId++);
-
-    return new Promise((resolve) => {
-      if (signal.aborted) {
-        resolve(null);
-        return;
-      }
-
-      const onAbort = (): void => {
-        worker.postMessage({ type: 'stop' });
-        worker.removeEventListener('message', onMessage);
-        resolve(null);
-      };
-
-      const onMessage = (event: MessageEvent<VoxtralWorkerResult>): void => {
-        const msg = event.data;
-        if (msg.type === 'result' && msg.requestId === requestId) {
-          signal.removeEventListener('abort', onAbort);
-          worker.removeEventListener('message', onMessage);
-          // Voxtral auto-detects language; no per-session language reported.
-          resolve({ text: msg.text, detectedLanguage: '' });
-        } else if (msg.type === 'error' && msg.requestId === requestId) {
-          signal.removeEventListener('abort', onAbort);
-          worker.removeEventListener('message', onMessage);
-          console.error('[VoxtralRealtimeBackend] worker error:', msg.error);
-          resolve(null);
-        }
-      };
-
-      signal.addEventListener('abort', onAbort, { once: true });
-      worker.addEventListener('message', onMessage);
-      worker.postMessage({ type: 'run', samples, requestId });
     });
   }
 }

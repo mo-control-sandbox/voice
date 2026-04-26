@@ -27,7 +27,6 @@ class ReverseIpcBridgeService implements ReverseIpcBridgeServiceInterface {
         startedAt: session?.startedAt ?? 0,
         dontSaveAudio: session?.dontSaveAudio ?? false,
         dontSaveTranscripts: session?.dontSaveTranscripts ?? false,
-        maxDurationMs: session?.maxDurationMs ?? 0,
       },
       historyRevision: this.historyStore.getRevision(),
     });

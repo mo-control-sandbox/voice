@@ -63,12 +63,15 @@ interface ProcessorFacade {
 /** Messages sent from the main thread to the worker. */
 type IncomingMessage =
   | { type: 'load'; modelId: string }
-  | { type: 'run'; samples: Float32Array; requestId: string }
+  | { type: 'start'; requestId: string }
+  | { type: 'push-chunk'; samples: Float32Array }
+  | { type: 'seal' }
   | { type: 'stop' };
 
 /** Messages sent from the worker back to the main thread. */
 export type VoxtralWorkerResult =
   | { type: 'loaded' }
+  | { type: 'partial-result'; requestId: string; text: string }
   | { type: 'result'; requestId: string; text: string }
   | { type: 'error'; requestId: string; error: string };
 
@@ -98,16 +101,31 @@ self.onmessage = (event: MessageEvent<IncomingMessage>): void => {
     return;
   }
 
-  if (msg.type === 'stop') {
-    runFlags.stopRequested = true;
+  if (msg.type === 'start') {
+    // Do not reset audioBuffer here -- push-chunk messages may arrive before
+    // start while the model is loading. The buffer is cleared in runInference's
+    // finally block after each session ends.
+    runFlags.audioSealed = false;
+    runFlags.stopRequested = false;
+    void runInference(msg.requestId);
     return;
   }
 
-  // msg.type === 'run'
-  audioBuffer = msg.samples;
-  runFlags.audioSealed = true;
-  runFlags.stopRequested = false;
-  void runInference(msg.requestId);
+  if (msg.type === 'push-chunk') {
+    const combined = new Float32Array(audioBuffer.length + msg.samples.length);
+    combined.set(audioBuffer);
+    combined.set(msg.samples, audioBuffer.length);
+    audioBuffer = combined;
+    return;
+  }
+
+  if (msg.type === 'seal') {
+    runFlags.audioSealed = true;
+    return;
+  }
+
+  // msg.type === 'stop'
+  runFlags.stopRequested = true;
 };
 
 // ── Model loading ─────────────────────────────────────────────────────────────
@@ -176,7 +194,7 @@ async function runInference(requestId: string): Promise<void> {
   const proc = processor as unknown as ProcessorFacade;
 
   try {
-    const text = await runStreamingTranscription(model, proc);
+    const text = await runStreamingTranscription(model, proc, requestId);
     if (!isStopped()) {
       self.postMessage({
         type: 'result',
@@ -201,6 +219,7 @@ async function runInference(requestId: string): Promise<void> {
 async function runStreamingTranscription(
   voxtralModel: VoxtralRealtimeForConditionalGeneration,
   voxtralProcessor: ProcessorFacade,
+  requestId: string,
 ): Promise<string> {
   const numSamplesFirst = voxtralProcessor.num_samples_first_audio_chunk;
 
@@ -221,35 +240,51 @@ async function runStreamingTranscription(
   const samplesPerTok: number = voxtralProcessor.audio_length_per_tok * hop_length;
   const samplesPerChunk: number = voxtralProcessor.num_samples_per_audio_chunk;
 
+  // Tracks how many samples have been trimmed from the front of audioBuffer.
+  // All startIdx / endNeeded / batchEndSample values are absolute (relative to
+  // the original stream start). Subtracting trimmedSamples converts them to
+  // current audioBuffer offsets.
+  let trimmedSamples = 0;
+
   async function* inputFeaturesGenerator(): AsyncGenerator<FeaturesTensor> {
     yield firstChunkInputs.input_features;
 
     let melFrameIdx = voxtralProcessor.num_mel_frames_first_audio_chunk;
-    let startIdx = melFrameIdx * hop_length - winHalf;
+    let startIdx = melFrameIdx * hop_length - winHalf; // absolute
 
     while (!isStopped()) {
-      const endNeeded = startIdx + samplesPerChunk;
+      const endNeeded = startIdx + samplesPerChunk; // absolute
 
       // Sealed buffer: stop when no more audio can satisfy the next chunk.
-      if (isAudioSealed() && audioBuffer.length < endNeeded) break;
+      if (isAudioSealed() && audioBuffer.length + trimmedSamples < endNeeded) break;
 
-      await waitUntil(() => audioBuffer.length >= endNeeded || isStopped());
+      await waitUntil(() => audioBuffer.length + trimmedSamples >= endNeeded || isStopped());
       if (isStopped()) break;
 
       // Greedily absorb any additional complete tokens already in the buffer.
-      let batchEndSample = endNeeded;
-      while (batchEndSample + samplesPerTok <= audioBuffer.length) {
+      let batchEndSample = endNeeded; // absolute
+      while (batchEndSample + samplesPerTok <= audioBuffer.length + trimmedSamples) {
         batchEndSample += samplesPerTok;
       }
 
       const chunkInputs = await voxtralProcessor._call(
-        audioBuffer.slice(startIdx, batchEndSample),
+        audioBuffer.slice(startIdx - trimmedSamples, batchEndSample - trimmedSamples),
         { is_streaming: true, is_first_audio_chunk: false },
       ) as SubsequentChunkOutput;
 
       yield chunkInputs.input_features;
       melFrameIdx += chunkInputs.input_features.dims[2];
-      startIdx = melFrameIdx * hop_length - winHalf;
+      startIdx = melFrameIdx * hop_length - winHalf; // new absolute window start
+
+      // Discard samples that precede the new window start. Clamp to the
+      // current buffer length so we never trim ahead of data not yet received.
+      const absLen = trimmedSamples + audioBuffer.length;
+      const newTrim = Math.max(trimmedSamples, Math.min(startIdx, absLen));
+      const toTrim = newTrim - trimmedSamples;
+      if (toTrim > 0) {
+        audioBuffer = audioBuffer.slice(toTrim);
+        trimmedSamples = newTrim;
+      }
     }
   }
 
@@ -260,18 +295,19 @@ async function runStreamingTranscription(
   let isPrompt = true;
   let fullText = '';
 
-  const flushDecodedText = (): void => {
-    if (tokenCache.length === 0) return;
+  const flushDecodedText = (): string => {
+    if (tokenCache.length === 0) return '';
     const decoded = tokenizer.decode(tokenCache, { skip_special_tokens: true });
-    const printableText = decoded.slice(printLen);
+    const newText = decoded.slice(printLen);
     printLen = decoded.length;
-    fullText += printableText;
+    fullText += newText;
+    return newText;
   };
 
   const streamer = new (class extends BaseStreamer {
     put(value: bigint[][]): void {
       if (isStopped()) return;
-      // The first batch is the prompt echo — discard it.
+      // The first batch is the prompt echo; discard it.
       if (isPrompt) {
         isPrompt = false;
         return;
@@ -279,7 +315,14 @@ async function runStreamingTranscription(
       const tokens = value[0];
       if (tokens.length === 1 && specialIds.has(tokens[0])) return;
       tokenCache = tokenCache.concat(tokens);
-      flushDecodedText();
+      const newText = flushDecodedText();
+      if (newText.length > 0) {
+        self.postMessage({
+          type: 'partial-result',
+          requestId,
+          text: newText,
+        } satisfies VoxtralWorkerResult);
+      }
     }
 
     end(): void {
