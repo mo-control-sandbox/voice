@@ -1,36 +1,36 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { AboutApp } from './about/AboutApp';
+import { BackgroundApp } from './background/BackgroundApp';
 import { HistoryApp } from './history/HistoryApp';
 import './index.css';
 import { initTheme } from './lib/theme';
-import { RecordingApp } from './recording/RecordingApp';
 import { SettingsApp } from './settings/App';
 import { WelcomeApp } from './welcome/WelcomeApp';
 
-type RendererWindowKind = 'about' | 'history' | 'recording' | 'settings' | 'welcome';
+type RendererWindowKind = 'about' | 'background' | 'history' | 'settings' | 'welcome';
 
 const RENDERER_WINDOW_PARAM = 'window';
 
 const APP_BY_WINDOW: Record<RendererWindowKind, () => React.JSX.Element> = {
   about: AboutApp,
+  background: BackgroundApp,
   history: HistoryApp,
-  recording: RecordingApp,
   settings: SettingsApp,
   welcome: WelcomeApp,
 };
 
 const TITLE_BY_WINDOW: Record<RendererWindowKind, string> = {
   about: 'About MoVoice',
+  background: 'MoVoice Background',
   history: 'History',
-  recording: 'Recording...',
   settings: 'Settings',
   welcome: 'Welcome to MoVoice',
 };
 
 function parseRendererWindowKind(searchParams: URLSearchParams): RendererWindowKind | null {
   const value = searchParams.get(RENDERER_WINDOW_PARAM);
-  if (value === 'about' || value === 'history' || value === 'recording' || value === 'settings' || value === 'welcome') {
+  if (value === 'about' || value === 'background' || value === 'history' || value === 'settings' || value === 'welcome') {
     return value;
   }
   return null;

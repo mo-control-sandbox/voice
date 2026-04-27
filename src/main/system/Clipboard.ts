@@ -25,6 +25,13 @@ export class Clipboard {
   }
 
   /**
+   * Writes text to the clipboard without synthesising a paste keystroke.
+   */
+  copyOnly(text: string): void {
+    clipboard.write('text/plain', text);
+  }
+
+  /**
    * Clears the cached accessibility status so the next execute() re-checks.
    * Call this when the user may have changed the permission.
    */

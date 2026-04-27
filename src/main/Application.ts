@@ -6,9 +6,11 @@ import { DockManager } from './system/DockManager';
 import { SessionStorage } from './recording/SessionStorage';
 import { HistoryStore } from './history/HistoryStore';
 import { Clipboard } from './system/Clipboard';
+import { FocusRestorer } from './system/FocusRestorer';
 import { RecordingSessionController } from './recording/RecordingSessionController';
 import { TrayController } from './TrayController';
-import { RecordingWindow } from './recording/RecordingWindow';
+import { BackgroundWindow } from './recording/BackgroundWindow';
+import { RecordingOverlay } from './recording/RecordingOverlay';
 import { SettingsWindow } from './settings/SettingsWindow';
 import { HistoryWindow } from './history/HistoryWindow';
 import { AboutWindow } from './AboutWindow';
@@ -36,7 +38,8 @@ export class Application {
     this.sessionStorage,
   );
 
-  private readonly recordingWindow = new RecordingWindow(this.recordingController);
+  private readonly backgroundWindow = new BackgroundWindow();
+  private readonly recordingOverlay = new RecordingOverlay(this.recordingController);
   private readonly dockManager = new DockManager();
   private readonly settingsWindow = new SettingsWindow(this.dockManager);
   private readonly historyWindow = new HistoryWindow(this.dockManager);
@@ -56,12 +59,14 @@ export class Application {
 
   private readonly shortcutManager = new ShortcutManager();
   private readonly clipboard = new Clipboard();
+  private readonly focusRestorer = new FocusRestorer();
 
   /**
    * Initialises all services in the correct order and shows the tray.
    */
   initialize(): void {
     this.historyStore.initialize();
+    this.backgroundWindow.initialize();
     this.trayController.initialize();
 
     dock.hide();
@@ -75,7 +80,7 @@ export class Application {
     registerStatsIpc(this.historyStore);
     registerHistoryIpc(this.historyStore, this.sessionStorage);
 
-    this.recordingWindow.initialize();
+    this.recordingOverlay.initialize();
 
     if (!this.settings.hasCompletedOnboarding()) {
       this.welcomeWindow.show();
@@ -85,11 +90,33 @@ export class Application {
     this.settings.onShortcutKeyChanged(() => { this.trayController.refresh(); });
     this.settings.onOnboardingCompletionChanged(() => { this.trayController.refresh(); });
 
-    this.recordingController.onTranscriptionCompleted((text) => {
-      void this.clipboard.execute(text);
+    let streamingFocusRestored = false;
+
+    this.recordingController.onStateChange((state) => {
+      if (state === 'recording') streamingFocusRestored = false;
+      if (state === 'idle') this.focusRestorer.clear();
     });
 
-    this.recordingController.onPartialTranscription((text) => {
+    this.recordingController.onTranscriptionCompleted(async (text) => {
+      const outcome = await this.focusRestorer.restore();
+      if (outcome !== 'self_focus') {
+        void this.clipboard.execute(text);
+      } else {
+        // moVoice was frontmost when recording started -- the text cannot be
+        // pasted immediately. Copy it to the clipboard as an instant fallback
+        // and watch for focus to move to an external app, then auto-paste.
+        this.clipboard.copyOnly(text);
+        this.focusRestorer.watchAndPaste(async () => {
+          void this.clipboard.execute(text);
+        });
+      }
+    });
+
+    this.recordingController.onPartialTranscription(async (text) => {
+      if (!streamingFocusRestored) {
+        streamingFocusRestored = true;
+        await this.focusRestorer.restore();
+      }
       void this.clipboard.execute(text);
     });
   }
@@ -101,10 +128,13 @@ export class Application {
         this.recordingController.toggle();
         return;
       }
-      void this.readiness.isReady().then((ready) => {
+      void this.readiness.isReady().then(async (ready) => {
         if (!ready) {
           this.welcomeWindow.show();
         } else {
+          // Snapshot the frontmost app before the recording window appears so
+          // that the focus target is captured while it still holds focus.
+          await this.focusRestorer.capture();
           this.recordingController.toggle();
         }
       });

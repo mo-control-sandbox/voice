@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+message AppSnapshot {
+  string bundle_id = 1;
+  string app_name = 2;
+  int32 process_id = 3;
+}
+
+message RestoreResult {
+  bool success = 1;
+  string error = 2;
+}
+
+service FrontmostAppService {
+  rpc SnapshotFrontmostApp(google.protobuf.Empty) returns (AppSnapshot);
+  rpc RestoreFrontmostApp(AppSnapshot) returns (RestoreResult);
+}

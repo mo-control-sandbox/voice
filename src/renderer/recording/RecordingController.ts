@@ -142,14 +142,6 @@ export class RecordingController {
     })();
   }
 
-  /**
-   * Current time-domain waveform snapshot for the visualiser. Returns an empty
-   * array when no pipeline is active.
-   */
-  getWaveformData(): Float32Array {
-    return this.pipeline?.getWaveformData() ?? new Float32Array(0);
-  }
-
   // ── Private helpers ──────────────────────────────────────────────────────────
 
   private notifyState(): void {

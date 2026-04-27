@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+message RecordingOverlayPhase {
+  string phase = 1; // "recording" | "processing"
+}
+
+service RecordingOverlayService {
+  rpc Show(RecordingOverlayPhase) returns (google.protobuf.Empty);
+  rpc Hide(google.protobuf.Empty) returns (google.protobuf.Empty);
+}
