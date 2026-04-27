@@ -11,6 +11,9 @@ import type { WindowPermissionPolicy } from '../windowing/WindowPermissionPolicy
 export class WelcomeWindow {
   private readonly windowController: SingletonWindowController;
 
+  /**
+   * Creates the singleton Welcome window controller and wires permission requests for onboarding flows.
+   */
   constructor(
     private readonly dockManager: DockManager,
     permissionPolicy: WindowPermissionPolicy,

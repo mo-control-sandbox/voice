@@ -9,6 +9,9 @@ import { SingletonWindowController } from './windowing/SingletonWindowController
 export class AboutWindow {
   private readonly windowController: SingletonWindowController;
 
+  /**
+   * Creates the singleton About window controller and registers the window with dock visibility tracking.
+   */
   constructor(private readonly dockManager: DockManager) {
     this.windowController = new SingletonWindowController(() => {
       const window = new BrowserWindow({

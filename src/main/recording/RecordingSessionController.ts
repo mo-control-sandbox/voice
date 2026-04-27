@@ -11,10 +11,14 @@ import { RecordingSession } from './RecordingSession';
 
 export type RecordingState = 'idle' | 'recording' | 'processing';
 
-/** Callback fired once per successfully completed transcription. */
+/**
+ * Callback fired once per successfully completed non-streaming transcription.
+ */
 export type TranscriptionCompletedCallback = (text: string) => void;
 
-/** Callback fired for each partial transcription chunk during streaming. */
+/**
+ * Callback fired for each partial transcription chunk during streaming.
+ */
 export type PartialTranscriptionCallback = (text: string) => void;
 
 /**
@@ -28,6 +32,9 @@ export class RecordingSessionController {
   private readonly completionListeners: TranscriptionCompletedCallback[] = [];
   private readonly partialListeners: PartialTranscriptionCallback[] = [];
 
+  /**
+   * Creates a recording session controller with persistence and settings dependencies.
+   */
   constructor(
     private readonly settings: SettingsStore,
     private readonly historyStore: HistoryStore,
@@ -55,9 +62,7 @@ export class RecordingSessionController {
   }
 
   /**
-   * Registers a callback that fires when a transcription is successfully
-   * submitted. Receives the transcribed text and the bundle ID of the app
-   * that was frontmost when recording started.
+   * Registers a callback that fires when a non-streaming transcription is successfully submitted.
    */
   onTranscriptionCompleted(cb: TranscriptionCompletedCallback): void {
     this.completionListeners.push(cb);
