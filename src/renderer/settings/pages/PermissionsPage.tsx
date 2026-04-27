@@ -1,23 +1,8 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { Mic, Keyboard, Loader2 } from 'lucide-react';
-import { PermissionStatus, PermissionType, type PermissionStatusProto } from '../../gen/permissions';
+import { Mic, Keyboard, Loader2, type LucideIcon } from 'lucide-react';
+import { PermissionType } from '../../gen/permissions';
 import { PermissionRow, type PermissionMeta } from '../components/PermissionRow';
-import { PermissionsService } from '../services/PermissionsService';
+import { usePermissionsController } from '../controllers/usePermissionsController';
 import './PermissionsPage.css';
-
-const permissionsService = new PermissionsService();
-
-const REQUIRED_PERMISSION_TYPES = new Set<PermissionType>([
-  PermissionType.PERMISSION_TYPE_MICROPHONE,
-  PermissionType.PERMISSION_TYPE_ACCESSIBILITY,
-]);
-
-function hasMissingRequiredPermissions(permissions: readonly PermissionStatusProto[]): boolean {
-  return [...REQUIRED_PERMISSION_TYPES].some((type) => {
-    const permission = permissions.find((entry) => entry.type === type);
-    return permission?.status !== PermissionStatus.PERMISSION_STATUS_GRANTED;
-  });
-}
 
 const PERMISSION_META: Partial<Record<PermissionType, PermissionMeta>> = {
   [PermissionType.PERMISSION_TYPE_MICROPHONE]: {
@@ -35,95 +20,19 @@ const PERMISSION_META: Partial<Record<PermissionType, PermissionMeta>> = {
 const FALLBACK_META: PermissionMeta = {
   label: 'Unknown',
   description: '',
-  icon: Keyboard,
+  icon: Keyboard as LucideIcon,
 };
-
-const PERMISSION_POLL_INTERVAL_MS = 500;
-const PERMISSION_POLL_TIMEOUT_MS = 30_000;
 
 /**
  * Permissions settings page -- macOS permission statuses with explicit request and refresh actions.
  */
 export function PermissionsPage(): React.JSX.Element {
-  const [permissions, setPermissions] = useState<PermissionStatusProto[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [requestingPermission, setRequestingPermission] = useState<PermissionType | null>(null);
-  const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const pollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const loadPermissions = useCallback(async (): Promise<void> => {
-    const response = await permissionsService.getPermissions();
-    setPermissions(response.permissions);
-  }, []);
-
-  const clearPermissionPolling = useCallback((): void => {
-    if (pollIntervalRef.current !== null) {
-      clearInterval(pollIntervalRef.current);
-      pollIntervalRef.current = null;
-    }
-
-    if (pollTimeoutRef.current !== null) {
-      clearTimeout(pollTimeoutRef.current);
-      pollTimeoutRef.current = null;
-    }
-  }, []);
-
-  const refreshPermissionsSnapshot = useCallback(async (): Promise<PermissionStatusProto[]> => {
-    const response = await permissionsService.refreshPermissions();
-    setPermissions(response.permissions);
-    return response.permissions;
-  }, []);
-
-  const startPermissionPolling = useCallback((): void => {
-    clearPermissionPolling();
-
-    let pollInFlight = false;
-
-    const runPoll = async (): Promise<void> => {
-      if (pollInFlight) return;
-
-      pollInFlight = true;
-      try {
-        const latestPermissions = await refreshPermissionsSnapshot();
-        if (!hasMissingRequiredPermissions(latestPermissions)) {
-          clearPermissionPolling();
-        }
-      } finally {
-        pollInFlight = false;
-      }
-    };
-
-    void runPoll();
-    pollIntervalRef.current = setInterval(() => { void runPoll(); }, PERMISSION_POLL_INTERVAL_MS);
-    pollTimeoutRef.current = setTimeout(() => {
-      clearPermissionPolling();
-    }, PERMISSION_POLL_TIMEOUT_MS);
-  }, [clearPermissionPolling, refreshPermissionsSnapshot]);
-
-  useEffect(() => {
-    void loadPermissions().finally(() => { setLoading(false); });
-  }, [loadPermissions]);
-
-  useEffect(() => {
-    return () => {
-      clearPermissionPolling();
-    };
-  }, [clearPermissionPolling]);
-
-  async function handlePermissionAction(permission: PermissionStatusProto): Promise<void> {
-    setRequestingPermission(permission.type);
-    try {
-      if (permission.status === PermissionStatus.PERMISSION_STATUS_DENIED) {
-        await permissionsService.openSystemSettings(permission.type);
-        startPermissionPolling();
-      } else {
-        await permissionsService.requestPermission(permission.type);
-        await refreshPermissionsSnapshot();
-      }
-    } finally {
-      setRequestingPermission(null);
-    }
-  }
+  const {
+    loading,
+    visiblePermissions,
+    requestingPermission,
+    handlePermissionAction,
+  } = usePermissionsController();
 
   if (loading) {
     return (
@@ -135,9 +44,6 @@ export function PermissionsPage(): React.JSX.Element {
     );
   }
 
-  const visiblePermissions = permissions.filter((permission) => (
-    REQUIRED_PERMISSION_TYPES.has(permission.type)
-  ));
   return (
     <div className="permissions-page">
       <div className="permissions-page__header">
@@ -156,7 +62,9 @@ export function PermissionsPage(): React.JSX.Element {
             permission={permission}
             meta={PERMISSION_META[permission.type] ?? FALLBACK_META}
             isRequesting={requestingPermission === permission.type}
-            onAction={() => { void handlePermissionAction(permission); }}
+            onAction={() => {
+              void handlePermissionAction(permission);
+            }}
           />
         ))}
       </div>
