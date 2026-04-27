@@ -5,6 +5,9 @@ import { RendererModelStateStore } from '../services/RendererModelStateStore';
 import { RendererModelRepository } from '../services/RendererModelRepository';
 import { MoVoiceBackendFactory } from '../recording/services/MoVoiceBackendFactory';
 import { RecordingController } from '../recording/RecordingController';
+import { DefaultTranscriptionService } from '../recording/services/DefaultTranscriptionService';
+import { RecordingOrchestrator } from '../recording/application/RecordingOrchestrator';
+import { IpcRecordingGateway } from '../recording/infrastructure/IpcRecordingGateway';
 
 /*
  * Singletons that persist for the lifetime of the background window. Keeping
@@ -17,13 +20,26 @@ const modelRepository = new RendererModelRepository(
   new OPFSModelCache(catalog.getDefinitions()),
   new RendererModelStateStore(),
 );
-const controller = new RecordingController(modelRepository, new MoVoiceBackendFactory());
+const transcriptionService = new DefaultTranscriptionService(
+  modelRepository,
+  new MoVoiceBackendFactory(),
+);
+const gateway = new IpcRecordingGateway();
+const controller = new RecordingController(
+  new RecordingOrchestrator(gateway, transcriptionService),
+);
+const ignoreStateUpdate = (): void => {
+  return;
+};
 
 /*
  * Prevents Chromium from throttling this hidden renderer tab. The lock is held
  * indefinitely for the application lifetime.
  */
-void navigator.locks.request('movoice-keep-alive', () => new Promise<void>(() => {}));
+void navigator.locks.request(
+  'movoice-keep-alive',
+  () => new Promise<void>((resolve) => { void resolve; }),
+);
 
 /**
  * Headless background renderer that owns the audio capture and transcription pipeline.
@@ -35,7 +51,7 @@ void navigator.locks.request('movoice-keep-alive', () => new Promise<void>(() =>
  */
 export function BackgroundApp(): React.JSX.Element {
   useEffect(() => {
-    return controller.start(() => {});
+    return controller.start(ignoreStateUpdate);
   }, []);
 
   return <></>;
