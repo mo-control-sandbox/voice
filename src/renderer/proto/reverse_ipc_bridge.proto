@@ -1,6 +1,7 @@
 syntax = "proto3";
 
-message PollRequest {}
+message PollRecordingRequest {}
+message PollHistoryRevisionRequest {}
 
 message RecordingSignalSnapshotProto {
   string state               = 1;  // "idle" | "recording" | "processing"
@@ -10,11 +11,15 @@ message RecordingSignalSnapshotProto {
   bool   dont_save_transcripts = 5;
 }
 
-message ReverseIpcBridgeResponse {
+message PollRecordingResponse {
   RecordingSignalSnapshotProto recording = 1;
-  int32 history_revision                 = 2;
+}
+
+message PollHistoryRevisionResponse {
+  int32 history_revision = 1;
 }
 
 service ReverseIpcBridgeService {
-  rpc Poll(PollRequest) returns (ReverseIpcBridgeResponse);
+  rpc PollRecording(PollRecordingRequest) returns (PollRecordingResponse);
+  rpc PollHistoryRevision(PollHistoryRevisionRequest) returns (PollHistoryRevisionResponse);
 }
