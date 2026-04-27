@@ -1,4 +1,7 @@
-import type { AudioInputDevice } from '../shared/types';
+export interface AudioInputDevice {
+  readonly deviceId: string;
+  readonly label: string;
+}
 
 /**
  * Enumerates available audio input devices after a permission-safe warm-up.
@@ -21,4 +24,14 @@ export async function getAudioInputDevices(): Promise<readonly AudioInputDevice[
       deviceId: device.deviceId,
       label: device.label.trim() !== '' ? device.label : `Microphone ${String(index + 1)}`,
     }));
+}
+
+/**
+ * Registers an audio-device change listener and returns an unsubscribe function.
+ */
+export function subscribeToAudioInputChanges(listener: () => void): () => void {
+  navigator.mediaDevices.addEventListener('devicechange', listener);
+  return () => {
+    navigator.mediaDevices.removeEventListener('devicechange', listener);
+  };
 }

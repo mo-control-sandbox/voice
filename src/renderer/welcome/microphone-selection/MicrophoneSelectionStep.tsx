@@ -1,4 +1,4 @@
-import type { AudioInputDevice } from '../shared/types';
+import type { AudioInputDevice } from '../../capabilities/audio/audioInputDevices';
 
 interface MicrophoneSelectionStepProps {
   readonly audioDevicesLoading: boolean;

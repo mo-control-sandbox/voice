@@ -1,10 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
-import { PermissionStatus, PermissionType, type PermissionStatusProto } from '../../gen/permissions';
+import { PermissionStatus, PermissionType } from '../../gen/permissions';
+import { getAudioInputDevices, type AudioInputDevice, subscribeToAudioInputChanges } from '../../capabilities/audio/audioInputDevices';
+import {
+  SETTINGS_PERMISSION_POLL_INTERVAL_MS,
+  SETTINGS_PERMISSION_POLL_TIMEOUT_MS,
+} from '../../capabilities/permissions/constants';
+import { getPermissionStatus } from '../../capabilities/permissions/permissionSnapshot';
+import { usePermissionPolling } from '../../capabilities/permissions/usePermissionPolling';
 import { PermissionsService } from '../services/PermissionsService';
 import { SettingsService } from '../services/SettingsService';
-
-const MIC_PERMISSION_POLL_INTERVAL_MS = 500;
-const MIC_PERMISSION_POLL_TIMEOUT_MS = 30_000;
 
 const settingsService = new SettingsService();
 const permissionsService = new PermissionsService();
@@ -19,14 +23,6 @@ export const PREDEFINED_SHORTCUTS = [
   { label: 'Ctrl+Space', value: 'Control+Space' },
   { label: 'Alt+Space', value: 'Alt+Space' },
 ] as const;
-
-function permissionStatus(
-  permissions: readonly PermissionStatusProto[],
-  type: PermissionType,
-): PermissionStatus {
-  const permission = permissions.find((entry) => entry.type === type);
-  return permission?.status ?? PermissionStatus.PERMISSION_STATUS_UNSPECIFIED;
-}
 
 /**
  * Converts a KeyboardEvent into a MoBrowser accelerator string.
@@ -50,31 +46,11 @@ function buildAccelerator(event: KeyboardEvent): string | null {
   return parts.join('+');
 }
 
-async function getAudioInputDevices(): Promise<readonly { deviceId: string; label: string }[]> {
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-    stream.getTracks().forEach((track) => {
-      track.stop();
-    });
-  } catch {
-    return [];
-  }
-
-  const all = await navigator.mediaDevices.enumerateDevices();
-  return all
-    .filter((device) => device.kind === 'audioinput')
-    .filter((device) => device.deviceId.trim() !== '')
-    .map((device, index) => ({
-      deviceId: device.deviceId,
-      label: device.label.trim() !== '' ? device.label : `Microphone ${String(index + 1)}`,
-    }));
-}
-
 /**
  * View state exposed by the General settings controller.
  */
 export interface GeneralControllerState {
-  readonly devices: readonly { deviceId: string; label: string }[];
+  readonly devices: readonly AudioInputDevice[];
   readonly selectedDeviceId: string;
   readonly shortcutKey: string;
   readonly dontSaveTranscripts: boolean;
@@ -107,7 +83,7 @@ export function useGeneralController(): {
   readonly state: GeneralControllerState;
   readonly actions: GeneralControllerActions;
 } {
-  const [devices, setDevices] = useState<readonly { deviceId: string; label: string }[]>([]);
+  const [devices, setDevices] = useState<readonly AudioInputDevice[]>([]);
   const [selectedDeviceId, setSelectedDeviceId] = useState('');
   const [micPermissionStatus, setMicPermissionStatus] = useState<PermissionStatus>(
     PermissionStatus.PERMISSION_STATUS_UNSPECIFIED,
@@ -119,28 +95,11 @@ export function useGeneralController(): {
   const [isShortcutLoading, setIsShortcutLoading] = useState(true);
   const [isMicLoading, setIsMicLoading] = useState(true);
   const [isMicPermissionActionLoading, setIsMicPermissionActionLoading] = useState(false);
-  const [isMicPermissionPolling, setIsMicPermissionPolling] = useState(false);
   const cancelledRef = useRef(false);
-  const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const pollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  function clearMicPermissionPolling(): void {
-    if (pollIntervalRef.current !== null) {
-      clearInterval(pollIntervalRef.current);
-      pollIntervalRef.current = null;
-    }
-
-    if (pollTimeoutRef.current !== null) {
-      clearTimeout(pollTimeoutRef.current);
-      pollTimeoutRef.current = null;
-    }
-
-    setIsMicPermissionPolling(false);
-  }
 
   async function refreshMicPermissionStatus(): Promise<PermissionStatus> {
     const response = await permissionsService.refreshPermissions();
-    const status = permissionStatus(response.permissions, PermissionType.PERMISSION_TYPE_MICROPHONE);
+    const status = getPermissionStatus(response.permissions, PermissionType.PERMISSION_TYPE_MICROPHONE);
     setMicPermissionStatus(status);
     return status;
   }
@@ -156,34 +115,22 @@ export function useGeneralController(): {
     }
   }
 
-  function startMicPermissionPolling(): void {
-    clearMicPermissionPolling();
-    setIsMicPermissionPolling(true);
-
-    let pollInFlight = false;
-
-    const runPoll = async (): Promise<void> => {
-      if (pollInFlight) return;
-      pollInFlight = true;
-      try {
-        const status = await refreshMicPermissionStatus();
-        if (status === PermissionStatus.PERMISSION_STATUS_GRANTED) {
-          await loadAudioDevices();
-          clearMicPermissionPolling();
-        }
-      } finally {
-        pollInFlight = false;
+  const {
+    isPolling: isMicPermissionPolling,
+    startPolling: startMicPermissionPolling,
+    stopPolling: clearMicPermissionPolling,
+  } = usePermissionPolling({
+    intervalMs: SETTINGS_PERMISSION_POLL_INTERVAL_MS,
+    timeoutMs: SETTINGS_PERMISSION_POLL_TIMEOUT_MS,
+    poll: async (): Promise<boolean> => {
+      const status = await refreshMicPermissionStatus();
+      if (status !== PermissionStatus.PERMISSION_STATUS_GRANTED) {
+        return false;
       }
-    };
-
-    void runPoll();
-    pollIntervalRef.current = setInterval(() => {
-      void runPoll();
-    }, MIC_PERMISSION_POLL_INTERVAL_MS);
-    pollTimeoutRef.current = setTimeout(() => {
-      clearMicPermissionPolling();
-    }, MIC_PERMISSION_POLL_TIMEOUT_MS);
-  }
+      await loadAudioDevices();
+      return true;
+    },
+  });
 
   useEffect(() => {
     cancelledRef.current = false;
@@ -200,7 +147,7 @@ export function useGeneralController(): {
         });
 
         const permissionsPromise = permissionsService.getPermissions().then((response) => (
-          permissionStatus(response.permissions, PermissionType.PERMISSION_TYPE_MICROPHONE)
+          getPermissionStatus(response.permissions, PermissionType.PERMISSION_TYPE_MICROPHONE)
         ));
 
         const [savedDeviceId, micStatus] = await Promise.all([settingsPromise, permissionsPromise]);
@@ -230,7 +177,7 @@ export function useGeneralController(): {
       cancelledRef.current = true;
       clearMicPermissionPolling();
     };
-  }, []);
+  }, [clearMicPermissionPolling]);
 
   useEffect(() => {
     if (micPermissionStatus !== PermissionStatus.PERMISSION_STATUS_GRANTED) {
@@ -238,16 +185,11 @@ export function useGeneralController(): {
       return;
     }
 
-    const mediaDevices = navigator.mediaDevices;
     const refreshDevices = (): void => {
       void loadAudioDevices();
     };
-
-    mediaDevices.addEventListener('devicechange', refreshDevices);
-    return () => {
-      mediaDevices.removeEventListener('devicechange', refreshDevices);
-    };
-  }, [micPermissionStatus]);
+    return subscribeToAudioInputChanges(refreshDevices);
+  }, [clearMicPermissionPolling, micPermissionStatus]);
 
   useEffect(() => {
     if (!isCapturing) return;

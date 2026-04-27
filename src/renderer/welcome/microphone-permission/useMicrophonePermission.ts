@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { PermissionStatus, PermissionType } from '../../gen/permissions';
+import { getPermissionStatus } from '../../capabilities/permissions/permissionSnapshot';
 import { PermissionsService } from '../../settings/services/PermissionsService';
 import type { WizardEventType } from '../flow';
 import type { FeedbackState } from '../shared/feedback';
-import { findPermissionStatus } from '../shared/permissionStatus';
 
 const permissionsService = new PermissionsService();
 
@@ -36,11 +36,11 @@ export function useMicrophonePermission(params: {
     readonly accessibilityStatus: PermissionStatus;
   }> {
     const response = await permissionsService.refreshPermissions();
-    const latestMicrophoneStatus = findPermissionStatus(
+    const latestMicrophoneStatus = getPermissionStatus(
       response.permissions,
       PermissionType.PERMISSION_TYPE_MICROPHONE,
     );
-    const latestAccessibilityStatus = findPermissionStatus(
+    const latestAccessibilityStatus = getPermissionStatus(
       response.permissions,
       PermissionType.PERMISSION_TYPE_ACCESSIBILITY,
     );

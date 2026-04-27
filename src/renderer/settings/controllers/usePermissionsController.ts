@@ -1,23 +1,15 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { PermissionStatus, PermissionType, type PermissionStatusProto } from '../../gen/permissions';
+import { useCallback, useEffect, useState } from 'react';
+import { PermissionStatus, type PermissionStatusProto, type PermissionType } from '../../gen/permissions';
+import {
+  REQUIRED_PERMISSION_TYPES,
+  SETTINGS_PERMISSION_POLL_INTERVAL_MS,
+  SETTINGS_PERMISSION_POLL_TIMEOUT_MS,
+} from '../../capabilities/permissions/constants';
+import { hasMissingPermissions } from '../../capabilities/permissions/permissionSnapshot';
+import { usePermissionPolling } from '../../capabilities/permissions/usePermissionPolling';
 import { PermissionsService } from '../services/PermissionsService';
 
-const PERMISSION_POLL_INTERVAL_MS = 500;
-const PERMISSION_POLL_TIMEOUT_MS = 30_000;
-
-const REQUIRED_PERMISSION_TYPES = new Set<PermissionType>([
-  PermissionType.PERMISSION_TYPE_MICROPHONE,
-  PermissionType.PERMISSION_TYPE_ACCESSIBILITY,
-]);
-
 const permissionsService = new PermissionsService();
-
-function hasMissingRequiredPermissions(permissions: readonly PermissionStatusProto[]): boolean {
-  return [...REQUIRED_PERMISSION_TYPES].some((type) => {
-    const permission = permissions.find((entry) => entry.type === type);
-    return permission?.status !== PermissionStatus.PERMISSION_STATUS_GRANTED;
-  });
-}
 
 /**
  * Owns permission loading, refresh, request, and polling workflows for settings.
@@ -31,24 +23,10 @@ export function usePermissionsController(): {
   const [permissions, setPermissions] = useState<PermissionStatusProto[]>([]);
   const [loading, setLoading] = useState(true);
   const [requestingPermission, setRequestingPermission] = useState<PermissionType | null>(null);
-  const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const pollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const loadPermissions = useCallback(async (): Promise<void> => {
     const response = await permissionsService.getPermissions();
     setPermissions(response.permissions);
-  }, []);
-
-  const clearPermissionPolling = useCallback((): void => {
-    if (pollIntervalRef.current !== null) {
-      clearInterval(pollIntervalRef.current);
-      pollIntervalRef.current = null;
-    }
-
-    if (pollTimeoutRef.current !== null) {
-      clearTimeout(pollTimeoutRef.current);
-      pollTimeoutRef.current = null;
-    }
   }, []);
 
   const refreshPermissionsSnapshot = useCallback(async (): Promise<PermissionStatusProto[]> => {
@@ -57,33 +35,17 @@ export function usePermissionsController(): {
     return response.permissions;
   }, []);
 
-  const startPermissionPolling = useCallback((): void => {
-    clearPermissionPolling();
-
-    let pollInFlight = false;
-
-    const runPoll = async (): Promise<void> => {
-      if (pollInFlight) return;
-
-      pollInFlight = true;
-      try {
-        const latestPermissions = await refreshPermissionsSnapshot();
-        if (!hasMissingRequiredPermissions(latestPermissions)) {
-          clearPermissionPolling();
-        }
-      } finally {
-        pollInFlight = false;
-      }
-    };
-
-    void runPoll();
-    pollIntervalRef.current = setInterval(() => {
-      void runPoll();
-    }, PERMISSION_POLL_INTERVAL_MS);
-    pollTimeoutRef.current = setTimeout(() => {
-      clearPermissionPolling();
-    }, PERMISSION_POLL_TIMEOUT_MS);
-  }, [clearPermissionPolling, refreshPermissionsSnapshot]);
+  const {
+    startPolling: startPermissionPolling,
+    stopPolling: clearPermissionPolling,
+  } = usePermissionPolling({
+    intervalMs: SETTINGS_PERMISSION_POLL_INTERVAL_MS,
+    timeoutMs: SETTINGS_PERMISSION_POLL_TIMEOUT_MS,
+    poll: async (): Promise<boolean> => {
+      const latestPermissions = await refreshPermissionsSnapshot();
+      return !hasMissingPermissions(latestPermissions);
+    },
+  });
 
   useEffect(() => {
     void loadPermissions().finally(() => {
@@ -113,7 +75,7 @@ export function usePermissionsController(): {
   }
 
   const visiblePermissions = permissions.filter((permission) => (
-    REQUIRED_PERMISSION_TYPES.has(permission.type)
+    REQUIRED_PERMISSION_TYPES.some((requiredType) => requiredType === permission.type)
   ));
 
   return {

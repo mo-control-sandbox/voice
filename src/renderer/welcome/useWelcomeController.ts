@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
+import type { AudioInputDevice } from '../capabilities/audio/audioInputDevices';
 import { PermissionStatus } from '../gen/permissions';
 import type { ModelEntry } from '../types/models';
 import { WIZARD_STEPS, type WizardEventType, reduceWizard } from './flow';
@@ -7,7 +8,6 @@ import { useMicrophonePermission } from './microphone-permission/useMicrophonePe
 import { useMicrophoneSelection } from './microphone-selection/useMicrophoneSelection';
 import { useModelSelection } from './model-selection/useModelSelection';
 import type { FeedbackState } from './shared/feedback';
-import type { AudioInputDevice } from './shared/types';
 import { useShortcutReadiness } from './shortcut-readiness/useShortcutReadiness';
 
 const AUTO_ADVANCE_DELAY_MS = 900;

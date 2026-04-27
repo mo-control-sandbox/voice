@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { getAudioInputDevices, subscribeToAudioInputChanges, type AudioInputDevice } from '../../capabilities/audio/audioInputDevices';
 import { SettingsService } from '../../settings/services/SettingsService';
-import type { AudioInputDevice } from '../shared/types';
-import { getAudioInputDevices } from './audioDevices';
 
 const settingsService = new SettingsService();
 
@@ -58,10 +57,7 @@ export function useMicrophoneSelection(params: {
       const onDeviceChange = (): void => {
         void loadAudioDevices({ showLoading: false });
       };
-      navigator.mediaDevices.addEventListener('devicechange', onDeviceChange);
-      return () => {
-        navigator.mediaDevices.removeEventListener('devicechange', onDeviceChange);
-      };
+      return subscribeToAudioInputChanges(onDeviceChange);
     }
 
     return undefined;
