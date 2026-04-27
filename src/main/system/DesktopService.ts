@@ -14,8 +14,8 @@ class DesktopService implements DesktopServiceInterface {
   /**
    * Opens the given URL in the system default browser.
    */
-  async OpenUrl(request: OpenUrlRequest) {
+  OpenUrl(request: OpenUrlRequest) {
     desktop.openUrl(request.url);
-    return {};
+    return Promise.resolve({});
   }
 }

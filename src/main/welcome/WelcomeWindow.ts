@@ -27,9 +27,11 @@ export class WelcomeWindow {
           zoom: false,
         },
       });
-      this.window.browser.handle('requestPermissions', async (params: RequestPermissionsParams) => {
-        if (params.permissionType === 'microphone' || params.permissionType === 'AudioCapture') return 'grant';
-        return 'deny';
+      this.window.browser.handle('requestPermissions', (params: RequestPermissionsParams) => {
+        if (params.permissionType === 'microphone' || params.permissionType === 'AudioCapture') {
+          return Promise.resolve('grant');
+        }
+        return Promise.resolve('deny');
       });
       this.window.centerWindow();
       this.dockManager.track(this.window);

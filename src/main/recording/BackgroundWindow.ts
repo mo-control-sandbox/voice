@@ -20,9 +20,11 @@ export class BackgroundWindow {
       url: rendererWindowUrl('background'),
       activationIndependenceEnabled: true,
     });
-    win.browser.handle('requestPermissions', async (params: RequestPermissionsParams) => {
-      if (params.permissionType === 'microphone' || params.permissionType === 'AudioCapture') return 'grant';
-      return 'deny';
+    win.browser.handle('requestPermissions', (params: RequestPermissionsParams) => {
+      if (params.permissionType === 'microphone' || params.permissionType === 'AudioCapture') {
+        return Promise.resolve('grant');
+      }
+      return Promise.resolve('deny');
     });
     return win;
   }

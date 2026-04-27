@@ -25,9 +25,11 @@ export class AppReadinessService {
   async isReady(): Promise<boolean> {
     if (!this.settings.isModelReady()) return false;
     const result = await this.systemPermissions.GetPermissionsStatus({});
+    const grantedStatus = PermissionStatus.PERMISSION_STATUS_GRANTED as number;
     return REQUIRED_PERMISSION_TYPES.every((type) => {
-      const perm = result.permissions.find((p) => p.type === type);
-      return perm?.status === PermissionStatus.PERMISSION_STATUS_GRANTED;
+      const requiredType = type as number;
+      const perm = result.permissions.find((p) => (p.type as number) === requiredType);
+      return (perm?.status as number | undefined) === grantedStatus;
     });
   }
 }

@@ -44,7 +44,7 @@ export class FocusRestorer {
    */
   async restore(): Promise<RestoreOutcome> {
     const snapshot = this.snapshot;
-    if (!snapshot || !snapshot.bundleId) return 'no_snapshot';
+    if (!snapshot?.bundleId) return 'no_snapshot';
     if (snapshot.appName === 'moVoice') return 'self_focus';
 
     try {

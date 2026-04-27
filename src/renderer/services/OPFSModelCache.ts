@@ -74,16 +74,20 @@ export class OPFSModelCache implements ModelFileStore {
     const fileHandle = await dir.getFileHandle(parts[parts.length - 1], { create: true });
     const writable = await fileHandle.createWritable();
     const total = Number(response.headers.get('content-length')) || 0;
+    const reportProgress = progressCallback ?? ((_data) => { return; });
     let loaded = 0;
-    const reader = response.body!.getReader();
+    if (response.body === null) {
+      throw new Error(`OPFSModelCache.put: response body is missing for "${url}"`);
+    }
+    const reader = response.body.getReader();
     try {
-      while (true) {
+      for (;;) {
         const { done, value } = await reader.read();
         if (done) break;
         await writable.write(value);
         loaded += value.byteLength;
-        if (progressCallback !== undefined && total > 0) {
-          progressCallback({ progress: (loaded / total) * 100, loaded, total });
+        if (total > 0) {
+          reportProgress({ progress: (loaded / total) * 100, loaded, total });
         }
       }
       await writable.close();
@@ -147,7 +151,7 @@ export class OPFSModelCache implements ModelFileStore {
           progress_callback: progressCallback,
         }) as VoxtralRealtimeForConditionalGeneration;
         await VoxtralRealtimeProcessor.from_pretrained(repo);
-        model.dispose();
+        await model.dispose();
       } else {
         const pipe = await pipeline('automatic-speech-recognition', repo, {
           dtype: 'q4',

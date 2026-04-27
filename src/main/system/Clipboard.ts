@@ -42,9 +42,7 @@ export class Clipboard {
   private async doExecute(text: string): Promise<void> {
     clipboard.write('text/plain', text);
 
-    if (this.accessibilityGranted === null) {
-      this.accessibilityGranted = await this.isAccessibilityGranted();
-    }
+    this.accessibilityGranted ??= await this.isAccessibilityGranted();
 
     if (!this.accessibilityGranted) {
       console.warn('[Clipboard] Accessibility permission not granted -- text placed on clipboard only.');

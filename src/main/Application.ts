@@ -8,6 +8,7 @@ import { HistoryStore } from './history/HistoryStore';
 import { Clipboard } from './system/Clipboard';
 import { FocusRestorer } from './system/FocusRestorer';
 import { RecordingSessionController } from './recording/RecordingSessionController';
+import { StartRecordingFromIntentUseCase } from './recording/StartRecordingFromIntentUseCase';
 import { TrayController } from './TrayController';
 import { BackgroundWindow } from './recording/BackgroundWindow';
 import { RecordingOverlay } from './recording/RecordingOverlay';
@@ -46,20 +47,25 @@ export class Application {
   private readonly aboutWindow = new AboutWindow(this.dockManager);
   private readonly welcomeWindow = new WelcomeWindow(this.dockManager);
   private readonly readiness = new AppReadinessService(this.settings, native.systemPermissions);
+  private readonly shortcutManager = new ShortcutManager();
+  private readonly clipboard = new Clipboard();
+  private readonly focusRestorer = new FocusRestorer();
+  private readonly startRecordingFromIntent = new StartRecordingFromIntentUseCase(
+    this.readiness,
+    this.focusRestorer,
+    this.recordingController,
+    this.welcomeWindow,
+  );
 
   private readonly trayController = new TrayController(
     this.recordingController,
+    this.startRecordingFromIntent,
     this.settings,
     this.settingsWindow,
     this.historyWindow,
     this.aboutWindow,
     this.welcomeWindow,
-    this.readiness,
   );
-
-  private readonly shortcutManager = new ShortcutManager();
-  private readonly clipboard = new Clipboard();
-  private readonly focusRestorer = new FocusRestorer();
 
   /**
    * Initialises all services in the correct order and shows the tray.
@@ -97,27 +103,31 @@ export class Application {
       if (state === 'idle') this.focusRestorer.clear();
     });
 
-    this.recordingController.onTranscriptionCompleted(async (text) => {
-      const outcome = await this.focusRestorer.restore();
-      if (outcome !== 'self_focus') {
-        void this.clipboard.execute(text);
-      } else {
-        // moVoice was frontmost when recording started -- the text cannot be
-        // pasted immediately. Copy it to the clipboard as an instant fallback
-        // and watch for focus to move to an external app, then auto-paste.
-        this.clipboard.copyOnly(text);
-        this.focusRestorer.watchAndPaste(async () => {
+    this.recordingController.onTranscriptionCompleted((text) => {
+      void (async () => {
+        const outcome = await this.focusRestorer.restore();
+        if (outcome !== 'self_focus') {
           void this.clipboard.execute(text);
-        });
-      }
+        } else {
+          // moVoice was frontmost when recording started -- the text cannot be
+          // pasted immediately. Copy it to the clipboard as an instant fallback
+          // and watch for focus to move to an external app, then auto-paste.
+          this.clipboard.copyOnly(text);
+          this.focusRestorer.watchAndPaste(async () => {
+            await this.clipboard.execute(text);
+          });
+        }
+      })();
     });
 
-    this.recordingController.onPartialTranscription(async (text) => {
-      if (!streamingFocusRestored) {
-        streamingFocusRestored = true;
-        await this.focusRestorer.restore();
-      }
-      void this.clipboard.execute(text);
+    this.recordingController.onPartialTranscription((text) => {
+      void (async () => {
+        if (!streamingFocusRestored) {
+          streamingFocusRestored = true;
+          await this.focusRestorer.restore();
+        }
+        void this.clipboard.execute(text);
+      })();
     });
   }
 
@@ -128,16 +138,7 @@ export class Application {
         this.recordingController.toggle();
         return;
       }
-      void this.readiness.isReady().then(async (ready) => {
-        if (!ready) {
-          this.welcomeWindow.show();
-        } else {
-          // Snapshot the frontmost app before the recording window appears so
-          // that the focus target is captured while it still holds focus.
-          await this.focusRestorer.capture();
-          this.recordingController.toggle();
-        }
-      });
+      void this.startRecordingFromIntent.startFromUserIntent();
     });
   }
 }
