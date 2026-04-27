@@ -39,6 +39,7 @@ if(APPLE)
             "-framework AppKit"
             "-framework ApplicationServices"
             "-framework CoreGraphics"
+            "-framework QuartzCore"
             "-framework ServiceManagement"
             "-framework Speech")
 endif()
