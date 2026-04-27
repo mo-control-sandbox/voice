@@ -56,11 +56,6 @@
   align-items: baseline;
 }
 
-.about-window__author {
-  font-size: 0.8125rem;
-  color: var(--muted-foreground);
-}
-
 .about-window__icon-button {
   all: unset;
   cursor: pointer;

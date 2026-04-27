@@ -7,7 +7,6 @@ import type { PcmAudio } from './PcmAudio';
  * Responsibilities:
  * - Acquires the configured microphone (or the system default) via getUserMedia.
  * - Accumulates raw Float32 PCM chunks via AudioWorkletNode.
- * - Drives real-time waveform display via AnalyserNode (no IPC needed).
  * - Fires an optional per-chunk callback for streaming transcription consumers.
  * - On stop(), resamples accumulated PCM to 16 kHz mono via OfflineAudioContext.
  * - Notifies the caller when the MediaStreamTrack ends unexpectedly.
@@ -15,7 +14,6 @@ import type { PcmAudio } from './PcmAudio';
 export class AudioPipeline {
   private audioContext: AudioContext | null = null;
   private stream: MediaStream | null = null;
-  private analyser: AnalyserNode | null = null;
   private pcmChunks: Float32Array[] = [];
   private trackEndedCallback: (() => void) | null = null;
   private workletNode: AudioWorkletNode | null = null;
@@ -44,10 +42,6 @@ export class AudioPipeline {
     );
 
     const source = this.audioContext.createMediaStreamSource(this.stream);
-
-    this.analyser = this.audioContext.createAnalyser();
-    this.analyser.fftSize = 256;
-    source.connect(this.analyser);
 
     this.workletNode = new AudioWorkletNode(this.audioContext, 'pcm-collector');
     this.workletNode.port.onmessage = (event: MessageEvent<Float32Array>) => {
@@ -79,22 +73,6 @@ export class AudioPipeline {
   }
 
   /**
-   * Returns a snapshot of the current time-domain audio signal as normalised
-   * per-sample amplitudes in [0, 1]. The caller buckets this into display bars.
-   * Returns an empty array when no pipeline is active.
-   */
-  getWaveformData(): Float32Array {
-    if (this.analyser === null) return new Float32Array(0);
-    const buffer = new Uint8Array(this.analyser.frequencyBinCount);
-    this.analyser.getByteTimeDomainData(buffer);
-    const result = new Float32Array(buffer.length);
-    for (let i = 0; i < buffer.length; i++) {
-      result[i] = Math.abs(buffer[i] - 128) / 128;
-    }
-    return result;
-  }
-
-  /**
    * Immediately releases the microphone and closes the AudioContext without
    * resampling. Use this on cancel paths and on the streaming stop path where
    * PCM is consumed by the worker rather than the pipeline.
@@ -110,7 +88,6 @@ export class AudioPipeline {
     this.workletNode?.disconnect();
     this.workletNode?.port.close();
     this.workletNode = null;
-    this.analyser = null;
     this.pcmChunks = [];
     const ctx = this.audioContext;
     this.audioContext = null;
@@ -129,7 +106,6 @@ export class AudioPipeline {
     this.workletNode?.disconnect();
     this.workletNode?.port.close();
     this.workletNode = null;
-    this.analyser = null;
 
     const sampleRate = this.audioContext?.sampleRate ?? 44100;
     const allChunks = this.mergeChunks();
