@@ -23,9 +23,8 @@ export class RecordingRuntimeCoordinator {
     if (this.initialized) return;
     this.initialized = true;
 
-    this.controller.onStateChange((state) => {
+    this.controller.onStateChange(() => {
       this.onStateChange();
-      this.transcriptionPasteOrchestrator.onSessionStateChanged(state);
     });
 
     this.controller.onTranscriptionCompleted((text) => {

@@ -6,7 +6,6 @@ import { DockManager } from './system/DockManager';
 import { SessionStorage } from './recording/SessionStorage';
 import { HistoryStore } from './history/HistoryStore';
 import { Clipboard } from './system/Clipboard';
-import { FocusRestorer } from './system/FocusRestorer';
 import { RecordingSessionController } from './recording/RecordingSessionController';
 import { StartRecordingFromIntentUseCase } from './recording/StartRecordingFromIntentUseCase';
 import { RecordingRuntimeCoordinator } from './recording/RecordingRuntimeCoordinator';
@@ -53,14 +52,9 @@ export class Application {
   private readonly readiness = new AppReadinessService(this.settings, native.systemPermissions);
   private readonly shortcutManager = new ShortcutManager();
   private readonly clipboard = new Clipboard();
-  private readonly focusRestorer = new FocusRestorer();
-  private readonly transcriptionPasteOrchestrator = new TranscriptionPasteOrchestrator(
-    this.focusRestorer,
-    this.clipboard,
-  );
+  private readonly transcriptionPasteOrchestrator = new TranscriptionPasteOrchestrator(this.clipboard);
   private readonly startRecordingFromIntent = new StartRecordingFromIntentUseCase(
     this.readiness,
-    this.focusRestorer,
     this.recordingController,
     this.welcomeWindow,
   );

@@ -1,4 +1,4 @@
-import * as fs from 'node:fs/promises';
+import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { app, desktop, ipc } from '@mobrowser/api';
 import { HistoryService as createHistoryService, type HistoryService as HistoryServiceInterface } from '../gen/ipc_service';
@@ -37,7 +37,7 @@ export class HistoryStore {
    */
   async initialize(): Promise<void> {
     try {
-      const raw = await fs.readFile(this.historyPath, 'utf8');
+      const raw = await fs.promises.readFile(this.historyPath, 'utf8');
       const parsed: unknown = JSON.parse(raw);
       if (Array.isArray(parsed)) {
         const sanitized = parsed.filter(isSessionRecord);
@@ -120,7 +120,7 @@ export class HistoryStore {
       .catch(() => undefined)
       .then(async () => {
         try {
-          await fs.writeFile(this.historyPath, payload, 'utf8');
+          await fs.promises.writeFile(this.historyPath, payload, 'utf8');
         } catch (err) {
           console.error('[HistoryStore] Failed to write history.json:', err);
         }
