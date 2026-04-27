@@ -1,4 +1,4 @@
-import type { ModelEntry, ModelDefinition } from '../../types/models';
+import type { ModelEntry } from '../../types/models';
 import './ModelCard.css';
 
 interface ModelCardProps {
@@ -35,7 +35,7 @@ function toPercent(fraction: number): string {
  * and action controls (download, activate, delete).
  */
 export function ModelCard({ model, error, onDownload, onDelete, onSetActive }: ModelCardProps): React.JSX.Element {
-  const definition = model.definition as ModelDefinition;
+  const definition = model.definition;
   const state      = resolveModelState(model, error !== null);
 
   // Five-dot pip row -- filled dots represent the score out of 5.
@@ -85,7 +85,7 @@ export function ModelCard({ model, error, onDownload, onDelete, onSetActive }: M
       </div>
 
       {/* Download progress bar -- only while downloading */}
-      {model.downloadProgress !== null && (
+      {state === 'downloading' && model.downloadProgress !== null && (
         <div className="model-card__progress">
           <div className="model-card__progress-header">
             <span className="model-card__progress-label">Downloading...</span>
@@ -106,7 +106,7 @@ export function ModelCard({ model, error, onDownload, onDelete, onSetActive }: M
       )}
 
       {/* Actions -- hidden while downloading */}
-      {model.downloadProgress === null && (
+      {state !== 'downloading' && (
         <div className="model-card__actions">
           {(state === 'available' || state === 'error') && (
             <button type="button" className="model-card__btn" data-btn="primary" onClick={onDownload}>

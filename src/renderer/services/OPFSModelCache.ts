@@ -140,7 +140,7 @@ export class OPFSModelCache implements ModelFileStore {
           progress_callback: progressCallback,
         });
         await pipe.dispose();
-      } else {
+      } else if (definition.inferenceMode === 'voxtral-realtime') {
         const model = await VoxtralRealtimeForConditionalGeneration.from_pretrained(repo, {
           dtype: { audio_encoder: 'q4f16', embed_tokens: 'q4f16', decoder_model_merged: 'q4f16' },
           device: 'webgpu',
@@ -148,6 +148,13 @@ export class OPFSModelCache implements ModelFileStore {
         }) as VoxtralRealtimeForConditionalGeneration;
         await VoxtralRealtimeProcessor.from_pretrained(repo);
         model.dispose();
+      } else {
+        const pipe = await pipeline('automatic-speech-recognition', repo, {
+          dtype: 'q4',
+          device: 'webgpu',
+          progress_callback: progressCallback,
+        });
+        await pipe.dispose();
       }
 
       await this.writeMarker(repo);

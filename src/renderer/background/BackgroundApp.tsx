@@ -1,8 +1,5 @@
 import { useEffect } from 'react';
-import { RendererModelCatalog } from '../services/RendererModelCatalog';
-import { OPFSModelCache } from '../services/OPFSModelCache';
-import { RendererModelStateStore } from '../services/RendererModelStateStore';
-import { RendererModelRepository } from '../services/RendererModelRepository';
+import { getRendererModelRepository } from '../services/getRendererModelRepository';
 import { MoVoiceBackendFactory } from '../recording/services/MoVoiceBackendFactory';
 import { RecordingController } from '../recording/RecordingController';
 import { DefaultTranscriptionService } from '../recording/services/DefaultTranscriptionService';
@@ -14,12 +11,7 @@ import { IpcRecordingGateway } from '../recording/infrastructure/IpcRecordingGat
  * them outside the component ensures model weights and warm-up state survive
  * React re-renders.
  */
-const catalog = new RendererModelCatalog();
-const modelRepository = new RendererModelRepository(
-  catalog,
-  new OPFSModelCache(catalog.getDefinitions()),
-  new RendererModelStateStore(),
-);
+const modelRepository = getRendererModelRepository();
 const transcriptionService = new DefaultTranscriptionService(
   modelRepository,
   new MoVoiceBackendFactory(),

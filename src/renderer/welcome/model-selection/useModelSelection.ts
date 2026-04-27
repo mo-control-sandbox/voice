@@ -1,19 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ModelEntry } from '../../types/models';
-import { RendererModelCatalog } from '../../services/RendererModelCatalog';
-import { OPFSModelCache } from '../../services/OPFSModelCache';
-import { RendererModelStateStore } from '../../services/RendererModelStateStore';
-import { RendererModelRepository } from '../../services/RendererModelRepository';
+import { getRendererModelRepository } from '../../services/getRendererModelRepository';
 import { reportModelReadiness } from '../../services/ModelReadinessReporter';
 
 const MODEL_POLL_INTERVAL_MS = 500;
 
-const catalog = new RendererModelCatalog();
-const modelRepository = new RendererModelRepository(
-  catalog,
-  new OPFSModelCache(catalog.getDefinitions()),
-  new RendererModelStateStore(),
-);
+const modelRepository = getRendererModelRepository();
 
 /**
  * Owns model selection state and operations for onboarding.

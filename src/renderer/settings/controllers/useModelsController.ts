@@ -1,19 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ModelEntry } from '../../types/models';
-import { OPFSModelCache } from '../../services/OPFSModelCache';
-import { RendererModelCatalog } from '../../services/RendererModelCatalog';
-import { RendererModelRepository } from '../../services/RendererModelRepository';
-import { RendererModelStateStore } from '../../services/RendererModelStateStore';
+import { getRendererModelRepository } from '../../services/getRendererModelRepository';
 import { reportModelReadiness } from '../../services/ModelReadinessReporter';
 
 const POLL_INTERVAL_MS = 500;
 
-const catalog = new RendererModelCatalog();
-const repository = new RendererModelRepository(
-  catalog,
-  new OPFSModelCache(catalog.getDefinitions()),
-  new RendererModelStateStore(),
-);
+const repository = getRendererModelRepository();
 
 function hasActiveDownload(models: readonly ModelEntry[]): boolean {
   return models.some((model) => model.downloadProgress !== null);
@@ -68,17 +60,20 @@ export function useModelsController(): {
       return next;
     });
 
-    void repository
-      .download(id, () => {
-        // Progress is polled by the interval.
-      })
-      .catch((err: unknown) => {
+    void (async () => {
+      try {
+        await repository.download(id, () => {
+          // Progress is polled by the interval.
+        });
+      } catch (err: unknown) {
         console.error('[ModelsPage] Download failed:', err);
         setDownloadErrors((prev) => (
           new Map(prev).set(id, 'Download failed. Check your connection and try again.')
         ));
-        void refreshModels();
-      });
+      } finally {
+        await refreshModels();
+      }
+    })();
 
     await refreshModels();
   }
