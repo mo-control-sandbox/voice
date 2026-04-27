@@ -2,8 +2,7 @@ import { useEffect, useState } from 'react';
 import type { SessionRecordProto } from '../gen/history';
 import { SessionList } from './components/SessionList';
 import { SessionDetail } from './components/SessionDetail';
-import { reverseIpcBridge } from '../ipc/ReverseIpcBridge';
-import { HistorySignalService } from '../ipc/SignalService';
+import { historyRevisionChannel } from '../ipc/ReverseIpcBridge';
 import { HistoryService } from './services/HistoryService';
 import './HistoryApp.css';
 
@@ -29,13 +28,9 @@ export function HistoryApp(): React.JSX.Element {
   useEffect(() => {
     void fetchSessions();
 
-    return reverseIpcBridge.registerService(
-      HistorySignalService({
-        async onHistoryRevisionChanged() {
-          await fetchSessions();
-        },
-      }),
-    );
+    return historyRevisionChannel.subscribe(async () => {
+      await fetchSessions();
+    });
   }, []);
 
   useEffect(() => {

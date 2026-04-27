@@ -2,8 +2,7 @@ import { ipc } from '../../gen/ipc';
 import type { CancelRecordingRequest, StopRecordingRequest, SubmitTranscriptionRequest } from '../../gen/recording';
 import type { RecordingSignalSnapshotProto } from '../../gen/reverse_ipc_bridge';
 import type { SettingsProto } from '../../gen/settings';
-import { reverseIpcBridge } from '../../ipc/ReverseIpcBridge';
-import { RecordingSignalService } from '../../ipc/SignalService';
+import { recordingSignalChannel } from '../../ipc/ReverseIpcBridge';
 import type { RecordingGateway } from '../application/RecordingGateway';
 
 /**
@@ -16,11 +15,7 @@ export class IpcRecordingGateway implements RecordingGateway {
   subscribeRecordingSignals(
     onChanged: (snapshot: RecordingSignalSnapshotProto) => Promise<void>,
   ): () => void {
-    return reverseIpcBridge.registerService(
-      RecordingSignalService({
-        onRecordingChanged: onChanged,
-      }),
-    );
+    return recordingSignalChannel.subscribe(onChanged);
   }
 
   /**

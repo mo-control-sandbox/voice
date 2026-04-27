@@ -1,43 +1,44 @@
 import { ipc } from '../gen/ipc';
-import { type SignalServiceInstance } from './SignalService';
+import type { RecordingSignalSnapshotProto } from '../gen/reverse_ipc_bridge';
 
-const POLL_INTERVAL_MS = 1000 / 30; // 30 fps, fast enough for the recording window waveform.
+const RECORDING_POLL_INTERVAL_MS = 1000 / 30;
+const HISTORY_POLL_INTERVAL_MS = 1000;
 
 /**
- * Singleton polling bus that drives all main-to-renderer signal delivery.
- *
- * Consumers register typed signal service handlers via registerService(); the bus
- * owns the single polling interval and dispatches to handlers only when a revision
- * changes. This is the renderer-side analogue of MoBrowser's ipc.registerService()
- * infrastructure.
- *
- * The bus auto-starts on first registration and auto-stops when all services have
- * been unregistered, so consumers need not manage lifecycle explicitly.
+ * Handler invoked when the recording snapshot changes.
  */
-class ReverseIpcBridgeBus {
-  private readonly services = new Set<SignalServiceInstance>();
+type RecordingSignalHandler = (snapshot: RecordingSignalSnapshotProto) => Promise<void>;
+
+/**
+ * Handler invoked when the history revision changes.
+ */
+type HistoryRevisionHandler = (revision: number) => Promise<void>;
+
+/**
+ * Renderer-local polling channel for recording state snapshots.
+ */
+class RecordingSignalChannel {
+  private readonly handlers = new Set<RecordingSignalHandler>();
   private intervalId: ReturnType<typeof setInterval> | null = null;
   private lastRecordingKey = '';
-  private lastHistoryRevision = -1;
+  private isTickRunning = false;
 
   /**
-   * Registers a signal service handler.
-   *
-   * Returns an unsubscribe function -- call it when the consumer unmounts.
+   * Registers a recording snapshot handler.
    */
-  registerService(svc: SignalServiceInstance): () => void {
-    this.services.add(svc);
+  subscribe(handler: RecordingSignalHandler): () => void {
+    this.handlers.add(handler);
     if (this.intervalId === null) this.startPolling();
-    return () => { this.deregister(svc); };
+    return () => { this.deregister(handler); };
   }
 
-  private deregister(svc: SignalServiceInstance): void {
-    this.services.delete(svc);
-    if (this.services.size === 0) this.stopPolling();
+  private deregister(handler: RecordingSignalHandler): void {
+    this.handlers.delete(handler);
+    if (this.handlers.size === 0) this.stopPolling();
   }
 
   private startPolling(): void {
-    this.intervalId = setInterval(() => { void this.tick(); }, POLL_INTERVAL_MS);
+    this.intervalId = setInterval(() => { void this.tick(); }, RECORDING_POLL_INTERVAL_MS);
     void this.tick();
   }
 
@@ -49,36 +50,96 @@ class ReverseIpcBridgeBus {
   }
 
   private async tick(): Promise<void> {
-    let resp;
+    if (this.isTickRunning) return;
+    this.isTickRunning = true;
     try {
-      resp = await ipc.reverseIpcBridge.Poll({});
+      const response = await ipc.reverseIpcBridge.PollRecording({});
+      const snapshot = response.recording;
+      if (snapshot === undefined) return;
+
+      const recordingKey = `${snapshot.state}:${snapshot.sessionId}`;
+      if (recordingKey === this.lastRecordingKey) return;
+
+      this.lastRecordingKey = recordingKey;
+      await dispatchHandlers(this.handlers, snapshot, 'recording');
     } catch (err) {
-      console.error('[ReverseIpcBridge] Poll error:', err);
-      return;
-    }
-
-    if (resp.recording !== undefined) {
-      const recordingKey = `${resp.recording.state}:${resp.recording.sessionId}`;
-      if (recordingKey !== this.lastRecordingKey) {
-        this.lastRecordingKey = recordingKey;
-        const snapshot = resp.recording;
-        for (const svc of this.services) {
-          await svc.onRecordingChanged?.(snapshot);
-        }
-      }
-    }
-
-    if (resp.historyRevision !== this.lastHistoryRevision) {
-      const isFirstPoll = this.lastHistoryRevision === -1;
-      this.lastHistoryRevision = resp.historyRevision;
-      if (!isFirstPoll) {
-        for (const svc of this.services) {
-          await svc.onHistoryRevisionChanged?.(resp.historyRevision);
-        }
-      }
+      console.error('[ReverseIpcBridge] PollRecording error:', err);
+    } finally {
+      this.isTickRunning = false;
     }
   }
 }
 
-/** Singleton reverse IPC bridge for all renderer windows. */
-export const reverseIpcBridge = new ReverseIpcBridgeBus();
+/**
+ * Renderer-local polling channel for history revision updates.
+ */
+class HistoryRevisionChannel {
+  private readonly handlers = new Set<HistoryRevisionHandler>();
+  private intervalId: ReturnType<typeof setInterval> | null = null;
+  private lastHistoryRevision = -1;
+  private isTickRunning = false;
+
+  /**
+   * Registers a history revision handler.
+   */
+  subscribe(handler: HistoryRevisionHandler): () => void {
+    this.handlers.add(handler);
+    if (this.intervalId === null) this.startPolling();
+    return () => { this.deregister(handler); };
+  }
+
+  private deregister(handler: HistoryRevisionHandler): void {
+    this.handlers.delete(handler);
+    if (this.handlers.size === 0) this.stopPolling();
+  }
+
+  private startPolling(): void {
+    this.intervalId = setInterval(() => { void this.tick(); }, HISTORY_POLL_INTERVAL_MS);
+    void this.tick();
+  }
+
+  private stopPolling(): void {
+    if (this.intervalId !== null) {
+      clearInterval(this.intervalId);
+      this.intervalId = null;
+    }
+  }
+
+  private async tick(): Promise<void> {
+    if (this.isTickRunning) return;
+    this.isTickRunning = true;
+    try {
+      const response = await ipc.reverseIpcBridge.PollHistoryRevision({});
+      if (response.historyRevision === this.lastHistoryRevision) return;
+
+      const isFirstPoll = this.lastHistoryRevision === -1;
+      this.lastHistoryRevision = response.historyRevision;
+      if (isFirstPoll) return;
+
+      await dispatchHandlers(this.handlers, response.historyRevision, 'history revision');
+    } catch (err) {
+      console.error('[ReverseIpcBridge] PollHistoryRevision error:', err);
+    } finally {
+      this.isTickRunning = false;
+    }
+  }
+}
+
+async function dispatchHandlers<T>(
+  handlers: Set<(payload: T) => Promise<void>>,
+  payload: T,
+  channel: string,
+): Promise<void> {
+  const results = await Promise.allSettled(Array.from(handlers, (handler) => handler(payload)));
+  for (const result of results) {
+    if (result.status === 'rejected') {
+      console.error(`[ReverseIpcBridge] ${channel} handler error:`, result.reason);
+    }
+  }
+}
+
+/** Process-local recording signal channel singleton for the current renderer process. */
+export const recordingSignalChannel = new RecordingSignalChannel();
+
+/** Process-local history revision channel singleton for the current renderer process. */
+export const historyRevisionChannel = new HistoryRevisionChannel();
