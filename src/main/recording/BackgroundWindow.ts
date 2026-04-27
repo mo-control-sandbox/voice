@@ -1,5 +1,7 @@
-import { BrowserWindow, type RequestPermissionsParams } from '@mobrowser/api';
+import { BrowserWindow } from '@mobrowser/api';
 import { rendererWindowUrl } from '../RendererWindowUrl';
+import { attachPermissionHandler } from '../windowing/attachPermissionHandler';
+import type { WindowPermissionPolicy } from '../windowing/WindowPermissionPolicy';
 
 /**
  * Persistent hidden window that hosts the audio capture and transcription pipeline.
@@ -8,6 +10,8 @@ import { rendererWindowUrl } from '../RendererWindowUrl';
  * microphone, model weights, and warm-up state persist across recording sessions.
  */
 export class BackgroundWindow {
+  constructor(private readonly permissionPolicy: WindowPermissionPolicy) {}
+
   /**
    * Creates the hidden window and wires up the microphone permission grant.
    */
@@ -20,12 +24,7 @@ export class BackgroundWindow {
       url: rendererWindowUrl('background'),
       activationIndependenceEnabled: true,
     });
-    win.browser.handle('requestPermissions', (params: RequestPermissionsParams) => {
-      if (params.permissionType === 'microphone' || params.permissionType === 'AudioCapture') {
-        return Promise.resolve('grant');
-      }
-      return Promise.resolve('deny');
-    });
+    attachPermissionHandler(win, this.permissionPolicy);
     return win;
   }
 }

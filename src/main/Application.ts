@@ -26,6 +26,7 @@ import { registerSettingsIpc } from './settings/SettingsStore';
 import { registerStatsIpc } from './settings/StatsCalculator';
 import { registerHistoryIpc } from './history/HistoryStore';
 import { registerDesktopIpc } from './system/DesktopService';
+import { WindowPermissionPolicy } from './windowing/WindowPermissionPolicy';
 
 /**
  * The application entry point.
@@ -34,6 +35,7 @@ export class Application {
   private readonly settings = new SettingsStore();
   private readonly sessionStorage = new SessionStorage();
   private readonly historyStore = new HistoryStore(this.sessionStorage);
+  private readonly windowPermissionPolicy = new WindowPermissionPolicy();
 
   private readonly recordingController = new RecordingSessionController(
     this.settings,
@@ -41,13 +43,13 @@ export class Application {
     this.sessionStorage,
   );
 
-  private readonly backgroundWindow = new BackgroundWindow();
+  private readonly backgroundWindow = new BackgroundWindow(this.windowPermissionPolicy);
   private readonly recordingOverlay = new RecordingOverlay(this.recordingController);
   private readonly dockManager = new DockManager();
-  private readonly settingsWindow = new SettingsWindow(this.dockManager);
+  private readonly settingsWindow = new SettingsWindow(this.dockManager, this.windowPermissionPolicy);
   private readonly historyWindow = new HistoryWindow(this.dockManager);
   private readonly aboutWindow = new AboutWindow(this.dockManager);
-  private readonly welcomeWindow = new WelcomeWindow(this.dockManager);
+  private readonly welcomeWindow = new WelcomeWindow(this.dockManager, this.windowPermissionPolicy);
   private readonly readiness = new AppReadinessService(this.settings, native.systemPermissions);
   private readonly shortcutManager = new ShortcutManager();
   private readonly clipboard = new Clipboard();
@@ -81,8 +83,8 @@ export class Application {
   /**
    * Initialises all services in the correct order and shows the tray.
    */
-  initialize(): void {
-    this.historyStore.initialize();
+  async initialize(): Promise<void> {
+    await this.historyStore.initialize();
     this.backgroundWindow.initialize();
     this.trayController.initialize();
 

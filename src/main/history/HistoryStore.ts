@@ -1,4 +1,4 @@
-import * as fs from 'node:fs';
+import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { app, desktop, ipc } from '@mobrowser/api';
 import { HistoryService as createHistoryService, type HistoryService as HistoryServiceInterface } from '../gen/ipc_service';
@@ -26,6 +26,7 @@ export class HistoryStore {
   private sessions: SessionRecord[] = [];
   private readonly historyPath: string;
   private revision = 0;
+  private persistQueue: Promise<void> = Promise.resolve();
 
   constructor(private readonly sessionStorage: SessionStorage) {
     this.historyPath = path.join(app.getPath('userData'), 'history.json');
@@ -34,15 +35,26 @@ export class HistoryStore {
   /**
    * Loads persisted sessions from disk.
    */
-  initialize(): void {
-    if (!fs.existsSync(this.historyPath)) return;
+  async initialize(): Promise<void> {
     try {
-      const raw = fs.readFileSync(this.historyPath, 'utf8');
+      const raw = await fs.readFile(this.historyPath, 'utf8');
       const parsed: unknown = JSON.parse(raw);
       if (Array.isArray(parsed)) {
-        this.sessions = parsed as SessionRecord[];
+        const sanitized = parsed.filter(isSessionRecord);
+        if (sanitized.length !== parsed.length) {
+          console.warn('[HistoryStore] history.json contains invalid session records; ignoring malformed entries.');
+        }
+        this.sessions = sanitized;
+        if (sanitized.length !== parsed.length) {
+          await this.persist();
+        }
+      } else {
+        console.warn('[HistoryStore] history.json root payload must be an array; ignoring stored history.');
       }
     } catch (err) {
+      if (isFileMissingError(err)) {
+        return;
+      }
       console.error('[HistoryStore] Failed to read history.json:', err);
     }
   }
@@ -71,10 +83,10 @@ export class HistoryStore {
   /**
    * Appends a session record and persists the updated list to disk.
    */
-  addSession(record: SessionRecord): void {
+  async addSession(record: SessionRecord): Promise<void> {
     this.sessions.push(record);
     this.revision++;
-    this.persist();
+    await this.persist();
   }
 
   /**
@@ -85,7 +97,7 @@ export class HistoryStore {
     if (index === -1) return;
     this.sessions.splice(index, 1);
     this.revision++;
-    this.persist();
+    await this.persist();
     await this.sessionStorage.deleteSessionFiles(id);
   }
 
@@ -102,13 +114,44 @@ export class HistoryStore {
     }
   }
 
-  private persist(): void {
-    try {
-      fs.writeFileSync(this.historyPath, JSON.stringify(this.sessions, null, 2), 'utf8');
-    } catch (err) {
-      console.error('[HistoryStore] Failed to write history.json:', err);
-    }
+  private persist(): Promise<void> {
+    const payload = JSON.stringify(this.sessions, null, 2);
+    this.persistQueue = this.persistQueue
+      .catch(() => undefined)
+      .then(async () => {
+        try {
+          await fs.writeFile(this.historyPath, payload, 'utf8');
+        } catch (err) {
+          console.error('[HistoryStore] Failed to write history.json:', err);
+        }
+      });
+    return this.persistQueue;
   }
+}
+
+function isSessionRecord(value: unknown): value is SessionRecord {
+  if (!isObject(value)) return false;
+  return typeof value.id === 'string'
+    && typeof value.startedAt === 'number'
+    && Number.isFinite(value.startedAt)
+    && typeof value.transcriptionEngineLabel === 'string'
+    && typeof value.audioDurationSeconds === 'number'
+    && Number.isFinite(value.audioDurationSeconds)
+    && typeof value.transcriptionDurationMs === 'number'
+    && Number.isFinite(value.transcriptionDurationMs)
+    && typeof value.wordCount === 'number'
+    && Number.isInteger(value.wordCount)
+    && value.wordCount >= 0
+    && (typeof value.transcriptionText === 'string' || value.transcriptionText === null)
+    && typeof value.detectedLanguage === 'string';
+}
+
+function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function isFileMissingError(value: unknown): value is NodeJS.ErrnoException {
+  return isObject(value) && value.code === 'ENOENT';
 }
 
 /**

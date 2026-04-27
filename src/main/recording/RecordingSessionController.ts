@@ -156,7 +156,7 @@ export class RecordingSessionController {
       detectedLanguage: payload.detectedLanguage,
     };
 
-    this.historyStore.addSession(record);
+    await this.historyStore.addSession(record);
 
     if (!session.dontSaveAudio) {
       await this.sessionStorage.saveAudio(session.id, payload.pcm);

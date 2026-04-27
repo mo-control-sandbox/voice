@@ -1,3 +1,5 @@
 import { Application } from './Application';
 
-new Application().initialize();
+void new Application().initialize().catch((err: unknown) => {
+  console.error('[Application] Failed to initialize:', err);
+});
