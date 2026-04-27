@@ -12,6 +12,15 @@ export class DockManager {
   private openCount = 0;
 
   /**
+   * Applies the default Dock state before any tracked window is visible.
+   */
+  initialize(): void {
+    if (this.openCount === 0) {
+      dock.hide();
+    }
+  }
+
+  /**
    * Attaches shown/closed listeners to the window so it participates in
    * the shared Dock visibility count.
    *
@@ -49,5 +58,16 @@ export class DockManager {
     window.on('shown', markVisible);
     window.on('hidden', markHidden);
     window.on('closed', markHidden);
+
+    // Some startup flows can make the window visible after listener registration
+    // without delivering a matching shown event. Reconcile once on next tick.
+    setTimeout(() => {
+      if (window.isClosed) {
+        return;
+      }
+      if (window.isVisible) {
+        markVisible();
+      }
+    }, 0);
   }
 }

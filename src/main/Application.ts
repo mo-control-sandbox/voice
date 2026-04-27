@@ -1,4 +1,3 @@
-import { dock } from '@mobrowser/api';
 import { native } from './gen/native';
 import { SettingsStore } from './settings/SettingsStore';
 import { ShortcutManager } from './system/ShortcutManager';
@@ -82,7 +81,7 @@ export class Application {
     this.backgroundWindow.initialize();
     this.trayController.initialize();
 
-    dock.hide();
+    this.dockManager.initialize();
     this.registerShortcut();
 
     registerDesktopIpc();
