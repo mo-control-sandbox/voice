@@ -9,6 +9,8 @@ import { Clipboard } from './system/Clipboard';
 import { FocusRestorer } from './system/FocusRestorer';
 import { RecordingSessionController } from './recording/RecordingSessionController';
 import { StartRecordingFromIntentUseCase } from './recording/StartRecordingFromIntentUseCase';
+import { RecordingRuntimeCoordinator } from './recording/RecordingRuntimeCoordinator';
+import { TranscriptionPasteOrchestrator } from './recording/TranscriptionPasteOrchestrator';
 import { TrayController } from './TrayController';
 import { BackgroundWindow } from './recording/BackgroundWindow';
 import { RecordingOverlay } from './recording/RecordingOverlay';
@@ -50,11 +52,20 @@ export class Application {
   private readonly shortcutManager = new ShortcutManager();
   private readonly clipboard = new Clipboard();
   private readonly focusRestorer = new FocusRestorer();
+  private readonly transcriptionPasteOrchestrator = new TranscriptionPasteOrchestrator(
+    this.focusRestorer,
+    this.clipboard,
+  );
   private readonly startRecordingFromIntent = new StartRecordingFromIntentUseCase(
     this.readiness,
     this.focusRestorer,
     this.recordingController,
     this.welcomeWindow,
+  );
+  private readonly recordingRuntimeCoordinator = new RecordingRuntimeCoordinator(
+    this.recordingController,
+    this.transcriptionPasteOrchestrator,
+    () => { this.trayController.refresh(); },
   );
 
   private readonly trayController = new TrayController(
@@ -92,43 +103,9 @@ export class Application {
       this.welcomeWindow.show();
     }
 
-    this.recordingController.onStateChange(() => { this.trayController.refresh(); });
+    this.recordingRuntimeCoordinator.initialize();
     this.settings.onShortcutKeyChanged(() => { this.trayController.refresh(); });
     this.settings.onOnboardingCompletionChanged(() => { this.trayController.refresh(); });
-
-    let streamingFocusRestored = false;
-
-    this.recordingController.onStateChange((state) => {
-      if (state === 'recording') streamingFocusRestored = false;
-      if (state === 'idle') this.focusRestorer.clear();
-    });
-
-    this.recordingController.onTranscriptionCompleted((text) => {
-      void (async () => {
-        const outcome = await this.focusRestorer.restore();
-        if (outcome !== 'self_focus') {
-          void this.clipboard.execute(text);
-        } else {
-          // moVoice was frontmost when recording started -- the text cannot be
-          // pasted immediately. Copy it to the clipboard as an instant fallback
-          // and watch for focus to move to an external app, then auto-paste.
-          this.clipboard.copyOnly(text);
-          this.focusRestorer.watchAndPaste(async () => {
-            await this.clipboard.execute(text);
-          });
-        }
-      })();
-    });
-
-    this.recordingController.onPartialTranscription((text) => {
-      void (async () => {
-        if (!streamingFocusRestored) {
-          streamingFocusRestored = true;
-          await this.focusRestorer.restore();
-        }
-        void this.clipboard.execute(text);
-      })();
-    });
   }
 
   private registerShortcut(): void {
