@@ -27,9 +27,6 @@ WarningsAsErrors: "*"
 # third-party headers pulled in via #include.
 HeaderFilterRegex: "^src/native/(?!gen/).*"
 
-# Do not apply checks to generated protobuf files.
-ExcludeHeaderFilterRegex: "src/native/gen/.*"
-
 CheckOptions:
   # ── Naming conventions ────────────────────────────────────────────────────
   - key: readability-identifier-naming.ClassCase
