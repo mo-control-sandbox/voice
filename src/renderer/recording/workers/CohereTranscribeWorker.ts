@@ -26,7 +26,15 @@ createBatchAsrWorkerRuntime<AutomaticSpeechRecognitionPipeline>({
     }
   },
   runInference: async (asr, input) => {
-    const options = input.language !== null ? { language: input.language } : {};
+    // Allow 10 tokens per second of audio as a generous upper bound so the
+    // model is never silently cut off by a small default max_new_tokens.
+    const durationSeconds = input.samples.length / 16000;
+    const options: Record<string, unknown> = {
+      max_new_tokens: Math.ceil(durationSeconds * 10),
+    };
+    if (input.language !== null) {
+      options.language = input.language;
+    }
     const raw = await asr(input.samples, options) as AutomaticSpeechRecognitionOutput | AutomaticSpeechRecognitionOutput[];
     return {
       text: Array.isArray(raw) ? (raw[0]?.text ?? '') : raw.text,

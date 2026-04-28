@@ -12,6 +12,24 @@ import type {
 
 const BATCH_MAX_DURATION_MS = 10 * 60 * 1000; // 10 minutes
 
+/*
+ * Silence appended to the audio tail before inference so the decoder sees a
+ * clean end-of-speech boundary rather than an abrupt cut-off. The value is
+ * well above the ~20-frame minimum needed for confident EOS token emission.
+ * Does not affect saved audio -- only the buffer handed to the model.
+ */
+const SILENCE_PADDING_S = 1;
+
+/**
+ * Returns a new Float32Array with SILENCE_PADDING_S seconds of zeros appended.
+ */
+function withSilencePadding(samples: Float32Array, sampleRate: number): Float32Array {
+  const paddingSamples = Math.round(sampleRate * SILENCE_PADDING_S);
+  const padded = new Float32Array(samples.length + paddingSamples);
+  padded.set(samples);
+  return padded;
+}
+
 /**
  * Maps a getUserMedia error to a short, user-readable sentence.
  */
@@ -170,6 +188,11 @@ export class DefaultTranscriptionService implements TranscriptionService {
     let pcmBytes = new Uint8Array(0);
 
     if (session !== null) {
+      // Push a silent tail so the decoder sees a clean end-of-speech boundary.
+      const streamingSampleRate = 16000;
+      const silenceTail = new Float32Array(Math.round(streamingSampleRate * SILENCE_PADDING_S));
+      session.pushChunk(silenceTail);
+
       const [transcriptionResult] = await Promise.all([
         session.finalize(),
         pipeline?.release(),
@@ -184,7 +207,13 @@ export class DefaultTranscriptionService implements TranscriptionService {
       audioDurationSeconds = audio.samples.length / audio.sampleRate;
 
       if (backend !== null && backend.mode === 'batch') {
-        result = await backend.transcribe(audio, language, abortController.signal);
+        // Pass silence-padded samples to the model; the saved PCM stays unpadded.
+        const paddedSamples = withSilencePadding(audio.samples, audio.sampleRate);
+        result = await backend.transcribe(
+          { ...audio, samples: paddedSamples },
+          language,
+          abortController.signal,
+        );
       }
 
       if (request.dontSaveAudio) {
