@@ -81,7 +81,7 @@ export class Application {
     this.backgroundWindow.initialize();
     this.trayController.initialize();
 
-    this.dockManager.initialize();
+    this.dockManager.initialize(this.settings.hasCompletedOnboarding());
     this.registerShortcut();
 
     registerDesktopIpc();
@@ -100,7 +100,10 @@ export class Application {
 
     this.recordingRuntimeCoordinator.initialize();
     this.settings.onShortcutKeyChanged(() => { this.trayController.refresh(); });
-    this.settings.onOnboardingCompletionChanged(() => { this.trayController.refresh(); });
+    this.settings.onOnboardingCompletionChanged(() => {
+      this.dockManager.enableHiding();
+      this.trayController.refresh();
+    });
   }
 
   private registerShortcut(): void {

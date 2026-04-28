@@ -6,15 +6,31 @@ import type { BrowserWindow } from '@mobrowser/api';
  *
  * Any window that should cause the Dock icon to appear while it is open
  * registers itself via track(). The icon is shown when the first tracked
- * window opens and hidden when the last one closes.
+ * window opens and hidden when the last one closes — but only after hiding
+ * has been enabled via enableHiding(). Until then the Dock icon is left
+ * visible (the OS default), which is required during the Welcome wizard.
  */
 export class DockManager {
   private openCount = 0;
+  private hidingEnabled = false;
 
   /**
-   * Applies the default Dock state before any tracked window is visible.
+   * Applies the initial Dock state. Hiding is only activated when onboarding
+   * has already been completed; otherwise the Dock stays visible for the
+   * Welcome wizard.
    */
-  initialize(): void {
+  initialize(onboardingCompleted: boolean): void {
+    if (onboardingCompleted) {
+      this.enableHiding();
+    }
+  }
+
+  /**
+   * Allows the Dock icon to be hidden. Call this once onboarding completes.
+   * If no tracked window is currently open, hides the Dock immediately.
+   */
+  enableHiding(): void {
+    this.hidingEnabled = true;
     if (this.openCount === 0) {
       dock.hide();
     }
@@ -46,28 +62,18 @@ export class DockManager {
       }
       isTrackedAsVisible = false;
       this.openCount = Math.max(0, this.openCount - 1);
-      if (this.openCount === 0) {
+      if (this.openCount === 0 && this.hidingEnabled) {
         dock.hide();
       }
     };
 
-    if (window.isVisible) {
-      markVisible();
-    }
+    // track() is always called from within createWindow() factories, which are only
+    // invoked from show(). The window is always about to become visible, so mark it
+    // immediately rather than waiting for a 'shown' event that may not be reliable.
+    markVisible();
 
     window.on('shown', markVisible);
     window.on('hidden', markHidden);
     window.on('closed', markHidden);
-
-    // Some startup flows can make the window visible after listener registration
-    // without delivering a matching shown event. Reconcile once on next tick.
-    setTimeout(() => {
-      if (window.isClosed) {
-        return;
-      }
-      if (window.isVisible) {
-        markVisible();
-      }
-    }, 0);
   }
 }
