@@ -12,6 +12,7 @@ interface CatalogEntry {
   readonly accuracyScore: number;
   readonly fileSizeBytes: number;
   readonly isMultilingual: boolean;
+  readonly isRealtime: boolean;
 }
 
 /**
@@ -34,6 +35,7 @@ export class RendererModelCatalog {
         accuracyScore: entry.accuracyScore,
         fileSizeBytes: entry.fileSizeBytes,
         isMultilingual: entry.isMultilingual,
+        isRealtime: entry.isRealtime,
       }))
       .sort((a, b) => {
         if (a.fileSizeBytes !== b.fileSizeBytes) {

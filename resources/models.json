@@ -1,71 +1,5 @@
 [
   {
-    "id": "openai/whisper-tiny",
-    "label": "Whisper Tiny",
-    "description": "Fastest model, suitable for quick transcriptions with acceptable accuracy.",
-    "huggingFaceRepo": "Xenova/whisper-tiny",
-    "inferenceMode": "whisper",
-    "speedScore": 5.0,
-    "accuracyScore": 2.0,
-    "fileSizeBytes": 77000000,
-    "isMultilingual": true
-  },
-  {
-    "id": "openai/whisper-tiny.en",
-    "label": "Whisper Tiny",
-    "description": "Fastest English-only model, optimised for English speech with minimal resource use.",
-    "huggingFaceRepo": "Xenova/whisper-tiny.en",
-    "inferenceMode": "whisper",
-    "speedScore": 5.0,
-    "accuracyScore": 2.5,
-    "fileSizeBytes": 77000000,
-    "isMultilingual": false
-  },
-  {
-    "id": "openai/whisper-base",
-    "label": "Whisper Base",
-    "description": "Balanced multilingual model offering good speed and improved accuracy over Tiny.",
-    "huggingFaceRepo": "Xenova/whisper-base",
-    "inferenceMode": "whisper",
-    "speedScore": 4.0,
-    "accuracyScore": 3.0,
-    "fileSizeBytes": 145000000,
-    "isMultilingual": true
-  },
-  {
-    "id": "openai/whisper-base.en",
-    "label": "Whisper Base",
-    "description": "Balanced English-only model with better accuracy than Tiny at modest size.",
-    "huggingFaceRepo": "Xenova/whisper-base.en",
-    "inferenceMode": "whisper",
-    "speedScore": 4.0,
-    "accuracyScore": 3.5,
-    "fileSizeBytes": 145000000,
-    "isMultilingual": false
-  },
-  {
-    "id": "openai/whisper-small",
-    "label": "Whisper Small",
-    "description": "High-accuracy multilingual model, recommended for most use cases.",
-    "huggingFaceRepo": "Xenova/whisper-small",
-    "inferenceMode": "whisper",
-    "speedScore": 3.0,
-    "accuracyScore": 4.0,
-    "fileSizeBytes": 483000000,
-    "isMultilingual": true
-  },
-  {
-    "id": "openai/whisper-small.en",
-    "label": "Whisper Small",
-    "description": "High-accuracy English-only model, best choice for English-only workflows.",
-    "huggingFaceRepo": "Xenova/whisper-small.en",
-    "inferenceMode": "whisper",
-    "speedScore": 3.0,
-    "accuracyScore": 4.5,
-    "fileSizeBytes": 483000000,
-    "isMultilingual": false
-  },
-  {
     "id": "openai/whisper-large-v3-turbo",
     "label": "Whisper Large v3 Turbo",
     "description": "High-accuracy multilingual model with significantly faster inference than Large v3.",
@@ -74,7 +8,8 @@
     "speedScore": 2.0,
     "accuracyScore": 4.8,
     "fileSizeBytes": 950000000,
-    "isMultilingual": true
+    "isMultilingual": true,
+    "isRealtime": false
   },
   {
     "id": "cohere/cohere-transcribe-03-2026",
@@ -85,7 +20,8 @@
     "speedScore": 1.0,
     "accuracyScore": 5.0,
     "fileSizeBytes": 1000000000,
-    "isMultilingual": true
+    "isMultilingual": true,
+    "isRealtime": false
   },
   {
     "id": "onnx-community/voxtral-mini-realtime",
@@ -96,6 +32,7 @@
     "speedScore": 1.5,
     "accuracyScore": 5.0,
     "fileSizeBytes": 2500000000,
-    "isMultilingual": true
+    "isMultilingual": true,
+    "isRealtime": true
   }
 ]

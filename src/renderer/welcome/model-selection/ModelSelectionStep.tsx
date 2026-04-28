@@ -37,10 +37,20 @@ export function ModelSelectionStep(props: ModelSelectionStepProps): React.JSX.El
               data-disabled={downloadingModelId !== null && downloadingModelId !== model.definition.id ? 'true' : undefined}
               data-downloaded={model.isDownloaded ? 'true' : undefined}
             >
-              <h3 className="welcome-model-card__name">{model.definition.label}</h3>
-              <span className="welcome-model-tile__tag">
-                {model.definition.isMultilingual ? 'Polyglot' : 'English'}
-              </span>
+              <div className="welcome-model-tile__info">
+                <h3 className="welcome-model-card__name">{model.definition.label}</h3>
+                <p className="welcome-model-tile__description">{model.definition.description}</p>
+                <div className="welcome-model-tile__tags">
+                  <span className="welcome-model-tile__tag">
+                    {model.definition.isMultilingual ? 'Polyglot' : 'English'}
+                  </span>
+                  {model.definition.isRealtime && (
+                    <span className="welcome-model-tile__tag">
+                      Real-time
+                    </span>
+                  )}
+                </div>
+              </div>
               <div className="welcome-model-tile__statusbar">
                 <span className="welcome-model-tile__size">{formatModelSize(model.definition.fileSizeBytes)}</span>
                 <span className="welcome-model-tile__tools">

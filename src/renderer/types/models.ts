@@ -15,6 +15,8 @@ export interface ModelDefinition {
   readonly accuracyScore: number;
   readonly fileSizeBytes: number;
   readonly isMultilingual: boolean;
+  /** Whether the model produces output while audio is still being recorded. */
+  readonly isRealtime: boolean;
 }
 
 /** A model entry combining its definition with runtime state. */
