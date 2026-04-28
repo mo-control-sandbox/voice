@@ -16,6 +16,7 @@ export class HistoryWindow {
         size: { width: 800, height: 600 },
         minimumSize: { width: 800, height: 600 },
         title: 'History',
+        resizable: false,
       });
       window.setWindowButtonVisible('zoom', false);
       window.centerWindow();
