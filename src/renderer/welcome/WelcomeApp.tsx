@@ -21,6 +21,7 @@ export function WelcomeApp(): React.JSX.Element {
           <ModelSelectionStep
             models={state.models}
             downloadingModelId={state.downloadingModelId}
+            warmingUpModelId={state.warmingUpModelId}
             downloadErrors={state.downloadErrors}
             onDownload={actions.handleModelDownload}
             onDelete={actions.handleModelCancel}

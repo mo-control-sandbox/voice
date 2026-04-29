@@ -131,16 +131,10 @@ export class OPFSModelCache implements ModelFileStore {
     env.useCustomCache = true;
     env.customCache = this;
 
-    const progressCallback = (info: ProgressInfo): void => {
-      if (info.status === 'progress_total') {
-        onProgress(info.progress / 100);
-      }
-    };
-
     // Transformers.js can fail to propagate certain internal errors (e.g.
     // RangeError from oversized allocations) through the pipeline() promise,
     // firing them as unhandled rejections instead. We intercept those here by
-    // racing the actual load against the window's unhandledrejection event so
+    // racing the actual fetch against the window's unhandledrejection event so
     // they are treated as first-class download failures.
     //
     // We also create an internal AbortController so that when an unhandled
@@ -160,37 +154,80 @@ export class OPFSModelCache implements ModelFileStore {
       window.addEventListener('unhandledrejection', unhandledRejectionListener);
     });
 
-    const loadModel = async (): Promise<void> => {
+    // Runs one from_pretrained / pipeline call to completion, reporting
+    // progress via the supplied callback.
+    const fetchFilesOnly = async (
+      load: (signal: AbortSignal, progressCallback: (info: ProgressInfo) => void) => Promise<void>,
+      reportProgress: (fraction: number) => void,
+    ): Promise<void> => {
+      if (effectiveSignal.aborted) return;
+      await load(effectiveSignal, (info: ProgressInfo) => {
+        if (info.status === 'progress_total') {
+          reportProgress(info.progress / 100);
+        }
+      });
+    };
+
+    const fetchFiles = async (): Promise<void> => {
       if (definition.inferenceMode === 'whisper') {
-        const pipe = await pipeline('automatic-speech-recognition', repo, {
-          dtype: { encoder_model: 'q4', decoder_model_merged: 'q4' },
-          progress_callback: progressCallback,
-          signal: effectiveSignal,
-        });
-        await pipe.dispose();
+        await fetchFilesOnly(
+          async (sig, cb) => {
+            const pipe = await pipeline('automatic-speech-recognition', repo, {
+              dtype: { encoder_model: 'q4', decoder_model_merged: 'q4' },
+              progress_callback: cb,
+              signal: sig,
+            });
+            await pipe.dispose();
+          },
+          onProgress,
+        );
       } else if (definition.inferenceMode === 'voxtral-realtime') {
-        const model = await VoxtralRealtimeForConditionalGeneration.from_pretrained(repo, {
-          dtype: { audio_encoder: 'q4f16', embed_tokens: 'q4f16', decoder_model_merged: 'q4f16' },
-          device: 'webgpu',
-          progress_callback: progressCallback,
-          signal: effectiveSignal,
-        }) as VoxtralRealtimeForConditionalGeneration;
-        await VoxtralRealtimeProcessor.from_pretrained(repo, { signal: effectiveSignal });
-        await model.dispose();
+        // Model and processor are fetched in parallel so the processor
+        // (small JSON/tokenizer files) does not have to wait for the model's
+        // GPU compilation to start. Each aborts independently once its own
+        // files are in OPFS.
+        await Promise.all([
+          fetchFilesOnly(
+            async (sig, cb) => {
+              const model = await VoxtralRealtimeForConditionalGeneration.from_pretrained(repo, {
+                dtype: { audio_encoder: 'q4f16', embed_tokens: 'q4f16', decoder_model_merged: 'q4f16' },
+                device: 'webgpu',
+                progress_callback: cb,
+                signal: sig,
+              }) as VoxtralRealtimeForConditionalGeneration;
+              await model.dispose();
+            },
+            onProgress,
+          ),
+          fetchFilesOnly(
+            async (sig, cb) => {
+              await VoxtralRealtimeProcessor.from_pretrained(repo, {
+                progress_callback: cb,
+                signal: sig,
+              });
+            },
+            () => { /* processor files are tiny; progress is tracked by the model call */ },
+          ),
+        ]);
       } else {
-        const pipe = await pipeline('automatic-speech-recognition', repo, {
-          dtype: 'q4',
-          device: 'webgpu',
-          progress_callback: progressCallback,
-          signal: effectiveSignal,
-        });
-        await pipe.dispose();
+        await fetchFilesOnly(
+          async (sig, cb) => {
+            const pipe = await pipeline('automatic-speech-recognition', repo, {
+              dtype: 'q4',
+              device: 'webgpu',
+              progress_callback: cb,
+              signal: sig,
+            });
+            await pipe.dispose();
+          },
+          onProgress,
+        );
       }
       await this.writeMarker(repo);
     };
 
     try {
-      await Promise.race([loadModel(), unhandledRejection]);
+      await Promise.race([fetchFiles(), unhandledRejection]);
     } catch (error) {
       await this.removeModelDir(repo);
       throw error;

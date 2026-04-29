@@ -22,6 +22,7 @@ export interface WelcomeControllerState {
   readonly models: readonly ModelEntry[];
   readonly downloadErrors: ReadonlyMap<string, string>;
   readonly downloadingModelId: string | null;
+  readonly warmingUpModelId: string | null;
   readonly microphoneStatus: PermissionStatus;
   readonly accessibilityStatus: PermissionStatus;
   readonly microphoneFeedback: FeedbackState;
@@ -182,6 +183,7 @@ export function useWelcomeController(): {
       models: modelSelection.models,
       downloadErrors: modelSelection.downloadErrors,
       downloadingModelId: modelSelection.downloadingModelId,
+      warmingUpModelId: modelSelection.warmingUpModelId,
       microphoneStatus: microphonePermission.microphoneStatus,
       accessibilityStatus: accessibilityPermission.accessibilityStatus,
       microphoneFeedback: microphonePermission.microphoneFeedback,

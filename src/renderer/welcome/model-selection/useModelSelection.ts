@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ModelEntry } from '../../types/models';
 import { getRendererModelRepository } from '../../services/getRendererModelRepository';
 import { reportModelReadiness } from '../../services/ModelReadinessReporter';
+import { warmupInferenceModel } from '../../recording/services/warmupInferenceModel';
 
 const MODEL_POLL_INTERVAL_MS = 500;
 
@@ -14,6 +15,7 @@ export function useModelSelection(): {
   readonly models: readonly ModelEntry[];
   readonly downloadErrors: ReadonlyMap<string, string>;
   readonly downloadingModelId: string | null;
+  readonly warmingUpModelId: string | null;
   readonly hasReadyActiveModel: boolean;
   readonly refreshModels: () => Promise<void>;
   readonly handleModelDownload: (id: string) => Promise<void>;
@@ -21,11 +23,17 @@ export function useModelSelection(): {
 } {
   const [models, setModels] = useState<ModelEntry[]>([]);
   const [downloadErrors, setDownloadErrors] = useState<ReadonlyMap<string, string>>(new Map());
+  const [warmingUpModelId, setWarmingUpModelId] = useState<string | null>(null);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const hasReadyActiveModel = useMemo(
-    () => models.some((model) => model.isActive && model.isDownloaded && model.downloadProgress === null),
-    [models],
+    () => models.some((model) => (
+      model.isActive &&
+      model.isDownloaded &&
+      model.downloadProgress === null &&
+      model.definition.id !== warmingUpModelId
+    )),
+    [models, warmingUpModelId],
   );
 
   const downloadingModelId = useMemo(
@@ -68,6 +76,17 @@ export function useModelSelection(): {
           // Model progress updates through polling.
         });
         await modelRepository.setActiveModel(id);
+        await refreshModels();
+
+        // Warm up the inference worker so WebGPU shaders are compiled before
+        // the first recording. hasReadyActiveModel stays false until this resolves.
+        const definition = (await modelRepository.getActiveModel()).definition;
+        setWarmingUpModelId(id);
+        try {
+          await warmupInferenceModel(definition);
+        } finally {
+          setWarmingUpModelId(null);
+        }
       } catch (error: unknown) {
         if (error instanceof Error && error.name === 'AbortError') return;
         console.error('[WelcomeApp] Model download failed:', error);
@@ -95,6 +114,7 @@ export function useModelSelection(): {
     models,
     downloadErrors,
     downloadingModelId,
+    warmingUpModelId,
     hasReadyActiveModel,
     refreshModels,
     handleModelDownload,

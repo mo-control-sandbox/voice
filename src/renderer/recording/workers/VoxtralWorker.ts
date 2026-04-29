@@ -158,6 +158,11 @@ async function loadModel(modelId: string): Promise<void> {
     model = null;
     processor = null;
     console.error('[VoxtralWorker] Failed to load model:', err);
+    self.postMessage({
+      type: 'error',
+      requestId: '',
+      error: err instanceof Error ? err.message : String(err),
+    } satisfies VoxtralWorkerResult);
   }
 }
 

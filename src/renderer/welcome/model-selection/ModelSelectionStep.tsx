@@ -1,10 +1,11 @@
-import { Download, X } from 'lucide-react';
+import { Download, Loader2, X } from 'lucide-react';
 import type { ModelEntry } from '../../types/models';
 import { formatModelSize } from './formatModelSize';
 
 interface ModelSelectionStepProps {
   readonly models: readonly ModelEntry[];
   readonly downloadingModelId: string | null;
+  readonly warmingUpModelId: string | null;
   readonly downloadErrors: ReadonlyMap<string, string>;
   readonly onDownload: (id: string) => Promise<void>;
   readonly onDelete: (id: string) => Promise<void>;
@@ -17,6 +18,7 @@ export function ModelSelectionStep(props: ModelSelectionStepProps): React.JSX.El
   const {
     models,
     downloadingModelId,
+    warmingUpModelId,
     downloadErrors,
     onDownload,
     onDelete,
@@ -34,7 +36,7 @@ export function ModelSelectionStep(props: ModelSelectionStepProps): React.JSX.El
             <article
               key={model.definition.id}
               className="welcome-model-tile welcome-no-drag"
-              data-disabled={downloadingModelId !== null && downloadingModelId !== model.definition.id ? 'true' : undefined}
+              data-disabled={(downloadingModelId !== null && downloadingModelId !== model.definition.id) || (warmingUpModelId !== null && warmingUpModelId !== model.definition.id) ? 'true' : undefined}
               data-downloaded={model.isDownloaded ? 'true' : undefined}
             >
               <div className="welcome-model-tile__info">
@@ -54,13 +56,14 @@ export function ModelSelectionStep(props: ModelSelectionStepProps): React.JSX.El
               <div className="welcome-model-tile__statusbar">
                 <span className="welcome-model-tile__size">{formatModelSize(model.definition.fileSizeBytes)}</span>
                 <span className="welcome-model-tile__tools">
-                  {model.downloadProgress !== null && (
+                  {model.downloadProgress !== null && model.downloadProgress < 1 && (
                     <>
                       <span
-                        className="welcome-model-tile__progress"
-                        style={{ background: `conic-gradient(var(--primary) ${String(Math.round(model.downloadProgress * 100))}%, color-mix(in oklch, var(--muted) 70%, var(--background)) 0)` }}
+                        className="welcome-model-tile__progress-pct"
                         aria-label={`Downloading ${String(Math.round(model.downloadProgress * 100))}%`}
-                      />
+                      >
+                        {Math.round(model.downloadProgress * 100)}%
+                      </span>
                       <button
                         type="button"
                         className="welcome-model-tile__icon-btn welcome-model-tile__icon-btn--danger welcome-no-drag"
@@ -71,7 +74,14 @@ export function ModelSelectionStep(props: ModelSelectionStepProps): React.JSX.El
                       </button>
                     </>
                   )}
-                  {model.downloadProgress === null && !model.isDownloaded && (
+                  {((model.downloadProgress !== null && model.downloadProgress >= 1) || warmingUpModelId === model.definition.id) && (
+                    <Loader2
+                      size={14}
+                      className="welcome-model-tile__warmup-spinner"
+                      aria-label="Preparing model..."
+                    />
+                  )}
+                  {model.downloadProgress === null && warmingUpModelId !== model.definition.id && !model.isDownloaded && (
                     <button
                       type="button"
                       className="welcome-model-tile__icon-btn welcome-no-drag"
@@ -84,7 +94,7 @@ export function ModelSelectionStep(props: ModelSelectionStepProps): React.JSX.El
                       <Download size={14} aria-hidden="true" />
                     </button>
                   )}
-                  {model.downloadProgress === null && model.isDownloaded && (
+                  {model.downloadProgress === null && warmingUpModelId !== model.definition.id && model.isDownloaded && (
                     <button
                       type="button"
                       className="welcome-model-tile__icon-btn welcome-model-tile__icon-btn--danger welcome-no-drag"

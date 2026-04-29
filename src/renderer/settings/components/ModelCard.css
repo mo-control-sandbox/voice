@@ -18,7 +18,8 @@
   box-shadow: inset 3px 0 0 var(--primary);
 }
 
-.model-card[data-model-state="downloading"] {
+.model-card[data-model-state="downloading"],
+.model-card[data-model-state="preparing"] {
   box-shadow: inset 3px 0 0 var(--info);
 }
 
@@ -165,6 +166,17 @@
   border-radius: var(--radius-full);
   background-color: var(--info);
   transition: width 500ms var(--ease-linear);
+}
+
+.model-card__progress-fill--indeterminate {
+  width: 30%;
+  transition: none;
+  animation: progress-indeterminate 1.4s ease-in-out infinite;
+}
+
+@keyframes progress-indeterminate {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(430%); }
 }
 
 /* ─── Error notice ───────────────────────────────────────────────────────── */

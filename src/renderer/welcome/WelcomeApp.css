@@ -220,12 +220,20 @@
   cursor: not-allowed;
 }
 
-.welcome-model-tile__progress {
-  width: 24px;
-  height: 24px;
-  border-radius: var(--radius-full);
-  display: inline-block;
-  border: 1px solid color-mix(in oklch, var(--border) 75%, var(--background));
+.welcome-model-tile__progress-pct {
+  font-size: 0.75rem;
+  font-family: monospace;
+  color: var(--primary);
+}
+
+.welcome-model-tile__warmup-spinner {
+  color: var(--primary);
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
 }
 
 .welcome-model-actions {

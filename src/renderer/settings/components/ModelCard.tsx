@@ -5,16 +5,19 @@ interface ModelCardProps {
   readonly model: ModelEntry;
   /** Non-null when the most recent download attempt failed. */
   readonly error: string | null;
+  /** True while the model is being warmed up after "Use" is clicked. */
+  readonly isPreparing: boolean;
   readonly onDownload: () => void;
   readonly onDelete: () => void;
   readonly onSetActive: () => void;
 }
 
-type ModelState = 'available' | 'downloading' | 'downloaded' | 'active' | 'error';
+type ModelState = 'available' | 'downloading' | 'preparing' | 'downloaded' | 'active' | 'error';
 
-function resolveModelState(model: ModelEntry, hasError: boolean): ModelState {
+function resolveModelState(model: ModelEntry, hasError: boolean, isPreparing: boolean): ModelState {
   if (hasError)                          return 'error';
-  if (model.isActive)                    return 'active';
+  if (model.isActive && !isPreparing)    return 'active';
+  if (isPreparing)                       return 'preparing';
   if (model.downloadProgress !== null)   return 'downloading';
   if (model.isDownloaded)                return 'downloaded';
   return 'available';
@@ -34,9 +37,9 @@ function toPercent(fraction: number): string {
  * Displays a single Whisper model with its metadata, download state,
  * and action controls (download, activate, delete).
  */
-export function ModelCard({ model, error, onDownload, onDelete, onSetActive }: ModelCardProps): React.JSX.Element {
+export function ModelCard({ model, error, isPreparing, onDownload, onDelete, onSetActive }: ModelCardProps): React.JSX.Element {
   const definition = model.definition;
-  const state      = resolveModelState(model, error !== null);
+  const state      = resolveModelState(model, error !== null, isPreparing);
 
   // Five-dot pip row -- filled dots represent the score out of 5.
   function ScorePips({ score, label }: { score: number; label: string }): React.JSX.Element {
@@ -100,13 +103,25 @@ export function ModelCard({ model, error, onDownload, onDelete, onSetActive }: M
         </div>
       )}
 
+      {/* Indeterminate progress bar -- while warming up inference worker */}
+      {state === 'preparing' && (
+        <div className="model-card__progress">
+          <div className="model-card__progress-header">
+            <span className="model-card__progress-label">Preparing...</span>
+          </div>
+          <div className="model-card__progress-track">
+            <div className="model-card__progress-fill model-card__progress-fill--indeterminate" />
+          </div>
+        </div>
+      )}
+
       {/* Error notice -- shown after a failed download attempt */}
       {error !== null && (
         <p className="model-card__error">{error}</p>
       )}
 
-      {/* Actions -- hidden while downloading */}
-      {state !== 'downloading' && (
+      {/* Actions -- hidden while downloading or preparing */}
+      {state !== 'downloading' && state !== 'preparing' && (
         <div className="model-card__actions">
           {(state === 'available' || state === 'error') && (
             <button type="button" className="model-card__btn" data-btn="primary" onClick={onDownload}>
