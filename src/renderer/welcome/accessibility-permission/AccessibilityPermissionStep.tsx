@@ -27,10 +27,6 @@ export function AccessibilityPermissionStep(props: AccessibilityPermissionStepPr
       </p>
       <div className="welcome-stage__body welcome-stage__body--permission">
         <div className="welcome-permission-guide">
-          <div className="welcome-permission-shell__visual" aria-hidden="true">
-            <span className="welcome-permission-shell__caption">Dummy screenshot placeholder</span>
-            <span className="welcome-permission-shell__title">System Settings region preview</span>
-          </div>
           <div className="welcome-status" data-state={accessibilityFeedback}>
             {accessibilityFeedback === 'success' && <CheckCircle2 size={16} aria-hidden="true" />}
             {accessibilityFeedback === 'info' && <CircleAlert size={16} aria-hidden="true" />}
