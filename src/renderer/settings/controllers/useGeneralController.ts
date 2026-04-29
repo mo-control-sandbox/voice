@@ -21,7 +21,7 @@ export const PREDEFINED_SHORTCUTS = [
   { label: 'Cmd+Shift+M', value: 'CommandOrControl+Shift+M' },
   { label: 'Cmd+Shift+R', value: 'CommandOrControl+Shift+R' },
   { label: 'Ctrl+Space', value: 'Control+Space' },
-  { label: 'Alt+Space', value: 'Alt+Space' },
+  { label: 'Option+Space', value: 'Alt+Space' },
 ] as const;
 
 /**
