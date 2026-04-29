@@ -59,13 +59,14 @@ export function BackgroundApp(): React.JSX.Element {
     // Prewarm immediately so the inference worker is loaded before the first recording.
     prewarmSilently();
 
-    // Poll every 10 s to pick up model changes made while the app is idle.
-    const prewarmInterval = setInterval(prewarmSilently, 10_000);
+    // React to model activation events posted by the settings and welcome windows.
+    const channel = new BroadcastChannel('movoice:model-activated');
+    channel.addEventListener('message', prewarmSilently);
 
     const unsubscribe = controller.start(onRecordingStateChanged);
     return () => {
       unsubscribe();
-      clearInterval(prewarmInterval);
+      channel.close();
     };
   }, []);
 

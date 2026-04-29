@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ModelEntry } from '../../types/models';
 import { getRendererModelRepository } from '../../services/getRendererModelRepository';
 import { reportModelReadiness } from '../../services/ModelReadinessReporter';
+import { notifyModelActivated } from '../../services/notifyModelActivated';
 
 const MODEL_POLL_INTERVAL_MS = 500;
 
@@ -73,6 +74,7 @@ export function useModelSelection(): {
           // Model progress updates through polling.
         });
         await modelRepository.setActiveModel(id);
+        notifyModelActivated();
         await refreshModels();
       } catch (error: unknown) {
         if (error instanceof Error && error.name === 'AbortError') return;

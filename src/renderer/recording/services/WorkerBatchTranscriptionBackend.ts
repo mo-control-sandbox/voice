@@ -17,6 +17,7 @@ interface WorkerBatchTranscriptionBackendOptions {
 export class WorkerBatchTranscriptionBackend implements BatchTranscriptionBackend {
   readonly mode = 'batch' as const;
   private worker: Worker | null = null;
+  private workerModelLoaded = false;
   private nextRequestId = 0;
 
   constructor(private readonly options: WorkerBatchTranscriptionBackendOptions) {}
@@ -42,6 +43,7 @@ export class WorkerBatchTranscriptionBackend implements BatchTranscriptionBacken
    * Eagerly loads the model in the worker so the first transcription call starts without delay.
    */
   async prewarm(): Promise<void> {
+    if (this.workerModelLoaded) return;
     const worker = this.ensureWorker();
     const ctrl = new AbortController();
     await this.loadModel(worker, ctrl.signal);
@@ -53,6 +55,7 @@ export class WorkerBatchTranscriptionBackend implements BatchTranscriptionBacken
   dispose(): void {
     this.worker?.terminate();
     this.worker = null;
+    this.workerModelLoaded = false;
   }
 
   /**
@@ -82,6 +85,7 @@ export class WorkerBatchTranscriptionBackend implements BatchTranscriptionBacken
         if (event.data.type === 'loaded') {
           signal.removeEventListener('abort', onAbort);
           worker.removeEventListener('message', onMessage);
+          this.workerModelLoaded = true;
           resolve();
         }
       };

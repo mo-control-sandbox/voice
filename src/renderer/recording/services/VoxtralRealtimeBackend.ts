@@ -16,6 +16,7 @@ import type {
 export class VoxtralRealtimeBackend implements StreamingTranscriptionBackend {
   readonly mode = 'streaming' as const;
   private worker: Worker | null = null;
+  private workerModelLoaded = false;
   private nextRequestId = 0;
 
   constructor(private readonly modelId: string) {}
@@ -114,6 +115,7 @@ export class VoxtralRealtimeBackend implements StreamingTranscriptionBackend {
    * Eagerly loads the model in the worker so the first session starts without delay.
    */
   async prewarm(): Promise<void> {
+    if (this.workerModelLoaded) return;
     const worker = this.ensureWorker();
     const ctrl = new AbortController();
     await this.loadModel(worker, ctrl.signal);
@@ -125,6 +127,7 @@ export class VoxtralRealtimeBackend implements StreamingTranscriptionBackend {
   dispose(): void {
     this.worker?.terminate();
     this.worker = null;
+    this.workerModelLoaded = false;
   }
 
   // -- Private helpers -------------------------------------------------------
@@ -153,6 +156,7 @@ export class VoxtralRealtimeBackend implements StreamingTranscriptionBackend {
         if (event.data.type === 'loaded') {
           signal.removeEventListener('abort', onAbort);
           worker.removeEventListener('message', onMessage);
+          this.workerModelLoaded = true;
           resolve();
         }
       };

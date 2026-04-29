@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ModelEntry } from '../../types/models';
 import { getRendererModelRepository } from '../../services/getRendererModelRepository';
 import { reportModelReadiness } from '../../services/ModelReadinessReporter';
+import { notifyModelActivated } from '../../services/notifyModelActivated';
 
 const POLL_INTERVAL_MS = 500;
 
@@ -85,6 +86,7 @@ export function useModelsController(): {
 
   async function handleSetActive(id: string): Promise<void> {
     await repository.setActiveModel(id);
+    notifyModelActivated();
     await refreshModels();
   }
 
