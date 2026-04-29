@@ -7,7 +7,9 @@ interface WelcomeProgressFooterProps {
   readonly canContinue: boolean;
   readonly settingsLoaded: boolean;
   readonly showContinue: boolean;
+  readonly showClose: boolean;
   readonly onContinue: () => void;
+  readonly onClose: () => void;
 }
 
 /**
@@ -21,7 +23,9 @@ export function WelcomeProgressFooter(props: WelcomeProgressFooterProps): React.
     canContinue,
     settingsLoaded,
     showContinue,
+    showClose,
     onContinue,
+    onClose,
   } = props;
 
   return (
@@ -48,6 +52,15 @@ export function WelcomeProgressFooter(props: WelcomeProgressFooterProps): React.
             onClick={onContinue}
           >
             Continue
+          </button>
+        )}
+        {showClose && (
+          <button
+            type="button"
+            className="welcome-btn welcome-btn--primary welcome-no-drag"
+            onClick={onClose}
+          >
+            Close
           </button>
         )}
       </div>

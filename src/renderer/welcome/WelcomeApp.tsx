@@ -63,7 +63,9 @@ export function WelcomeApp(): React.JSX.Element {
         canContinue={state.canContinue}
         settingsLoaded={state.settingsLoaded}
         showContinue={state.showContinue}
+        showClose={state.step === 'final-shortcut'}
         onContinue={actions.moveToNextStep}
+        onClose={() => { window.close(); }}
       />
     </div>
   );
