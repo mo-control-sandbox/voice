@@ -8,6 +8,7 @@ import { useMicrophonePermission } from './microphone-permission/useMicrophonePe
 import { useMicrophoneSelection } from './microphone-selection/useMicrophoneSelection';
 import { useModelSelection } from './model-selection/useModelSelection';
 import type { FeedbackState } from './shared/feedback';
+import { readRequiredPermissions } from './shared/readRequiredPermissions';
 import { useShortcutReadiness } from './shortcut-readiness/useShortcutReadiness';
 
 const AUTO_ADVANCE_DELAY_MS = 900;
@@ -110,9 +111,6 @@ export function useWelcomeController(): {
   useEffect(() => {
     void Promise.all([
       modelSelection.refreshModels(),
-      microphonePermission.refreshPermissionStatuses().then(({ accessibilityStatus }) => {
-        accessibilityPermission.setAccessibilityStatus(accessibilityStatus);
-      }),
       microphoneSelection.loadSelectedAudioDeviceId(),
       shortcutReadiness.loadShortcutKey(),
     ]).finally(() => {
@@ -125,6 +123,25 @@ export function useWelcomeController(): {
     modelSelection,
     shortcutReadiness,
   ]);
+
+  useEffect(() => {
+    if (step !== 'microphone-permission' && step !== 'accessibility-permission') {
+      return;
+    }
+
+    let cancelled = false;
+    const syncPermissionStatuses = async (): Promise<void> => {
+      const { microphoneStatus, accessibilityStatus } = await readRequiredPermissions();
+      if (cancelled) return;
+      microphonePermission.setMicrophoneStatus(microphoneStatus);
+      accessibilityPermission.setAccessibilityStatus(accessibilityStatus);
+    };
+
+    void syncPermissionStatuses();
+    return () => {
+      cancelled = true;
+    };
+  }, [accessibilityPermission, microphonePermission, step]);
 
   useEffect(() => {
     if (step === 'welcome-model' && modelSelection.hasReadyActiveModel && modelSelection.downloadingModelId === null) {
@@ -169,10 +186,9 @@ export function useWelcomeController(): {
   }, [clearAutoAdvance]);
 
   async function handleRequestMicrophonePermission(): Promise<void> {
-    const statuses = await microphonePermission.handleRequestMicrophonePermission();
-    if (statuses.accessibilityStatus !== null) {
-      accessibilityPermission.setAccessibilityStatus(statuses.accessibilityStatus);
-    }
+    await microphonePermission.handleRequestMicrophonePermission();
+    const { accessibilityStatus } = await readRequiredPermissions();
+    accessibilityPermission.setAccessibilityStatus(accessibilityStatus);
   }
 
   return {

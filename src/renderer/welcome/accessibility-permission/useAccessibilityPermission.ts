@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { PermissionStatus, PermissionType } from '../../gen/permissions';
 import { ACCESSIBILITY_PERMISSION_POLL_INTERVAL_MS } from '../../capabilities/permissions/constants';
-import { getPermissionStatus } from '../../capabilities/permissions/permissionSnapshot';
 import { usePermissionPolling } from '../../capabilities/permissions/usePermissionPolling';
 import { PermissionsService } from '../../settings/services/PermissionsService';
 import type { WizardEventType } from '../flow';
 import type { FeedbackState } from '../shared/feedback';
+import { readRequiredPermissions } from '../shared/readRequiredPermissions';
 const permissionsService = new PermissionsService();
 
 /**
@@ -72,11 +72,7 @@ export function useAccessibilityPermission(params: {
   }, [isStepActive, startAccessibilityPolling, stopAccessibilityPolling]);
 
   async function refreshAccessibilityStatus(): Promise<PermissionStatus> {
-    const response = await permissionsService.refreshPermissions();
-    const latestAccessibility = getPermissionStatus(
-      response.permissions,
-      PermissionType.PERMISSION_TYPE_ACCESSIBILITY,
-    );
+    const { accessibilityStatus: latestAccessibility } = await readRequiredPermissions();
     setAccessibilityStatus(latestAccessibility);
     return latestAccessibility;
   }

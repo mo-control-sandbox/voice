@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { PermissionStatus, PermissionType } from '../../gen/permissions';
-import { getPermissionStatus } from '../../capabilities/permissions/permissionSnapshot';
 import { PermissionsService } from '../../settings/services/PermissionsService';
 import type { WizardEventType } from '../flow';
 import type { FeedbackState } from '../shared/feedback';
+import { readRequiredPermissions } from '../shared/readRequiredPermissions';
 
 const permissionsService = new PermissionsService();
 
@@ -16,14 +16,9 @@ export function useMicrophonePermission(params: {
 }): {
   readonly microphoneStatus: PermissionStatus;
   readonly microphoneFeedback: FeedbackState;
-  readonly refreshPermissionStatuses: () => Promise<{
-    readonly microphoneStatus: PermissionStatus;
-    readonly accessibilityStatus: PermissionStatus;
-  }>;
-  readonly handleRequestMicrophonePermission: () => Promise<{
-    readonly microphoneStatus: PermissionStatus;
-    readonly accessibilityStatus: PermissionStatus | null;
-  }>;
+  readonly setMicrophoneStatus: (status: PermissionStatus) => void;
+  readonly refreshMicrophoneStatus: () => Promise<PermissionStatus>;
+  readonly handleRequestMicrophonePermission: () => Promise<PermissionStatus>;
 } {
   const { clearAutoAdvance, scheduleAutoAdvance } = params;
   const [microphoneStatus, setMicrophoneStatus] = useState<PermissionStatus>(
@@ -31,59 +26,39 @@ export function useMicrophonePermission(params: {
   );
   const [microphoneFeedback, setMicrophoneFeedback] = useState<FeedbackState>('idle');
 
-  async function refreshPermissionStatuses(): Promise<{
-    readonly microphoneStatus: PermissionStatus;
-    readonly accessibilityStatus: PermissionStatus;
-  }> {
-    const response = await permissionsService.refreshPermissions();
-    const latestMicrophoneStatus = getPermissionStatus(
-      response.permissions,
-      PermissionType.PERMISSION_TYPE_MICROPHONE,
-    );
-    const latestAccessibilityStatus = getPermissionStatus(
-      response.permissions,
-      PermissionType.PERMISSION_TYPE_ACCESSIBILITY,
-    );
-
+  async function refreshMicrophoneStatus(): Promise<PermissionStatus> {
+    const { microphoneStatus: latestMicrophoneStatus } = await readRequiredPermissions();
     setMicrophoneStatus(latestMicrophoneStatus);
-    return {
-      microphoneStatus: latestMicrophoneStatus,
-      accessibilityStatus: latestAccessibilityStatus,
-    };
+    return latestMicrophoneStatus;
   }
 
-  async function handleRequestMicrophonePermission(): Promise<{
-    readonly microphoneStatus: PermissionStatus;
-    readonly accessibilityStatus: PermissionStatus | null;
-  }> {
+  async function handleRequestMicrophonePermission(): Promise<PermissionStatus> {
     setMicrophoneFeedback('loading');
     clearAutoAdvance();
 
     try {
       await permissionsService.requestPermission(PermissionType.PERMISSION_TYPE_MICROPHONE);
-      const latestStatuses = await refreshPermissionStatuses();
+      const latestMicrophoneStatus = await refreshMicrophoneStatus();
 
-      if (latestStatuses.microphoneStatus === PermissionStatus.PERMISSION_STATUS_GRANTED) {
+      if (latestMicrophoneStatus === PermissionStatus.PERMISSION_STATUS_GRANTED) {
         setMicrophoneFeedback('success');
         scheduleAutoAdvance('MIC_GRANTED');
       } else {
         setMicrophoneFeedback('info');
       }
 
-      return latestStatuses;
+      return latestMicrophoneStatus;
     } catch {
       setMicrophoneFeedback('info');
-      return {
-        microphoneStatus,
-        accessibilityStatus: null,
-      };
+      return microphoneStatus;
     }
   }
 
   return {
     microphoneStatus,
     microphoneFeedback,
-    refreshPermissionStatuses,
+    setMicrophoneStatus,
+    refreshMicrophoneStatus,
     handleRequestMicrophonePermission,
   };
 }
