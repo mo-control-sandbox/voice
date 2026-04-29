@@ -31,6 +31,7 @@ export function WelcomeApp(): React.JSX.Element {
         {state.step === 'microphone-permission' && (
           <MicrophonePermissionStep
             microphoneFeedback={state.microphoneFeedback}
+            microphoneStatus={state.microphoneStatus}
             onRequestPermission={actions.handleRequestMicrophonePermission}
           />
         )}

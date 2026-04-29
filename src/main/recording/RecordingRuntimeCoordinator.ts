@@ -34,5 +34,9 @@ export class RecordingRuntimeCoordinator {
     this.controller.onPartialTranscription((text) => {
       this.transcriptionPasteOrchestrator.onPartialTranscription(text);
     });
+
+    this.controller.onSessionAborted(() => {
+      this.transcriptionPasteOrchestrator.onSessionAborted();
+    });
   }
 }

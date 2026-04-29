@@ -11,8 +11,9 @@ interface AudioPlayerProps {
   readonly audioData: Uint8Array | null;
 }
 
-/** Formats seconds as m:ss with zero-padded seconds. */
+/** Formats seconds as m:ss with zero-padded seconds. Returns "--:--" for non-finite input. */
 function formatTime(seconds: number): string {
+  if (!Number.isFinite(seconds)) return '--:--';
   const total = Math.floor(seconds);
   const m = Math.floor(total / 60);
   const s = total % 60;
@@ -35,9 +36,10 @@ export function AudioPlayer({ audioData }: AudioPlayerProps): React.JSX.Element 
   const audioRef   = useRef<HTMLAudioElement>(null);
   const blobUrlRef = useRef<string | null>(null);
   const [blobUrl, setBlobUrl]       = useState<string | null>(null);
-  const [isPlaying, setIsPlaying]   = useState(false);
+  const [isPlaying, setIsPlaying]     = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration]       = useState(0);
+  const [isUnplayable, setIsUnplayable] = useState(false);
 
   useEffect(() => {
     if (audioData === null || audioData.length === 0) {
@@ -45,8 +47,10 @@ export function AudioPlayer({ audioData }: AudioPlayerProps): React.JSX.Element 
       setIsPlaying(false);
       setCurrentTime(0);
       setDuration(0);
+      setIsUnplayable(false);
       return;
     }
+    setIsUnplayable(false);
     // Copy into a plain ArrayBuffer so Blob constructor gets the concrete type it requires.
     const view = new Uint8Array(audioData.byteLength);
     view.set(audioData);
@@ -89,9 +93,10 @@ export function AudioPlayer({ audioData }: AudioPlayerProps): React.JSX.Element 
     if (e.key === 'End')        { audio.currentTime = duration; e.preventDefault(); }
   }
 
-  const isNotSaved = audioData !== null && audioData.length === 0;
-  const isDisabled = blobUrl === null;
-  const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
+  const isNotSaved    = audioData !== null && audioData.length === 0;
+  const isUnavailable = isNotSaved || isUnplayable;
+  const isDisabled    = blobUrl === null || isUnplayable;
+  const progress      = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   return (
     <div className="audio-player">
@@ -104,7 +109,11 @@ export function AudioPlayer({ audioData }: AudioPlayerProps): React.JSX.Element 
           onPause={() => { setIsPlaying(false); }}
           onEnded={() => { setIsPlaying(false); setCurrentTime(0); }}
           onTimeUpdate={() => { setCurrentTime(audioRef.current?.currentTime ?? 0); }}
-          onLoadedMetadata={() => { setDuration(audioRef.current?.duration ?? 0); }}
+          onLoadedMetadata={() => {
+            const d = audioRef.current?.duration ?? 0;
+            if (Number.isFinite(d)) { setDuration(d); } else { setIsUnplayable(true); }
+          }}
+          onError={() => { setIsUnplayable(true); }}
         />
       )}
 
@@ -123,8 +132,8 @@ export function AudioPlayer({ audioData }: AudioPlayerProps): React.JSX.Element 
 
       <span className="audio-player__time">{formatTime(currentTime)}</span>
 
-      {isNotSaved
-        ? <span className="audio-player__unavailable">Audio not saved</span>
+      {isUnavailable
+        ? <span className="audio-player__unavailable">{isUnplayable ? 'Audio unavailable' : 'Audio not saved'}</span>
         : (
           <div className="audio-player__scrubber">
             <input

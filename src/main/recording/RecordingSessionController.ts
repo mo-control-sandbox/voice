@@ -31,6 +31,7 @@ export class RecordingSessionController {
   private readonly listeners: ((state: RecordingState) => void)[] = [];
   private readonly completionListeners: TranscriptionCompletedCallback[] = [];
   private readonly partialListeners: PartialTranscriptionCallback[] = [];
+  private readonly abortListeners: (() => void)[] = [];
 
   /**
    * Creates a recording session controller with persistence and settings dependencies.
@@ -74,6 +75,13 @@ export class RecordingSessionController {
    */
   onPartialTranscription(cb: PartialTranscriptionCallback): void {
     this.partialListeners.push(cb);
+  }
+
+  /**
+   * Registers a callback fired when the active session is aborted.
+   */
+  onSessionAborted(cb: () => void): void {
+    this.abortListeners.push(cb);
   }
 
   /**
@@ -142,6 +150,9 @@ export class RecordingSessionController {
     if (this.state === 'idle') return;
     const id = this.session?.id;
     this.session = null;
+    for (const cb of this.abortListeners) {
+      cb();
+    }
     this.transition('idle');
     if (id !== undefined) {
       void this.sessionStorage.discardAudioStream(id);

@@ -12,6 +12,7 @@ import { PermissionStatus, PermissionType } from '../gen/native/permissions';
 export class Clipboard {
   private accessibilityGranted: boolean | null = null;
   private queue: Promise<void> = Promise.resolve();
+  private executionGeneration = 0;
 
   /**
    * Writes text to the clipboard and synthesises Cmd+V if Accessibility is granted.
@@ -20,7 +21,11 @@ export class Clipboard {
    * each Paste completes before the next clipboard write begins.
    */
   execute(text: string): Promise<void> {
-    this.queue = this.queue.then(() => this.doExecute(text));
+    const generation = this.executionGeneration;
+    this.queue = this.queue.then(async () => {
+      if (generation !== this.executionGeneration) return;
+      await this.doExecute(text);
+    });
     return this.queue;
   }
 
@@ -37,6 +42,15 @@ export class Clipboard {
    */
   invalidateAccessibilityCache(): void {
     this.accessibilityGranted = null;
+  }
+
+  /**
+   * Drops queued execute() calls that have not started yet.
+   * A currently running paste cannot be interrupted mid-flight.
+   */
+  cancelPending(): void {
+    this.executionGeneration += 1;
+    this.queue = Promise.resolve();
   }
 
   private async doExecute(text: string): Promise<void> {

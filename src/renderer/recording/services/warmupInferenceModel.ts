@@ -37,8 +37,11 @@ export async function warmupInferenceModel(
 
       const onAbort = (): void => { cleanup(); resolve(); };
 
+      const warmupStart = performance.now();
+
       const onMessage = (event: MessageEvent<{ type: string; error?: string }>): void => {
         if (event.data.type === 'loaded') {
+          console.log(`[moVoice] Warmup (worker pipeline load): ${(performance.now() - warmupStart).toFixed(0)}ms`);
           cleanup();
           resolve();
         } else if (event.data.type === 'error') {

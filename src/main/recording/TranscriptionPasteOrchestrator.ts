@@ -7,6 +7,13 @@ export class TranscriptionPasteOrchestrator {
   constructor(private readonly clipboard: Clipboard) {}
 
   /**
+   * Cancels queued paste operations for an aborted session.
+   */
+  onSessionAborted(): void {
+    this.clipboard.cancelPending();
+  }
+
+  /**
    * Pastes a completed transcription result.
    */
   onTranscriptionCompleted(text: string): void {

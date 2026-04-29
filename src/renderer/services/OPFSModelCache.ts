@@ -131,12 +131,6 @@ export class OPFSModelCache implements ModelFileStore {
     env.useCustomCache = true;
     env.customCache = this;
 
-    const progressCallback = (info: ProgressInfo): void => {
-      if (info.status === 'progress_total') {
-        onProgress(info.progress / 100);
-      }
-    };
-
     // Transformers.js can fail to propagate certain internal errors (e.g.
     // RangeError from oversized allocations) through the pipeline() promise,
     // firing them as unhandled rejections instead. We intercept those here by
@@ -144,6 +138,16 @@ export class OPFSModelCache implements ModelFileStore {
     // they are treated as first-class download failures.
     const internalController = new AbortController();
     signal?.addEventListener('abort', () => { internalController.abort(signal.reason); });
+
+    let postDownloadStageStart: number | undefined;
+    const progressCallback = (info: ProgressInfo): void => {
+      if (info.status === 'progress_total') {
+        onProgress(info.progress / 100);
+        if (info.progress >= 100 && postDownloadStageStart === undefined) {
+          postDownloadStageStart = performance.now();
+        }
+      }
+    };
     const effectiveSignal = internalController.signal;
 
     let unhandledRejectionListener: ((event: PromiseRejectionEvent) => void) | null = null;
@@ -191,6 +195,9 @@ export class OPFSModelCache implements ModelFileStore {
 
     try {
       await Promise.race([loadModel(), unhandledRejection]);
+      if (postDownloadStageStart !== undefined) {
+        console.log(`[moVoice] Post-100% stage (WASM init + dispose + marker): ${(performance.now() - postDownloadStageStart).toFixed(0)}ms`);
+      }
     } catch (error) {
       await this.removeModelDir(repo);
       throw error;

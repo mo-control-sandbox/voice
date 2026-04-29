@@ -1,7 +1,7 @@
 import { ipc } from '@mobrowser/api';
 import { StatsService as createStatsService, type StatsService as StatsServiceInterface } from '../gen/ipc_service';
 import type { DashboardStats, GetStatsRequest } from '../gen/stats';
-import type { SessionRecord } from '../history/HistoryStore';
+import type { TranscriptionSession } from '../history/HistoryStore';
 
 /*
  * Assumed average typing speed for the time-saved calculation.
@@ -19,7 +19,7 @@ const MAX_WPM = 999;
 /**
  * Computes dashboard statistics from a snapshot of the session history.
  */
-export function calculate(sessions: SessionRecord[]): DashboardStats {
+export function calculate(sessions: TranscriptionSession[]): DashboardStats {
   const totalSessions = sessions.length;
   const totalWords = sessions.reduce((sum, s) => sum + s.wordCount, 0);
   const totalAudioSeconds = sessions.reduce((sum, s) => sum + s.audioDurationSeconds, 0);
@@ -45,12 +45,12 @@ export function calculate(sessions: SessionRecord[]): DashboardStats {
 /**
  * Registers the Stats IPC service so the renderer can request dashboard metrics.
  */
-export function registerStatsIpc(historyStore: { getSessions(): SessionRecord[] }): void {
+export function registerStatsIpc(historyStore: { getSessions(): TranscriptionSession[] }): void {
   ipc.registerService(createStatsService(new StatsService(historyStore)));
 }
 
 class StatsService implements StatsServiceInterface {
-  constructor(private readonly historyStore: { getSessions(): SessionRecord[] }) {}
+  constructor(private readonly historyStore: { getSessions(): TranscriptionSession[] }) {}
 
   GetStats(_request: GetStatsRequest) {
     const stats = calculate(this.historyStore.getSessions());
