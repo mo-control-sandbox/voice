@@ -226,6 +226,11 @@
   color: var(--primary);
 }
 
+.welcome-model-tile__preparing-label {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
 .welcome-model-tile__warmup-spinner {
   color: var(--primary);
   animation: spin 1s linear infinite;

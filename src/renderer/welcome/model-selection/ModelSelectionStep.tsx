@@ -75,11 +75,14 @@ export function ModelSelectionStep(props: ModelSelectionStepProps): React.JSX.El
                     </>
                   )}
                   {((model.downloadProgress !== null && model.downloadProgress >= 1) || warmingUpModelId === model.definition.id) && (
-                    <Loader2
-                      size={14}
-                      className="welcome-model-tile__warmup-spinner"
-                      aria-label="Preparing model..."
-                    />
+                    <>
+                      <span className="welcome-model-tile__preparing-label">Preparing...</span>
+                      <Loader2
+                        size={14}
+                        className="welcome-model-tile__warmup-spinner"
+                        aria-hidden="true"
+                      />
+                    </>
                   )}
                   {model.downloadProgress === null && warmingUpModelId !== model.definition.id && !model.isDownloaded && (
                     <button
