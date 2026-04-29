@@ -17,7 +17,7 @@ export function GeneralPage({ onOpenPermissions }: GeneralPageProps): React.JSX.
       selectedDeviceId,
       shortcutKey,
       dontSaveTranscripts,
-      dontSaveAudio,
+      saveAudio,
       isCapturing,
       isShortcutLoading,
       isMicLoading,
@@ -31,7 +31,7 @@ export function GeneralPage({ onOpenPermissions }: GeneralPageProps): React.JSX.
       saveShortcut,
       handleDeviceChange,
       handleDontSaveTranscripts,
-      handleDontSaveAudio,
+      handleSaveAudio,
       handleMicPermissionAction,
     },
   } = useGeneralController();
@@ -56,26 +56,26 @@ export function GeneralPage({ onOpenPermissions }: GeneralPageProps): React.JSX.
       <section className="general-section">
         <span className="general-section__label">Privacy</span>
         <div className="toggle-row">
-          <label htmlFor="no-transcripts" className="toggle-row__label">
-            Don't save transcripts
+          <label htmlFor="save-transcripts" className="toggle-row__label">
+            Save transcripts
           </label>
           <Switch
-            id="no-transcripts"
-            checked={dontSaveTranscripts}
+            id="save-transcripts"
+            checked={!dontSaveTranscripts}
             onChange={(value) => {
-              void handleDontSaveTranscripts(value);
+              void handleDontSaveTranscripts(!value);
             }}
           />
         </div>
         <div className="toggle-row">
-          <label htmlFor="no-audio" className="toggle-row__label">
-            Don't save audio
+          <label htmlFor="save-audio" className="toggle-row__label">
+            Save audio
           </label>
           <Switch
-            id="no-audio"
-            checked={dontSaveAudio}
+            id="save-audio"
+            checked={saveAudio}
             onChange={(value) => {
-              void handleDontSaveAudio(value);
+              void handleSaveAudio(value);
             }}
           />
         </div>
