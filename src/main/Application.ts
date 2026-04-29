@@ -114,8 +114,13 @@ export class Application {
   private registerShortcut(): void {
     const { shortcutKey } = this.settings.get();
     this.shortcutManager.register(shortcutKey, () => {
-      if (this.recordingController.getState() !== 'idle') {
-        this.recordingController.toggle();
+      const state = this.recordingController.getState();
+      if (state === 'recording') {
+        this.recordingController.stop();
+        return;
+      }
+      if (state === 'processing') {
+        this.recordingController.cancel();
         return;
       }
       void this.startRecordingFromIntent.startFromUserIntent();
