@@ -5,7 +5,7 @@ import {
 } from '../gen/ipc_service';
 import type { CancelRecordingRequest, PastePartialTranscriptionRequest, StopRecordingRequest, SubmitTranscriptionRequest } from '../gen/recording';
 import type { SettingsStore } from '../settings/SettingsStore';
-import type { HistoryStore, SessionRecord } from '../history/HistoryStore';
+import type { HistoryStore, TranscriptionSession } from '../history/HistoryStore';
 import type { SessionStorage } from './SessionStorage';
 import { RecordingSession } from './RecordingSession';
 
@@ -150,12 +150,11 @@ export class RecordingSessionController {
     const session = this.session;
     const wordCount = this.countWords(payload.text);
 
-    const record: SessionRecord = {
+    const record: TranscriptionSession = {
       id: session.id,
       startedAt: session.startedAt,
       transcriptionEngineLabel: payload.transcriptionEngineLabel,
       audioDurationSeconds: payload.audioDurationSeconds,
-      transcriptionDurationMs: payload.transcriptionDurationMs,
       wordCount,
       transcriptionText: session.dontSaveTranscripts ? null : payload.text,
       detectedLanguage: payload.detectedLanguage,

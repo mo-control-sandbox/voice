@@ -6,14 +6,13 @@ import type { DeleteSessionRequest, GetSessionsRequest, SessionIdRequest } from 
 import type { SessionStorage } from '../recording/SessionStorage';
 
 /**
- * All persisted metadata for a completed transcription session.
+ * A completed transcription session.
  */
-export interface SessionRecord {
+export interface TranscriptionSession {
   readonly id: string;
   readonly startedAt: number;
   readonly transcriptionEngineLabel: string;
   readonly audioDurationSeconds: number;
-  readonly transcriptionDurationMs: number;
   readonly wordCount: number;
   readonly transcriptionText: string | null;
   readonly detectedLanguage: string;
@@ -23,7 +22,7 @@ export interface SessionRecord {
  * The persistent store for completed transcription sessions.
  */
 export class HistoryStore {
-  private sessions: SessionRecord[] = [];
+  private sessions: TranscriptionSession[] = [];
   private readonly historyPath: string;
   private revision = 0;
   private persistQueue: Promise<void> = Promise.resolve();
@@ -69,21 +68,21 @@ export class HistoryStore {
   /**
    * All session records in insertion order.
    */
-  getSessions(): SessionRecord[] {
+  getSessions(): TranscriptionSession[] {
     return [...this.sessions];
   }
 
   /**
    * The session record with the given ID, or null if not found.
    */
-  getSession(id: string): SessionRecord | null {
+  getSession(id: string): TranscriptionSession | null {
     return this.sessions.find((s) => s.id === id) ?? null;
   }
 
   /**
    * Appends a session record and persists the updated list to disk.
    */
-  async addSession(record: SessionRecord): Promise<void> {
+  async addSession(record: TranscriptionSession): Promise<void> {
     this.sessions.push(record);
     this.revision++;
     await this.persist();
@@ -129,7 +128,7 @@ export class HistoryStore {
   }
 }
 
-function isSessionRecord(value: unknown): value is SessionRecord {
+function isSessionRecord(value: unknown): value is TranscriptionSession {
   if (!isObject(value)) return false;
   return typeof value.id === 'string'
     && typeof value.startedAt === 'number'
@@ -137,8 +136,6 @@ function isSessionRecord(value: unknown): value is SessionRecord {
     && typeof value.transcriptionEngineLabel === 'string'
     && typeof value.audioDurationSeconds === 'number'
     && Number.isFinite(value.audioDurationSeconds)
-    && typeof value.transcriptionDurationMs === 'number'
-    && Number.isFinite(value.transcriptionDurationMs)
     && typeof value.wordCount === 'number'
     && Number.isInteger(value.wordCount)
     && value.wordCount >= 0
@@ -173,7 +170,6 @@ class HistoryService implements HistoryServiceInterface {
       startedAt: s.startedAt,
       transcriptionEngineLabel: s.transcriptionEngineLabel,
       audioDurationSeconds: s.audioDurationSeconds,
-      transcriptionDurationMs: s.transcriptionDurationMs,
       wordCount: s.wordCount,
       transcriptionText: s.transcriptionText ?? '',
       detectedLanguage: s.detectedLanguage,

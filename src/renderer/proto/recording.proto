@@ -12,7 +12,6 @@ message SubmitTranscriptionRequest {
   string text                       = 2;
   string detected_language          = 3;
   float  audio_duration_seconds     = 4;
-  int64  transcription_duration_ms  = 5;
   string transcription_engine_label = 6;
   bytes  pcm                        = 7;
   bool   streamed                   = 8;

@@ -15,7 +15,6 @@ message SessionRecordProto {
   int64  started_at                  = 2;
   string transcription_engine_label  = 3;
   double audio_duration_seconds      = 4;
-  double transcription_duration_ms   = 5;
   int32  word_count                  = 6;
   string transcription_text          = 7;
   string detected_language           = 9;

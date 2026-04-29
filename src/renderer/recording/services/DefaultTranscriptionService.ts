@@ -182,7 +182,6 @@ export class DefaultTranscriptionService implements TranscriptionService {
     }
 
     const recordingStopMs = Date.now();
-    const inferenceStartMs = recordingStopMs;
     let result = null;
     let audioDurationSeconds = 0;
     let pcmBytes = new Uint8Array(0);
@@ -239,7 +238,6 @@ export class DefaultTranscriptionService implements TranscriptionService {
       return { status: 'cancelled' };
     }
 
-    const transcriptionDurationMs = Date.now() - inferenceStartMs;
     const engineLabel = (await this.modelRepository.getActiveModel()).definition.label;
 
     return {
@@ -249,7 +247,6 @@ export class DefaultTranscriptionService implements TranscriptionService {
         text: result.text,
         detectedLanguage: result.detectedLanguage,
         audioDurationSeconds,
-        transcriptionDurationMs,
         transcriptionEngineLabel: engineLabel,
         pcm: pcmBytes,
         streamed: session !== null,

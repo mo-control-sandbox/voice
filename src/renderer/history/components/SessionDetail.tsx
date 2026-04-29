@@ -19,12 +19,6 @@ function formatDate(ms: number): string {
   });
 }
 
-/** Formats milliseconds as a human-readable duration. */
-function formatMs(ms: number): string {
-  if (ms < 1000) return `${String(Math.round(ms))} ms`;
-  return `${(ms / 1000).toFixed(1)} s`;
-}
-
 /** Formats audio duration in seconds as m:ss. */
 function formatAudioDuration(seconds: number): string {
   const total = Math.round(seconds);
@@ -102,9 +96,6 @@ export function SessionDetail({
 
           <dt className="session-detail__meta-label">Audio duration</dt>
           <dd className="session-detail__meta-value">{formatAudioDuration(session.audioDurationSeconds)}</dd>
-
-          <dt className="session-detail__meta-label">Transcription time</dt>
-          <dd className="session-detail__meta-value">{formatMs(session.transcriptionDurationMs)}</dd>
 
           <dt className="session-detail__meta-label">Words</dt>
           <dd className="session-detail__meta-value">{String(session.wordCount)}</dd>
