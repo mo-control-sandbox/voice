@@ -9,6 +9,8 @@ message SettingsProto {
   bool   dont_save_audio       = 3;
   string shortcut_key          = 4;
   string audio_input_device_id = 5;
+  string active_model_id       = 6;
+  string primary_language      = 7;
 }
 
 message SetAudioInputDeviceRequest {
@@ -27,6 +29,14 @@ message SetShortcutCaptureModeRequest {
   bool capturing = 1;
 }
 
+message SetActiveModelIdRequest {
+  string active_model_id = 1;
+}
+
+message SetPrimaryLanguageRequest {
+  string primary_language = 1;
+}
+
 service SettingsService {
   rpc GetSettings(GetSettingsRequest)                         returns (SettingsProto);
   rpc SetAudioInputDevice(SetAudioInputDeviceRequest)         returns (google.protobuf.Empty);
@@ -34,6 +44,8 @@ service SettingsService {
   rpc SetDontSaveTranscripts(SetBooleanSettingRequest)        returns (google.protobuf.Empty);
   rpc SetDontSaveAudio(SetBooleanSettingRequest)              returns (google.protobuf.Empty);
   rpc SetShortcutCaptureMode(SetShortcutCaptureModeRequest)   returns (google.protobuf.Empty);
+  rpc SetActiveModelId(SetActiveModelIdRequest)               returns (google.protobuf.Empty);
+  rpc SetPrimaryLanguage(SetPrimaryLanguageRequest)           returns (google.protobuf.Empty);
   rpc MarkOnboardingComplete(google.protobuf.Empty)           returns (google.protobuf.Empty);
   rpc SetModelReady(SetBooleanSettingRequest)                 returns (google.protobuf.Empty);
 }

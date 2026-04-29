@@ -2,8 +2,10 @@ import { ipc, prefs } from '@mobrowser/api';
 import { SettingsService as createSettingsService, type SettingsService as SettingsServiceInterface } from '../gen/ipc_service';
 import type {
   GetSettingsRequest,
+  SetActiveModelIdRequest,
   SetAudioInputDeviceRequest,
   SetBooleanSettingRequest,
+  SetPrimaryLanguageRequest,
   SetShortcutCaptureModeRequest,
   SetShortcutKeyRequest,
   SettingsProto,
@@ -16,6 +18,8 @@ const DEFAULTS: SettingsProto = {
   dontSaveAudio: false,
   shortcutKey: 'CommandOrControl+Shift+Space',
   audioInputDeviceId: '',
+  activeModelId: '',
+  primaryLanguage: 'auto',
 };
 
 /**
@@ -34,6 +38,8 @@ export class SettingsStore {
       dontSaveAudio: prefs.getBoolean('dontSaveAudio', DEFAULTS.dontSaveAudio),
       shortcutKey: prefs.getString('shortcutKey', DEFAULTS.shortcutKey),
       audioInputDeviceId: prefs.getString('audioInputDeviceId', DEFAULTS.audioInputDeviceId),
+      activeModelId: prefs.getString('activeModelId', DEFAULTS.activeModelId),
+      primaryLanguage: prefs.getString('primaryLanguage', DEFAULTS.primaryLanguage),
     };
   }
 
@@ -74,6 +80,22 @@ export class SettingsStore {
    */
   setAudioInputDeviceId(value: string): void {
     prefs.setString('audioInputDeviceId', value);
+    prefs.persist();
+  }
+
+  /**
+   * Updates the active model ID and persists to disk.
+   */
+  setActiveModelId(value: string): void {
+    prefs.setString('activeModelId', value);
+    prefs.persist();
+  }
+
+  /**
+   * Updates the preferred language and persists to disk.
+   */
+  setPrimaryLanguage(value: string): void {
+    prefs.setString('primaryLanguage', value);
     prefs.persist();
   }
 
@@ -165,6 +187,16 @@ class SettingsService implements SettingsServiceInterface {
     } else {
       this.shortcutManager.resume();
     }
+    return Promise.resolve({});
+  }
+
+  SetActiveModelId(request: SetActiveModelIdRequest): Promise<Empty> {
+    this.settings.setActiveModelId(request.activeModelId);
+    return Promise.resolve({});
+  }
+
+  SetPrimaryLanguage(request: SetPrimaryLanguageRequest): Promise<Empty> {
+    this.settings.setPrimaryLanguage(request.primaryLanguage);
     return Promise.resolve({});
   }
 

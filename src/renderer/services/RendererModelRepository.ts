@@ -23,7 +23,7 @@ export class RendererModelRepository {
    */
   async getModels(): Promise<ModelEntry[]> {
     const definitions = this.catalog.getDefinitions();
-    const activeId = this.stateStore.getActiveModelId();
+    const activeId = await this.stateStore.getActiveModelId();
 
     return Promise.all(
       definitions.map(async (definition): Promise<ModelEntry> => {
@@ -44,7 +44,7 @@ export class RendererModelRepository {
    */
   async getActiveModel(): Promise<ModelEntry> {
     const models = await this.getModels();
-    const activeId = this.stateStore.getActiveModelId();
+    const activeId = await this.stateStore.getActiveModelId();
     const found = models.find((m) => m.definition.id === activeId);
     if (found !== undefined) {
       return found;
@@ -70,7 +70,7 @@ export class RendererModelRepository {
       );
     }
 
-    this.stateStore.setActiveModelId(id);
+    await this.stateStore.setActiveModelId(id);
   }
 
   /**
@@ -100,11 +100,11 @@ export class RendererModelRepository {
     }
 
     // Auto-select after download if no downloaded model is currently active.
-    const currentActiveId = this.stateStore.getActiveModelId();
+    const currentActiveId = await this.stateStore.getActiveModelId();
     const isCurrentActiveDownloaded =
       currentActiveId !== '' && (await this.fileStore.isDownloaded(currentActiveId));
     if (!isCurrentActiveDownloaded) {
-      this.stateStore.setActiveModelId(id);
+      await this.stateStore.setActiveModelId(id);
     }
   }
 
@@ -119,14 +119,14 @@ export class RendererModelRepository {
       throw new Error(`Cannot delete model with id: ${id}`);
     }
 
-    const isActive = this.stateStore.getActiveModelId() === id;
+    const isActive = (await this.stateStore.getActiveModelId()) === id;
 
     if (isActive) {
       const allModels = await this.getModels();
       const fallback = allModels.find(
         (m) => m.isDownloaded && m.definition.id !== id,
       );
-      this.stateStore.setActiveModelId(fallback?.definition.id ?? '');
+      await this.stateStore.setActiveModelId(fallback?.definition.id ?? '');
     }
 
     await this.fileStore.remove(id);
@@ -135,14 +135,14 @@ export class RendererModelRepository {
   /**
    * Returns the stored preferred transcription language code.
    */
-  getLanguage(): string {
+  async getLanguage(): Promise<string> {
     return this.stateStore.getLanguage();
   }
 
   /**
    * Stores the given language code as the preferred transcription language.
    */
-  setLanguage(language: string): void {
-    this.stateStore.setLanguage(language);
+  async setLanguage(language: string): Promise<void> {
+    await this.stateStore.setLanguage(language);
   }
 }

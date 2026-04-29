@@ -40,4 +40,14 @@ export class SettingsService {
   async setShortcutKey(shortcutKey: string): Promise<void> {
     await ipc.settings.SetShortcutKey({ shortcutKey });
   }
+
+  /** Persists the active model ID in main-process preferences. */
+  async setActiveModelId(activeModelId: string): Promise<void> {
+    await ipc.settings.SetActiveModelId({ activeModelId });
+  }
+
+  /** Persists the preferred primary language in main-process preferences. */
+  async setPrimaryLanguage(primaryLanguage: string): Promise<void> {
+    await ipc.settings.SetPrimaryLanguage({ primaryLanguage });
+  }
 }

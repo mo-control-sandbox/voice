@@ -107,7 +107,7 @@ export class DefaultTranscriptionService implements TranscriptionService {
 
     const activeModel = await this.modelRepository.getActiveModel();
     const language = activeModel.definition.isMultilingual
-      ? this.modelRepository.getLanguage()
+      ? await this.modelRepository.getLanguage()
       : null;
     this.resolvedLanguage = language === 'auto' ? null : (language ?? null);
 

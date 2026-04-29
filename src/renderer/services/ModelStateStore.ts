@@ -8,20 +8,20 @@ export interface ModelStateStore {
   /**
    * Returns the stored active model ID.
    */
-  getActiveModelId(): string;
+  getActiveModelId(): Promise<string>;
 
   /**
    * Stores the given model ID as the active selection.
    */
-  setActiveModelId(id: string): void;
+  setActiveModelId(id: string): Promise<void>;
 
   /**
    * Returns the stored language code (e.g. 'en', 'auto').
    */
-  getLanguage(): string;
+  getLanguage(): Promise<string>;
 
   /**
    * Stores the given language code as the preferred transcription language.
    */
-  setLanguage(language: string): void;
+  setLanguage(language: string): Promise<void>;
 }
