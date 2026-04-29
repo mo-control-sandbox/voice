@@ -15,8 +15,6 @@
 
 using mo::rpc::Callback;
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
 static PermissionStatus avAuthStatus(AVAuthorizationStatus s) {
   switch (s) {
     case AVAuthorizationStatusAuthorized:    return PERMISSION_STATUS_GRANTED;
@@ -45,14 +43,7 @@ static PermissionStatus axAuthStatus() {
     return AXIsProcessTrustedWithOptions((__bridge CFDictionaryRef)options);
   };
 
-  if ([NSThread isMainThread]) {
-    return isTrusted() ? PERMISSION_STATUS_GRANTED : PERMISSION_STATUS_DENIED;
-  }
-
-  __block bool trusted = false;
-  dispatch_sync(dispatch_get_main_queue(), ^{
-    trusted = isTrusted();
-  });
+  const bool trusted = isTrusted();
   return trusted ? PERMISSION_STATUS_GRANTED : PERMISSION_STATUS_DENIED;
 }
 
@@ -168,14 +159,7 @@ class SystemPermissionsServiceImpl : public SystemPermissionsService {
       return AXIsProcessTrustedWithOptions((__bridge CFDictionaryRef)options);
     };
 
-    __block bool isTrusted = false;
-    if ([NSThread isMainThread]) {
-      isTrusted = requestPrompt();
-    } else {
-      dispatch_sync(dispatch_get_main_queue(), ^{
-        isTrusted = requestPrompt();
-      });
-    }
+    const bool isTrusted = requestPrompt();
 
     if (!isTrusted) {
       openSystemSettings(PERMISSION_TYPE_ACCESSIBILITY);
