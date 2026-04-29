@@ -2,7 +2,7 @@
   {
     "id": "openai/whisper-large-v3-turbo",
     "label": "Whisper Large v3 Turbo",
-    "description": "High-accuracy multilingual model with significantly faster inference than Large v3.",
+    "description": "High-accuracy multilingual model with faster inference than Large v3.",
     "huggingFaceRepo": "onnx-community/whisper-large-v3-turbo",
     "inferenceMode": "whisper",
     "speedScore": 2.0,
