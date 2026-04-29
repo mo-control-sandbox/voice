@@ -83,6 +83,7 @@ export function useWelcomeController(): {
 
   const modelSelection = useModelSelection();
   const microphonePermission = useMicrophonePermission({
+    isStepActive: step === 'microphone-permission',
     clearAutoAdvance,
     scheduleAutoAdvance,
   });
