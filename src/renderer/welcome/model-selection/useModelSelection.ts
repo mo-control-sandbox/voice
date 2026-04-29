@@ -60,11 +60,7 @@ export function useModelSelection(): {
 
   async function handleModelDownload(id: string): Promise<void> {
     if (downloadingModelId !== null && downloadingModelId !== id) return;
-    setDownloadErrors((prev) => {
-      const next = new Map(prev);
-      next.delete(id);
-      return next;
-    });
+    setDownloadErrors(new Map());
 
     void (async () => {
       try {
@@ -73,6 +69,7 @@ export function useModelSelection(): {
         });
         await modelRepository.setActiveModel(id);
       } catch (error: unknown) {
+        if (error instanceof Error && error.name === 'AbortError') return;
         console.error('[WelcomeApp] Model download failed:', error);
         setDownloadErrors((prev) => new Map(prev).set(id, 'Download failed. Try again.'));
       } finally {
@@ -84,6 +81,11 @@ export function useModelSelection(): {
   }
 
   async function handleModelCancel(id: string): Promise<void> {
+    if (downloadingModelId === id) {
+      modelRepository.cancelDownload(id);
+      await refreshModels();
+      return;
+    }
     if (downloadingModelId !== null) return;
     await modelRepository.delete(id);
     await refreshModels();

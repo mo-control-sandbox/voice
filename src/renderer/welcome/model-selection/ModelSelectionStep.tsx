@@ -64,8 +64,8 @@ export function ModelSelectionStep(props: ModelSelectionStepProps): React.JSX.El
                       <button
                         type="button"
                         className="welcome-model-tile__icon-btn welcome-model-tile__icon-btn--danger welcome-no-drag"
-                        disabled
-                        aria-label={`Downloading ${model.definition.label}`}
+                        onClick={() => { void onDelete(model.definition.id); }}
+                        aria-label={`Cancel download of ${model.definition.label}`}
                       >
                         <X size={14} aria-hidden="true" />
                       </button>

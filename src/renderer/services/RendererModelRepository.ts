@@ -11,6 +11,8 @@ import type { ModelStateStore } from './ModelStateStore';
 export class RendererModelRepository {
   /** In-progress download progress per model ID (0–1 fraction). */
   private readonly downloadProgress = new Map<string, number>();
+  /** AbortControllers for in-progress downloads, keyed by model ID. */
+  private readonly downloadControllers = new Map<string, AbortController>();
 
   constructor(
     private readonly catalog: RendererModelCatalog,
@@ -89,14 +91,24 @@ export class RendererModelRepository {
     }
 
     this.downloadProgress.set(id, 0);
+    const controller = new AbortController();
+    this.downloadControllers.set(id, controller);
+    let active = true;
 
     try {
-      await this.fileStore.download(id, (fraction) => {
-        this.downloadProgress.set(id, fraction);
-        onProgress(fraction);
-      });
+      await this.fileStore.download(
+        id,
+        (fraction) => {
+          if (!active) return;
+          this.downloadProgress.set(id, fraction);
+          onProgress(fraction);
+        },
+        controller.signal,
+      );
     } finally {
+      active = false;
       this.downloadProgress.delete(id);
+      this.downloadControllers.delete(id);
     }
 
     // Auto-select after download if no downloaded model is currently active.
@@ -106,6 +118,18 @@ export class RendererModelRepository {
     if (!isCurrentActiveDownloaded) {
       await this.stateStore.setActiveModelId(id);
     }
+  }
+
+  /**
+   * Aborts an in-progress download for the given model ID.
+   * Immediately clears the progress entry so the UI stops showing the model
+   * as downloading. The in-flight async task will receive an AbortError and
+   * clean up OPFS files through its own error path.
+   */
+  cancelDownload(id: string): void {
+    this.downloadControllers.get(id)?.abort();
+    this.downloadProgress.delete(id);
+    this.downloadControllers.delete(id);
   }
 
   /**

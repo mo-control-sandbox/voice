@@ -123,7 +123,7 @@ export class OPFSModelCache implements ModelFileStore {
    * Transformers.js. Disposes the loaded model immediately after caching.
    * Cleans up the model directory and rethrows on failure.
    */
-  async download(modelId: string, onProgress: (fraction: number) => void): Promise<void> {
+  async download(modelId: string, onProgress: (fraction: number) => void, signal?: AbortSignal): Promise<void> {
     const definition = this.requireDefinition(modelId);
     const repo = definition.huggingFaceRepo;
 
@@ -137,11 +137,35 @@ export class OPFSModelCache implements ModelFileStore {
       }
     };
 
-    try {
+    // Transformers.js can fail to propagate certain internal errors (e.g.
+    // RangeError from oversized allocations) through the pipeline() promise,
+    // firing them as unhandled rejections instead. We intercept those here by
+    // racing the actual load against the window's unhandledrejection event so
+    // they are treated as first-class download failures.
+    //
+    // We also create an internal AbortController so that when an unhandled
+    // rejection fires we can signal the pipeline to stop, preventing it from
+    // continuing to run as a background ghost after we have already failed.
+    const internalController = new AbortController();
+    signal?.addEventListener('abort', () => { internalController.abort(signal.reason); });
+    const effectiveSignal = internalController.signal;
+
+    let unhandledRejectionListener: ((event: PromiseRejectionEvent) => void) | null = null;
+    const unhandledRejection = new Promise<never>((_, reject) => {
+      unhandledRejectionListener = (event: PromiseRejectionEvent): void => {
+        event.preventDefault();
+        internalController.abort(event.reason);
+        reject(event.reason as unknown);
+      };
+      window.addEventListener('unhandledrejection', unhandledRejectionListener);
+    });
+
+    const loadModel = async (): Promise<void> => {
       if (definition.inferenceMode === 'whisper') {
         const pipe = await pipeline('automatic-speech-recognition', repo, {
           dtype: { encoder_model: 'q4', decoder_model_merged: 'q4' },
           progress_callback: progressCallback,
+          signal: effectiveSignal,
         });
         await pipe.dispose();
       } else if (definition.inferenceMode === 'voxtral-realtime') {
@@ -149,22 +173,31 @@ export class OPFSModelCache implements ModelFileStore {
           dtype: { audio_encoder: 'q4f16', embed_tokens: 'q4f16', decoder_model_merged: 'q4f16' },
           device: 'webgpu',
           progress_callback: progressCallback,
+          signal: effectiveSignal,
         }) as VoxtralRealtimeForConditionalGeneration;
-        await VoxtralRealtimeProcessor.from_pretrained(repo);
+        await VoxtralRealtimeProcessor.from_pretrained(repo, { signal: effectiveSignal });
         await model.dispose();
       } else {
         const pipe = await pipeline('automatic-speech-recognition', repo, {
           dtype: 'q4',
           device: 'webgpu',
           progress_callback: progressCallback,
+          signal: effectiveSignal,
         });
         await pipe.dispose();
       }
-
       await this.writeMarker(repo);
+    };
+
+    try {
+      await Promise.race([loadModel(), unhandledRejection]);
     } catch (error) {
       await this.removeModelDir(repo);
       throw error;
+    } finally {
+      if (unhandledRejectionListener !== null) {
+        window.removeEventListener('unhandledrejection', unhandledRejectionListener);
+      }
     }
   }
 

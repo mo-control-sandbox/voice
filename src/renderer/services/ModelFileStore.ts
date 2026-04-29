@@ -14,8 +14,9 @@ export interface ModelFileStore {
   /**
    * Fetches and persists all files required for the given model.
    * Calls `onProgress` with a [0, 1] fraction as files are stored.
+   * Passing a signal allows the caller to abort mid-download.
    */
-  download(modelId: string, onProgress: (fraction: number) => void): Promise<void>;
+  download(modelId: string, onProgress: (fraction: number) => void, signal?: AbortSignal): Promise<void>;
 
   /**
    * Removes all locally stored files for the given model.
