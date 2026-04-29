@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { FolderOpen } from 'lucide-react';
+import { Check, Copy, FolderOpen } from 'lucide-react';
 import type { SessionRecordProto } from '../../gen/history';
 import { AudioPlayer } from './AudioPlayer';
 import './SessionDetail.css';
@@ -41,12 +41,15 @@ export function SessionDetail({
   onOpenInFinder,
 }: SessionDetailProps): React.JSX.Element {
   const [confirming, setConfirming] = useState(false);
+  const [copied, setCopied] = useState(false);
   const cancelRef  = useRef<HTMLButtonElement>(null);
+  const copyResetTimerRef = useRef<number | null>(null);
   const transcriptSaved = session.transcriptionText !== '';
 
   // Reset confirmation state when the selected session changes.
   useEffect(() => {
     setConfirming(false);
+    setCopied(false);
   }, [session.id]);
 
   // Focus the cancel button when the confirmation dialog opens.
@@ -54,15 +57,48 @@ export function SessionDetail({
     if (confirming) cancelRef.current?.focus();
   }, [confirming]);
 
+  useEffect(() => () => {
+    if (copyResetTimerRef.current !== null) {
+      window.clearTimeout(copyResetTimerRef.current);
+    }
+  }, []);
+
   function handleDialogKeyDown(e: React.KeyboardEvent<HTMLDivElement>): void {
     if (e.key === 'Escape') setConfirming(false);
+  }
+
+  async function handleCopyTranscript(): Promise<void> {
+    if (!transcriptSaved) return;
+    await navigator.clipboard.writeText(session.transcriptionText);
+    setCopied(true);
+    if (copyResetTimerRef.current !== null) {
+      window.clearTimeout(copyResetTimerRef.current);
+    }
+    copyResetTimerRef.current = window.setTimeout(() => {
+      setCopied(false);
+      copyResetTimerRef.current = null;
+    }, 1800);
   }
 
   return (
     <div className="session-detail">
       {/* Transcript */}
       <section className="session-detail__section">
-        <span className="session-detail__section-label">Transcript</span>
+        <div className="session-detail__section-heading">
+          <span className="session-detail__section-label">Transcript</span>
+          <button
+            type="button"
+            className="session-detail__copy-btn"
+            onClick={() => { void handleCopyTranscript(); }}
+            disabled={!transcriptSaved}
+            aria-label={copied ? 'Transcript copied' : 'Copy transcript'}
+            title={copied ? 'Copied' : 'Copy transcript'}
+          >
+            {copied
+              ? <Check className="session-detail__copy-icon" aria-hidden="true" />
+              : <Copy className="session-detail__copy-icon" aria-hidden="true" />}
+          </button>
+        </div>
         <p
           className={[
             'session-detail__transcript',
