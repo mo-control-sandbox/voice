@@ -12,6 +12,9 @@ import type {
 
 const BATCH_MAX_DURATION_MS = 10 * 60 * 1000; // 10 minutes
 
+// Flush audio to disk roughly once per second of 16 kHz audio.
+const AUDIO_FLUSH_SAMPLES = 16000;
+
 /*
  * Silence appended to the audio tail before inference so the decoder sees a
  * clean end-of-speech boundary rather than an abrupt cut-off. The value is
@@ -87,6 +90,22 @@ export class DefaultTranscriptionService implements TranscriptionService {
    */
   private batchMaxDurationTimer: ReturnType<typeof setTimeout> | null = null;
 
+  /**
+   * Callback that receives batched PCM bytes for incremental disk persistence.
+   * Registered from StartCaptureRequest and cleared after stopAndProcess completes.
+   */
+  private audioChunkCallback: ((pcm: Uint8Array) => void) | null = null;
+
+  /**
+   * Accumulator for the streaming audio flush path.
+   */
+  private audioBatch: Float32Array[] = [];
+
+  /**
+   * Number of samples currently held in audioBatch.
+   */
+  private audioBatchSamples = 0;
+
   constructor(
     private readonly modelRepository: RendererModelRepository,
     private readonly backendFactory: MoVoiceBackendFactory,
@@ -124,6 +143,10 @@ export class DefaultTranscriptionService implements TranscriptionService {
       request.onTrackEnded();
     });
 
+    this.audioChunkCallback = request.onAudioChunk;
+    this.audioBatch = [];
+    this.audioBatchSamples = 0;
+
     try {
       const pipelineSampleRate = backend.mode === 'streaming' ? 16000 : undefined;
       await pipeline.start(request.audioInputDeviceId, pipelineSampleRate);
@@ -138,6 +161,7 @@ export class DefaultTranscriptionService implements TranscriptionService {
         this.streamingSession = session;
         pipeline.onChunk((chunk) => {
           session.pushChunk(chunk);
+          this.bufferAudioChunk(chunk);
         });
         session.onPartialResult((text) => {
           request.onPartialResult(text);
@@ -184,7 +208,6 @@ export class DefaultTranscriptionService implements TranscriptionService {
     const recordingStopMs = Date.now();
     let result = null;
     let audioDurationSeconds = 0;
-    let pcmBytes = new Uint8Array(0);
 
     if (session !== null) {
       // Push a silent tail so the decoder sees a clean end-of-speech boundary.
@@ -198,6 +221,8 @@ export class DefaultTranscriptionService implements TranscriptionService {
       ]);
       result = transcriptionResult;
       audioDurationSeconds = (recordingStopMs - this.recordingStartMs) / 1000;
+      // Flush any buffered audio that did not yet reach the batch threshold.
+      this.flushAudioBatch();
     } else {
       const audio = pipeline !== null
         ? await pipeline.stop()
@@ -215,17 +240,14 @@ export class DefaultTranscriptionService implements TranscriptionService {
         );
       }
 
-      if (request.dontSaveAudio) {
-        pcmBytes = new Uint8Array(0);
-      } else {
-        const sourceBytes = new Uint8Array(
+      // Send the full resampled PCM as a single chunk for disk persistence.
+      if (this.audioChunkCallback !== null) {
+        const pcmBytes = new Uint8Array(
           audio.samples.buffer,
           audio.samples.byteOffset,
           audio.samples.byteLength,
         );
-        const copiedBytes = new Uint8Array(sourceBytes.length);
-        copiedBytes.set(sourceBytes);
-        pcmBytes = copiedBytes;
+        this.audioChunkCallback(pcmBytes);
       }
     }
 
@@ -233,6 +255,9 @@ export class DefaultTranscriptionService implements TranscriptionService {
     this.activeBackend = null;
     this.resolvedLanguage = null;
     this.recordingStartMs = 0;
+    this.audioChunkCallback = null;
+    this.audioBatch = [];
+    this.audioBatchSamples = 0;
 
     if (result === null) {
       return { status: 'cancelled' };
@@ -248,7 +273,6 @@ export class DefaultTranscriptionService implements TranscriptionService {
         detectedLanguage: result.detectedLanguage,
         audioDurationSeconds,
         transcriptionEngineLabel: engineLabel,
-        pcm: pcmBytes,
         streamed: session !== null,
       },
     };
@@ -266,6 +290,34 @@ export class DefaultTranscriptionService implements TranscriptionService {
    */
   async cleanup(): Promise<void> {
     await this.releaseRuntimeState();
+  }
+
+  /**
+   * Adds samples to the rolling audio batch and flushes when the threshold is reached.
+   */
+  private bufferAudioChunk(samples: Float32Array): void {
+    this.audioBatch.push(samples);
+    this.audioBatchSamples += samples.length;
+    if (this.audioBatchSamples >= AUDIO_FLUSH_SAMPLES) {
+      this.flushAudioBatch();
+    }
+  }
+
+  /**
+   * Merges the current audio batch and forwards it to the chunk callback.
+   */
+  private flushAudioBatch(): void {
+    if (this.audioBatch.length === 0 || this.audioChunkCallback === null) return;
+    const total = this.audioBatchSamples;
+    const merged = new Float32Array(total);
+    let offset = 0;
+    for (const chunk of this.audioBatch) {
+      merged.set(chunk, offset);
+      offset += chunk.length;
+    }
+    this.audioBatch = [];
+    this.audioBatchSamples = 0;
+    this.audioChunkCallback(new Uint8Array(merged.buffer, merged.byteOffset, merged.byteLength));
   }
 
   /**
@@ -293,6 +345,9 @@ export class DefaultTranscriptionService implements TranscriptionService {
     this.activeBackend = null;
     this.resolvedLanguage = null;
     this.recordingStartMs = 0;
+    this.audioChunkCallback = null;
+    this.audioBatch = [];
+    this.audioBatchSamples = 0;
 
     const pipeline = this.pipeline;
     this.pipeline = null;

@@ -3,7 +3,7 @@ import {
   RecordingService as createRecordingService,
   type RecordingService as RecordingServiceInterface,
 } from '../gen/ipc_service';
-import type { CancelRecordingRequest, PastePartialTranscriptionRequest, StopRecordingRequest, SubmitTranscriptionRequest } from '../gen/recording';
+import type { AppendAudioChunkRequest, CancelRecordingRequest, PastePartialTranscriptionRequest, StopRecordingRequest, SubmitTranscriptionRequest } from '../gen/recording';
 import type { SettingsStore } from '../settings/SettingsStore';
 import type { HistoryStore, TranscriptionSession } from '../history/HistoryStore';
 import type { SessionStorage } from './SessionStorage';
@@ -126,12 +126,26 @@ export class RecordingSessionController {
   }
 
   /**
+   * Appends a raw PCM chunk to the active session's audio file on disk.
+   *
+   * Silently discarded when no session is active or the session IDs do not match.
+   */
+  async appendAudioChunk(payload: AppendAudioChunkRequest): Promise<void> {
+    if (this.session?.id !== payload.sessionId) return;
+    await this.sessionStorage.appendAudioChunk(payload.sessionId, payload.pcm);
+  }
+
+  /**
    * Cancels the current session and returns to idle.
    */
   cancel(): void {
     if (this.state === 'idle') return;
+    const id = this.session?.id;
     this.session = null;
     this.transition('idle');
+    if (id !== undefined) {
+      void this.sessionStorage.discardAudioStream(id);
+    }
   }
 
   /**
@@ -162,9 +176,7 @@ export class RecordingSessionController {
 
     await this.historyStore.addSession(record);
 
-    if (!session.dontSaveAudio) {
-      await this.sessionStorage.saveAudio(session.id, payload.pcm);
-    }
+    await this.sessionStorage.finalizeAudioStream(session.id);
 
     if (!session.dontSaveTranscripts) {
       await this.sessionStorage.saveTranscript(session.id, payload.text);
@@ -235,5 +247,10 @@ class RecordingService implements RecordingServiceInterface {
       this.controller.stop();
     }
     return Promise.resolve({});
+  }
+
+  async AppendAudioChunk(request: AppendAudioChunkRequest) {
+    await this.controller.appendAudioChunk(request);
+    return {};
   }
 }

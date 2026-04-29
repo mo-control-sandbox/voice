@@ -37,4 +37,9 @@ export interface RecordingGateway {
    * Sends completed transcription payload to main process.
    */
   submitTranscription(request: SubmitTranscriptionRequest): Promise<void>;
+
+  /**
+   * Sends a raw PCM chunk to the main process for incremental audio persistence.
+   */
+  appendAudioChunk(sessionId: string, pcm: Uint8Array): Promise<void>;
 }

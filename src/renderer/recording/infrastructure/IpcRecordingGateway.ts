@@ -52,4 +52,11 @@ export class IpcRecordingGateway implements RecordingGateway {
   async submitTranscription(request: SubmitTranscriptionRequest): Promise<void> {
     await ipc.recording.SubmitTranscription(request);
   }
+
+  /**
+   * Sends a raw PCM chunk for incremental audio persistence.
+   */
+  async appendAudioChunk(sessionId: string, pcm: Uint8Array): Promise<void> {
+    await ipc.recording.AppendAudioChunk({ sessionId, pcm });
+  }
 }

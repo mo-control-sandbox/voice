@@ -45,7 +45,12 @@ export class AudioPipeline {
 
     this.workletNode = new AudioWorkletNode(this.audioContext, 'pcm-collector');
     this.workletNode.port.onmessage = (event: MessageEvent<Float32Array>) => {
-      this.pcmChunks.push(event.data);
+      // Only accumulate when no streaming callback is registered. On the
+      // streaming path the consumer owns the data; on the batch path the
+      // pipeline owns it for resampling in stop().
+      if (this.chunkCallback === null) {
+        this.pcmChunks.push(event.data);
+      }
       this.chunkCallback?.(event.data);
     };
     source.connect(this.workletNode);

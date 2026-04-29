@@ -95,21 +95,27 @@ export class RecordingOrchestrator {
 
     if (sessionChanged || (stateChanged && nextState === 'recording')) {
       const settings = await this.gateway.getSettings();
+      const sessionId = next.sessionId;
+      const onAudioChunk = next.dontSaveAudio
+        ? (_pcm: Uint8Array) => {}
+        : (pcm: Uint8Array) => { void this.gateway.appendAudioChunk(sessionId, pcm); };
+
       const startResult = await this.transcriptionService.startCapture({
-        sessionId: next.sessionId,
+        sessionId,
         audioInputDeviceId: settings.audioInputDeviceId,
         onTrackEnded: () => {
           void this.gateway.cancelRecording({
-            sessionId: next.sessionId,
+            sessionId,
             reason: 'DEVICE_DISCONNECTED',
           });
         },
         onPartialResult: (text) => {
-          void this.gateway.pastePartialTranscription(next.sessionId, text);
+          void this.gateway.pastePartialTranscription(sessionId, text);
         },
         onBatchMaxDurationReached: () => {
-          void this.gateway.stopRecording({ sessionId: next.sessionId });
+          void this.gateway.stopRecording({ sessionId });
         },
+        onAudioChunk,
       });
 
       if (startResult.status === 'failed') {
@@ -123,7 +129,6 @@ export class RecordingOrchestrator {
     if (stateChanged && nextState === 'processing') {
       const processingPromise = this.transcriptionService.stopAndProcess({
         sessionId: next.sessionId,
-        dontSaveAudio: next.dontSaveAudio,
       });
       this.notifyState();
       const processingResult = await processingPromise;

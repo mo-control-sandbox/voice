@@ -13,8 +13,13 @@ message SubmitTranscriptionRequest {
   string detected_language          = 3;
   float  audio_duration_seconds     = 4;
   string transcription_engine_label = 6;
-  bytes  pcm                        = 7;
+  reserved                          7; // formerly: bytes pcm
   bool   streamed                   = 8;
+}
+
+message AppendAudioChunkRequest {
+  string session_id = 1;
+  bytes  pcm        = 2;
 }
 
 message PastePartialTranscriptionRequest {
@@ -31,4 +36,5 @@ service RecordingService {
   rpc SubmitTranscription(SubmitTranscriptionRequest)               returns (google.protobuf.Empty);
   rpc PastePartialTranscription(PastePartialTranscriptionRequest)   returns (google.protobuf.Empty);
   rpc StopRecording(StopRecordingRequest)                           returns (google.protobuf.Empty);
+  rpc AppendAudioChunk(AppendAudioChunkRequest)                     returns (google.protobuf.Empty);
 }

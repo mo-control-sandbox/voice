@@ -9,6 +9,8 @@ export interface StartCaptureRequest {
   readonly onTrackEnded: () => void;
   readonly onPartialResult: (text: string) => void;
   readonly onBatchMaxDurationReached: () => void;
+  /** Called with batched PCM bytes to be persisted to disk. No-op when audio saving is disabled. */
+  readonly onAudioChunk: (pcm: Uint8Array) => void;
 }
 
 /**
@@ -24,7 +26,6 @@ export type StartCaptureResult =
  */
 export interface StopAndProcessRequest {
   readonly sessionId: string;
-  readonly dontSaveAudio: boolean;
 }
 
 /**
