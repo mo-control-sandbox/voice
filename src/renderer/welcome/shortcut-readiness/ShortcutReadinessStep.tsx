@@ -17,7 +17,7 @@ export function ShortcutReadinessStep(props: ShortcutReadinessStepProps): React.
         <div className="welcome-final-stage">
           <div className="welcome-final-stage__primary">
             <p className="welcome-final-stage__close-hint">
-              Everything is configured. Close this window and start using moVoice right away.
+              Everything is configured. Close this window and start using MoVoice right away.
             </p>
             <ShortcutKeycaps shortcut={shortcutKey} large />
             <p className="welcome-final-stage__shortcut-label">your recording shortcut</p>

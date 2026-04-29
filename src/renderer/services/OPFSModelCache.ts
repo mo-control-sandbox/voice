@@ -140,7 +140,7 @@ export class OPFSModelCache implements ModelFileStore {
     try {
       if (definition.inferenceMode === 'whisper') {
         const pipe = await pipeline('automatic-speech-recognition', repo, {
-          dtype: { encoder_model: 'fp32', decoder_model_merged: 'q4' },
+          dtype: { encoder_model: 'q4', decoder_model_merged: 'q4' },
           progress_callback: progressCallback,
         });
         await pipe.dispose();

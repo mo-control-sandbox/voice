@@ -11,10 +11,9 @@ configureTransformersWorkerEnvironment();
 createBatchAsrWorkerRuntime<AutomaticSpeechRecognitionPipeline>({
   workerName: 'TransformersJsWorker',
   loadPipeline: async (modelId) => {
-    // encoder_model stays at fp32: Whisper encoders are sensitive to quantisation.
-    // decoder_model_merged uses q4: reduces memory footprint without accuracy loss.
     return pipeline('automatic-speech-recognition', modelId, {
-      dtype: { encoder_model: 'fp32', decoder_model_merged: 'q4' },
+      dtype: { encoder_model: 'q4', decoder_model_merged: 'q4' },
+      device: 'webgpu',
     });
   },
   runInference: async (asr, input) => {

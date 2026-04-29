@@ -45,24 +45,35 @@ export function createBatchAsrWorkerRuntime<TPipeline>(
 
   async function loadModel(modelId: string): Promise<void> {
     if (currentModelId === modelId && pipeline !== null) {
+      console.log(`[${config.workerName}] model already loaded: ${modelId}`);
       self.postMessage({ type: 'loaded' } satisfies BatchWorkerResult);
       return;
     }
 
+    console.log(`[${config.workerName}] loading model: ${modelId}`);
     try {
       pipeline = await config.loadPipeline(modelId);
       currentModelId = modelId;
+      console.log(`[${config.workerName}] model loaded successfully: ${modelId}`);
       self.postMessage({ type: 'loaded' } satisfies BatchWorkerResult);
     } catch (err) {
-      console.error(`[${config.workerName}] Failed to load model:`, err);
+      console.error(`[${config.workerName}] failed to load model: ${modelId}`, err);
+      // Post a dummy error so callers do not wait indefinitely.
+      self.postMessage({
+        type: 'error',
+        requestId: '',
+        error: err instanceof Error ? err.message : String(err),
+      } satisfies BatchWorkerResult);
     }
   }
 
   async function run(input: BatchRunInput): Promise<void> {
     isRunning = true;
+    console.log(`[${config.workerName}] inference start: requestId=${input.requestId} samples=${input.samples.length}`);
 
     try {
       if (pipeline === null) {
+        console.error(`[${config.workerName}] inference attempted before model loaded`);
         self.postMessage({
           type: 'error',
           requestId: input.requestId,
@@ -72,6 +83,7 @@ export function createBatchAsrWorkerRuntime<TPipeline>(
       }
 
       const output = await config.runInference(pipeline, input);
+      console.log(`[${config.workerName}] inference complete: requestId=${input.requestId} chars=${output.text.length}`);
       self.postMessage({
         type: 'result',
         requestId: input.requestId,
