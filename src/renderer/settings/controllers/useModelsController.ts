@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ModelEntry } from '../../types/models';
 import { getRendererModelRepository } from '../../services/getRendererModelRepository';
 import { reportModelReadiness } from '../../services/ModelReadinessReporter';
-import { warmupInferenceModel } from '../../recording/services/warmupInferenceModel';
 
 const POLL_INTERVAL_MS = 500;
 
@@ -18,14 +17,12 @@ function hasActiveDownload(models: readonly ModelEntry[]): boolean {
 export function useModelsController(): {
   readonly models: ModelEntry[];
   readonly downloadErrors: ReadonlyMap<string, string>;
-  readonly preparingModelId: string | null;
   readonly handleDownload: (id: string) => Promise<void>;
   readonly handleDelete: (id: string) => Promise<void>;
   readonly handleSetActive: (id: string) => Promise<void>;
 } {
   const [models, setModels] = useState<ModelEntry[]>([]);
   const [downloadErrors, setDownloadErrors] = useState<ReadonlyMap<string, string>>(new Map());
-  const [preparingModelId, setPreparingModelId] = useState<string | null>(null);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const refreshModels = useCallback(async (): Promise<void> => {
@@ -87,23 +84,13 @@ export function useModelsController(): {
   }
 
   async function handleSetActive(id: string): Promise<void> {
-    const definition = models.find((m) => m.definition.id === id)?.definition;
-    if (definition === undefined) return;
-
-    setPreparingModelId(id);
-    try {
-      await warmupInferenceModel(definition);
-      await repository.setActiveModel(id);
-    } finally {
-      setPreparingModelId(null);
-      await refreshModels();
-    }
+    await repository.setActiveModel(id);
+    await refreshModels();
   }
 
   return {
     models,
     downloadErrors,
-    preparingModelId,
     handleDownload,
     handleDelete,
     handleSetActive,

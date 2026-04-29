@@ -34,6 +34,15 @@ export class MoVoiceBackendFactory {
   }
 
   /**
+   * Loads the given model in its inference worker ahead of the first recording.
+   * Creates and caches the backend if not already present.
+   */
+  async prewarm(model: ModelDefinition): Promise<void> {
+    const backend = this.createBackend(model);
+    await backend.prewarm();
+  }
+
+  /**
    * Terminates any cached local model backend and releases all resources.
    */
   dispose(): void {

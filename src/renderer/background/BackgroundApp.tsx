@@ -20,9 +20,22 @@ const gateway = new IpcRecordingGateway();
 const controller = new RecordingController(
   new RecordingOrchestrator(gateway, transcriptionService),
 );
-const ignoreStateUpdate = (): void => {
-  return;
-};
+
+function prewarmSilently(): void {
+  void transcriptionService.prewarmCurrentModel().catch((err: unknown) => {
+    console.error('[BackgroundApp] prewarm failed:', err);
+  });
+}
+
+// Re-prewarm when a recording session ends so model changes made during a
+// session are picked up immediately, and the worker is ready for the next one.
+let lastRecordingPhase = '';
+function onRecordingStateChanged(state: { phase: string }): void {
+  if (state.phase === 'idle' && lastRecordingPhase !== 'idle') {
+    prewarmSilently();
+  }
+  lastRecordingPhase = state.phase;
+}
 
 /*
  * Prevents Chromium from throttling this hidden renderer tab. The lock is held
@@ -43,7 +56,17 @@ void navigator.locks.request(
  */
 export function BackgroundApp(): React.JSX.Element {
   useEffect(() => {
-    return controller.start(ignoreStateUpdate);
+    // Prewarm immediately so the inference worker is loaded before the first recording.
+    prewarmSilently();
+
+    // Poll every 10 s to pick up model changes made while the app is idle.
+    const prewarmInterval = setInterval(prewarmSilently, 10_000);
+
+    const unsubscribe = controller.start(onRecordingStateChanged);
+    return () => {
+      unsubscribe();
+      clearInterval(prewarmInterval);
+    };
   }, []);
 
   return <></>;

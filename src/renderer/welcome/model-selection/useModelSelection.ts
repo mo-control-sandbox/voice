@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ModelEntry } from '../../types/models';
 import { getRendererModelRepository } from '../../services/getRendererModelRepository';
 import { reportModelReadiness } from '../../services/ModelReadinessReporter';
-import { warmupInferenceModel } from '../../recording/services/warmupInferenceModel';
 
 const MODEL_POLL_INTERVAL_MS = 500;
 
@@ -23,17 +22,15 @@ export function useModelSelection(): {
 } {
   const [models, setModels] = useState<ModelEntry[]>([]);
   const [downloadErrors, setDownloadErrors] = useState<ReadonlyMap<string, string>>(new Map());
-  const [warmingUpModelId, setWarmingUpModelId] = useState<string | null>(null);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const hasReadyActiveModel = useMemo(
     () => models.some((model) => (
       model.isActive &&
       model.isDownloaded &&
-      model.downloadProgress === null &&
-      model.definition.id !== warmingUpModelId
+      model.downloadProgress === null
     )),
-    [models, warmingUpModelId],
+    [models],
   );
 
   const downloadingModelId = useMemo(
@@ -77,16 +74,6 @@ export function useModelSelection(): {
         });
         await modelRepository.setActiveModel(id);
         await refreshModels();
-
-        // Warm up the inference worker so WebGPU shaders are compiled before
-        // the first recording. hasReadyActiveModel stays false until this resolves.
-        const definition = (await modelRepository.getActiveModel()).definition;
-        setWarmingUpModelId(id);
-        try {
-          await warmupInferenceModel(definition);
-        } finally {
-          setWarmingUpModelId(null);
-        }
       } catch (error: unknown) {
         if (error instanceof Error && error.name === 'AbortError') return;
         console.error('[WelcomeApp] Model download failed:', error);
@@ -114,7 +101,7 @@ export function useModelSelection(): {
     models,
     downloadErrors,
     downloadingModelId,
-    warmingUpModelId,
+    warmingUpModelId: null,
     hasReadyActiveModel,
     refreshModels,
     handleModelDownload,

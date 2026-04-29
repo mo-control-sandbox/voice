@@ -39,6 +39,15 @@ export class WorkerBatchTranscriptionBackend implements BatchTranscriptionBacken
   }
 
   /**
+   * Eagerly loads the model in the worker so the first transcription call starts without delay.
+   */
+  async prewarm(): Promise<void> {
+    const worker = this.ensureWorker();
+    const ctrl = new AbortController();
+    await this.loadModel(worker, ctrl.signal);
+  }
+
+  /**
    * Terminates the underlying worker and releases local resources.
    */
   dispose(): void {

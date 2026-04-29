@@ -111,6 +111,15 @@ export class VoxtralRealtimeBackend implements StreamingTranscriptionBackend {
   }
 
   /**
+   * Eagerly loads the model in the worker so the first session starts without delay.
+   */
+  async prewarm(): Promise<void> {
+    const worker = this.ensureWorker();
+    const ctrl = new AbortController();
+    await this.loadModel(worker, ctrl.signal);
+  }
+
+  /**
    * Terminates the worker, releasing all resources.
    */
   dispose(): void {

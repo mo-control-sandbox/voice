@@ -14,7 +14,6 @@ export function ModelsPage(props: ModelsPageProps): React.JSX.Element {
   const {
     models,
     downloadErrors,
-    preparingModelId,
     handleDownload,
     handleDelete,
     handleSetActive,
@@ -40,7 +39,7 @@ export function ModelsPage(props: ModelsPageProps): React.JSX.Element {
             key={model.definition.id}
             model={model}
             error={downloadErrors.get(model.definition.id) ?? null}
-            isPreparing={preparingModelId === model.definition.id}
+            isPreparing={false}
             onDownload={() => {
               void handleDownload(model.definition.id);
             }}

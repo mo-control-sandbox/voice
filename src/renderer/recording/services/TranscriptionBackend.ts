@@ -35,6 +35,8 @@ export interface BatchTranscriptionBackend {
     language: string | null,
     signal: AbortSignal,
   ): Promise<TranscriptionResult | null>;
+  /** Eagerly loads the model in the inference worker so the first recording starts without delay. */
+  prewarm(): Promise<void>;
   dispose(): void;
 }
 
@@ -46,6 +48,8 @@ export interface BatchTranscriptionBackend {
 export interface StreamingTranscriptionBackend {
   readonly mode: 'streaming';
   beginSession(language: string | null, signal: AbortSignal): StreamingSession;
+  /** Eagerly loads the model in the inference worker so the first recording starts without delay. */
+  prewarm(): Promise<void>;
   dispose(): void;
 }
 

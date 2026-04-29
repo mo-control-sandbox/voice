@@ -112,6 +112,16 @@ export class DefaultTranscriptionService implements TranscriptionService {
   ) {}
 
   /**
+   * Eagerly loads the current active model in its inference worker.
+   * No-op if no downloaded model is active.
+   */
+  async prewarmCurrentModel(): Promise<void> {
+    const activeModel = await this.modelRepository.getActiveModel();
+    if (!activeModel.isDownloaded) return;
+    await this.backendFactory.prewarm(activeModel.definition);
+  }
+
+  /**
    * Reports whether audio pipeline is currently active.
    */
   get isAudioReady(): boolean {
