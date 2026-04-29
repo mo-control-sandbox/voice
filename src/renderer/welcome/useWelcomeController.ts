@@ -143,6 +143,25 @@ export function useWelcomeController(): {
   ]);
 
   useEffect(() => {
+    if (
+      step === 'microphone-permission'
+      && microphonePermission.microphoneStatus === PermissionStatus.PERMISSION_STATUS_GRANTED
+    ) {
+      scheduleAutoAdvance('MIC_GRANTED');
+      return;
+    }
+
+    if (step === 'microphone-permission') {
+      clearAutoAdvance();
+    }
+  }, [
+    clearAutoAdvance,
+    microphonePermission.microphoneStatus,
+    scheduleAutoAdvance,
+    step,
+  ]);
+
+  useEffect(() => {
     return () => {
       clearAutoAdvance();
     };
