@@ -99,9 +99,9 @@ export function useWelcomeController(): {
 
   const canContinue = useMemo((): boolean => {
     if (step === 'welcome-model') return modelSelection.hasReadyActiveModel;
-    if (step === 'microphone-selection') return microphoneSelection.audioDevices.length > 0;
+    if (step === 'microphone-selection') return true;
     return false;
-  }, [microphoneSelection.audioDevices.length, modelSelection.hasReadyActiveModel, step]);
+  }, [modelSelection.hasReadyActiveModel, step]);
 
   const showContinue = step !== 'microphone-permission'
     && step !== 'accessibility-permission'

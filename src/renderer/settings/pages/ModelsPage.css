@@ -25,6 +25,17 @@
   color: var(--muted-foreground);
 }
 
+.models-page__setup-hint {
+  margin-top: calc(var(--spacing) * 2);
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in oklch, var(--destructive) 35%, var(--border));
+  background-color: color-mix(in oklch, var(--destructive) 10%, var(--background));
+  color: var(--foreground);
+  padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
 /* ─── Model list ─────────────────────────────────────────────────────────── */
 
 .models-page__list {

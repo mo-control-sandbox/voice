@@ -134,9 +134,12 @@ export class SettingsStore {
   /**
    * Stores the latest model readiness state reported by the renderer.
    */
-  setModelReady(value: boolean): void {
+  setModelReady(value: boolean): boolean {
+    const previous = this.isModelReady();
+    if (previous === value) return false;
     prefs.setBoolean('modelReady', value);
     prefs.persist();
+    return true;
   }
 }
 
@@ -146,14 +149,16 @@ export class SettingsStore {
 export function registerSettingsIpc(
   settings: SettingsStore,
   shortcutManager: ShortcutManager,
+  onModelReadyChanged?: () => void,
 ): void {
-  ipc.registerService(createSettingsService(new SettingsService(settings, shortcutManager)));
+  ipc.registerService(createSettingsService(new SettingsService(settings, shortcutManager, onModelReadyChanged)));
 }
 
 class SettingsService implements SettingsServiceInterface {
   constructor(
     private readonly settings: SettingsStore,
     private readonly shortcutManager: ShortcutManager,
+    private readonly onModelReadyChanged?: () => void,
   ) {}
 
   GetSettings(_request: GetSettingsRequest) {
@@ -192,6 +197,10 @@ class SettingsService implements SettingsServiceInterface {
 
   SetActiveModelId(request: SetActiveModelIdRequest): Promise<Empty> {
     this.settings.setActiveModelId(request.activeModelId);
+    if (request.activeModelId === '') {
+      const changed = this.settings.setModelReady(false);
+      if (changed) this.onModelReadyChanged?.();
+    }
     return Promise.resolve({});
   }
 
@@ -206,7 +215,8 @@ class SettingsService implements SettingsServiceInterface {
   }
 
   SetModelReady(request: SetBooleanSettingRequest): Promise<Empty> {
-    this.settings.setModelReady(request.value);
+    const changed = this.settings.setModelReady(request.value);
+    if (changed) this.onModelReadyChanged?.();
     return Promise.resolve({});
   }
 }

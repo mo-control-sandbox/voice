@@ -8,26 +8,24 @@ import type { BrowserWindow } from '@mobrowser/api';
  * registers itself via track(). The icon is shown when the first tracked
  * window opens and hidden when the last one closes — but only after hiding
  * has been enabled via enableHiding(). Until then the Dock icon is left
- * visible (the OS default), which is required during the Welcome wizard.
+ * visible (the OS default) until hiding is enabled.
  */
 export class DockManager {
   private openCount = 0;
   private hidingEnabled = false;
 
   /**
-   * Applies the initial Dock state. Hiding is only activated when onboarding
-   * has already been completed; otherwise the Dock stays visible for the
-   * Welcome wizard.
+   * Applies the initial Dock state.
    */
-  initialize(onboardingCompleted: boolean): void {
-    if (onboardingCompleted) {
+  initialize(hidingEnabledInitially: boolean): void {
+    if (hidingEnabledInitially) {
       this.enableHiding();
     }
   }
 
   /**
-   * Allows the Dock icon to be hidden. Call this once onboarding completes.
-   * If no tracked window is currently open, hides the Dock immediately.
+   * Allows the Dock icon to be hidden. If no tracked window is currently
+   * open, hides the Dock immediately.
    */
   enableHiding(): void {
     this.hidingEnabled = true;

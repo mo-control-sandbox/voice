@@ -4,7 +4,6 @@ import type { SettingsStore } from './settings/SettingsStore';
 import type { SettingsWindow } from './settings/SettingsWindow';
 import type { HistoryWindow } from './history/HistoryWindow';
 import type { AboutWindow } from './AboutWindow';
-import type { WelcomeWindow } from './welcome/WelcomeWindow';
 import type { StartRecordingFromIntentUseCase } from './recording/StartRecordingFromIntentUseCase';
 
 /**
@@ -12,6 +11,7 @@ import type { StartRecordingFromIntentUseCase } from './recording/StartRecording
  */
 export class TrayController {
   private tray: Tray | null = null;
+  private isReady = false;
 
   constructor(
     private readonly controller: RecordingSessionController,
@@ -20,7 +20,6 @@ export class TrayController {
     private readonly settingsWindow: SettingsWindow,
     private readonly historyWindow: HistoryWindow,
     private readonly aboutWindow: AboutWindow,
-    private readonly welcomeWindow: WelcomeWindow,
   ) {}
 
   /**
@@ -31,6 +30,10 @@ export class TrayController {
     this.tray = new Tray({ imagePath, tooltip: 'MoVoice' });
     this.tray.on('mouseUp', () => { this.tray?.openMenu(); });
     this.refresh();
+  }
+
+  setReadiness(isReady: boolean): void {
+    this.isReady = isReady;
   }
 
   /**
@@ -50,7 +53,7 @@ export class TrayController {
           action: () => { this.controller.stop(); },
         })
       : (
-          hasCompletedOnboarding
+          this.isReady
             ? new MenuItem({
                 id: 'startRecording',
                 label: 'Start Recording',
@@ -63,8 +66,10 @@ export class TrayController {
             : new MenuItem({
                 id: 'continueSetup',
                 label: 'Continue Setup',
-                enabled: state === 'idle',
-                action: () => { this.welcomeWindow.show(); },
+                enabled: state === 'idle' && hasCompletedOnboarding,
+                action: () => {
+                  if (hasCompletedOnboarding) this.settingsWindow.show();
+                },
               })
         );
     this.tray.setMenu(

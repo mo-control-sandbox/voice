@@ -2,10 +2,15 @@ import { ModelCard } from '../components/ModelCard';
 import { useModelsController } from '../controllers/useModelsController';
 import './ModelsPage.css';
 
+interface ModelsPageProps {
+  readonly needsModel: boolean;
+}
+
 /**
  * Models settings page -- view, download, delete, and activate Whisper models.
  */
-export function ModelsPage(): React.JSX.Element {
+export function ModelsPage(props: ModelsPageProps): React.JSX.Element {
+  const { needsModel } = props;
   const {
     models,
     downloadErrors,
@@ -22,6 +27,11 @@ export function ModelsPage(): React.JSX.Element {
         <p className="models-page__description">
           Choose the speech recognition engine for your recordings.
         </p>
+        {needsModel && (
+          <p className="models-page__setup-hint">
+            Please select and download a model to use for transcribing.
+          </p>
+        )}
       </div>
 
       <div className="models-page__list">

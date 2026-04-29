@@ -1,4 +1,4 @@
-import type { AppReadinessService } from '../readiness/AppReadinessService';
+import type { ReadinessCoordinator } from '../readiness/ReadinessCoordinator';
 import type { WelcomeWindow } from '../welcome/WelcomeWindow';
 import type { RecordingSessionController } from './RecordingSessionController';
 
@@ -9,7 +9,7 @@ export class StartRecordingFromIntentUseCase {
   private startInFlight = false;
 
   constructor(
-    private readonly readiness: AppReadinessService,
+    private readonly readiness: ReadinessCoordinator,
     private readonly recordingController: RecordingSessionController,
     private readonly welcomeWindow: WelcomeWindow,
   ) {}

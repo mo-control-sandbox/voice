@@ -1,9 +1,11 @@
 import { LayoutDashboard, Sliders, BrainCircuit, ShieldCheck } from 'lucide-react';
+import { useEffect } from 'react';
 import { DashboardPage } from './pages/DashboardPage';
 import { GeneralPage } from './pages/GeneralPage';
 import { ModelsPage } from './pages/ModelsPage';
 import { PermissionsPage } from './pages/PermissionsPage';
 import { type SettingsPageId, useSettingsNavigationController } from './controllers/useSettingsNavigationController';
+import { useSetupRequirementsController } from './controllers/useSetupRequirementsController';
 import './App.css';
 
 const NAV_ITEMS = [
@@ -17,7 +19,12 @@ const NAV_ITEMS = [
  * Root component for the Settings window. Owns page-level navigation.
  */
 export function SettingsApp(): React.JSX.Element {
-  const { activePage, setActivePage } = useSettingsNavigationController();
+  const requirements = useSetupRequirementsController();
+  const { activePage, setActivePage, setInitialPageFromRequirements } = useSettingsNavigationController();
+
+  useEffect(() => {
+    setInitialPageFromRequirements(requirements);
+  }, [requirements, setInitialPageFromRequirements]);
 
   function renderActivePage(page: SettingsPageId | null): React.JSX.Element {
     switch (page) {
@@ -26,9 +33,14 @@ export function SettingsApp(): React.JSX.Element {
       case 'general':
         return <GeneralPage onOpenPermissions={() => { setActivePage('permissions'); }} />;
       case 'models':
-        return <ModelsPage />;
+        return <ModelsPage needsModel={requirements.needsModel} />;
       case 'permissions':
-        return <PermissionsPage />;
+        return (
+          <PermissionsPage
+            needsMicrophonePermission={requirements.needsMicrophonePermission}
+            needsAccessibilityPermission={requirements.needsAccessibilityPermission}
+          />
+        );
       case null:
         return <div className="settings-content__loading">Loading settings...</div>;
     }
@@ -50,7 +62,15 @@ export function SettingsApp(): React.JSX.Element {
               onClick={() => { setActivePage(id); }}
             >
               <Icon className="settings-nav-item__icon" aria-hidden="true" />
-              {label}
+              <span className="settings-nav-item__label">{label}</span>
+              {id === 'models' && requirements.needsModel && (
+                <span className="settings-nav-item__marker" aria-label="Action required" />
+              )}
+              {id === 'permissions' && (
+                (requirements.needsMicrophonePermission || requirements.needsAccessibilityPermission) && (
+                  <span className="settings-nav-item__marker" aria-label="Action required" />
+                )
+              )}
             </button>
           ))}
         </nav>

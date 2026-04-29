@@ -9,12 +9,16 @@ import type { PermissionTypeRequest } from '../gen/permissions';
  */
 export function registerPermissionsIpc(
   systemPermissions: SystemPermissionsService,
+  onPermissionsChanged?: () => void,
 ): void {
-  ipc.registerService(createPermissionsService(new PermissionsService(systemPermissions)));
+  ipc.registerService(createPermissionsService(new PermissionsService(systemPermissions, onPermissionsChanged)));
 }
 
 class PermissionsService implements PermissionsServiceInterface {
-  constructor(private readonly systemPermissions: SystemPermissionsService) {}
+  constructor(
+    private readonly systemPermissions: SystemPermissionsService,
+    private readonly onPermissionsChanged?: () => void,
+  ) {}
 
   /**
    * Returns the current macOS authorisation status for all required permissions.
@@ -37,6 +41,7 @@ class PermissionsService implements PermissionsServiceInterface {
    */
   async RefreshPermissions() {
     const result = await this.systemPermissions.GetPermissionsStatus({});
+    this.onPermissionsChanged?.();
     return { permissions: result.permissions };
   }
 
@@ -45,6 +50,7 @@ class PermissionsService implements PermissionsServiceInterface {
    */
   async RequestPermission(request: PermissionTypeRequest) {
     await this.systemPermissions.RequestPermission({ type: request.type });
+    this.onPermissionsChanged?.();
     return {};
   }
 }

@@ -1,10 +1,7 @@
-import { useEffect, useState } from 'react';
-import { hasMissingPermissions } from '../../capabilities/permissions/permissionSnapshot';
-import { PermissionsService } from '../services/PermissionsService';
+import { useCallback, useState } from 'react';
+import type { SetupRequirementsState } from './useSetupRequirementsController';
 
 export type SettingsPageId = 'dashboard' | 'general' | 'models' | 'permissions';
-
-const permissionsService = new PermissionsService();
 
 /**
  * Owns initial settings page selection based on required permission state.
@@ -12,30 +9,27 @@ const permissionsService = new PermissionsService();
 export function useSettingsNavigationController(): {
   readonly activePage: SettingsPageId | null;
   readonly setActivePage: (page: SettingsPageId) => void;
+} & {
+  readonly setInitialPageFromRequirements: (requirements: SetupRequirementsState) => void;
 } {
   const [activePage, setActivePage] = useState<SettingsPageId | null>(null);
 
-  useEffect(() => {
-    let isCancelled = false;
-
-    async function chooseInitialPage(): Promise<void> {
-      try {
-        const response = await permissionsService.getPermissions();
-        if (isCancelled) return;
-        setActivePage(hasMissingPermissions(response.permissions) ? 'permissions' : 'dashboard');
-      } catch {
-        if (!isCancelled) setActivePage('dashboard');
-      }
+  const setInitialPageFromRequirements = useCallback((requirements: SetupRequirementsState): void => {
+    if (activePage !== null || requirements.loading) return;
+    if (requirements.needsModel) {
+      setActivePage('models');
+      return;
     }
-
-    void chooseInitialPage();
-    return () => {
-      isCancelled = true;
-    };
-  }, []);
+    if (requirements.needsMicrophonePermission || requirements.needsAccessibilityPermission) {
+      setActivePage('permissions');
+      return;
+    }
+    setActivePage('dashboard');
+  }, [activePage]);
 
   return {
     activePage,
     setActivePage,
+    setInitialPageFromRequirements,
   };
 }

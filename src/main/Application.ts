@@ -16,7 +16,7 @@ import { SettingsWindow } from './settings/SettingsWindow';
 import { HistoryWindow } from './history/HistoryWindow';
 import { AboutWindow } from './AboutWindow';
 import { WelcomeWindow } from './welcome/WelcomeWindow';
-import { AppReadinessService } from './readiness/AppReadinessService';
+import { ReadinessCoordinator } from './readiness/ReadinessCoordinator';
 import { registerPermissionsIpc } from './system/PermissionsService';
 import { registerRecordingIpc } from './recording/RecordingSessionController';
 import { registerReverseIpcBridge } from './ipc/ReverseIpcBridge';
@@ -48,7 +48,7 @@ export class Application {
   private readonly historyWindow = new HistoryWindow(this.dockManager);
   private readonly aboutWindow = new AboutWindow(this.dockManager);
   private readonly welcomeWindow = new WelcomeWindow(this.dockManager, this.windowPermissionPolicy);
-  private readonly readiness = new AppReadinessService(this.settings, native.systemPermissions);
+  private readonly readiness = new ReadinessCoordinator(this.settings, native.systemPermissions);
   private readonly shortcutManager = new ShortcutManager();
   private readonly clipboard = new Clipboard();
   private readonly transcriptionPasteOrchestrator = new TranscriptionPasteOrchestrator(this.clipboard);
@@ -70,7 +70,6 @@ export class Application {
     this.settingsWindow,
     this.historyWindow,
     this.aboutWindow,
-    this.welcomeWindow,
   );
 
   /**
@@ -79,31 +78,37 @@ export class Application {
   async initialize(): Promise<void> {
     await this.historyStore.initialize();
     this.backgroundWindow.initialize();
+    const initialReadiness = await this.readiness.refresh();
+    this.trayController.setReadiness(initialReadiness.isReady);
     this.trayController.initialize();
 
-    this.dockManager.initialize(this.settings.hasCompletedOnboarding());
+    this.dockManager.initialize(true);
     this.registerShortcut();
 
     registerDesktopIpc();
-    registerPermissionsIpc(native.systemPermissions);
+    registerPermissionsIpc(native.systemPermissions, () => {
+      void this.readiness.refresh();
+    });
     registerReverseIpcBridge(this.recordingController, this.historyStore);
     registerRecordingIpc(this.recordingController);
-    registerSettingsIpc(this.settings, this.shortcutManager);
+    registerSettingsIpc(this.settings, this.shortcutManager, () => {
+      void this.readiness.refresh();
+    });
     registerStatsIpc(this.historyStore);
     registerHistoryIpc(this.historyStore, this.sessionStorage);
 
     this.recordingOverlay.initialize();
 
-    if (!this.settings.hasCompletedOnboarding()) {
+    if (!initialReadiness.isReady) {
       this.welcomeWindow.show();
     }
 
     this.recordingRuntimeCoordinator.initialize();
-    this.settings.onShortcutKeyChanged(() => { this.trayController.refresh(); });
-    this.settings.onOnboardingCompletionChanged(() => {
-      this.dockManager.enableHiding();
+    this.readiness.onReadinessChange((snapshot) => {
+      this.trayController.setReadiness(snapshot.isReady);
       this.trayController.refresh();
     });
+    this.settings.onShortcutKeyChanged(() => { this.trayController.refresh(); });
   }
 
   private registerShortcut(): void {

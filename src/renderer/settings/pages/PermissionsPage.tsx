@@ -4,6 +4,11 @@ import { PermissionRow, type PermissionMeta } from '../components/PermissionRow'
 import { usePermissionsController } from '../controllers/usePermissionsController';
 import './PermissionsPage.css';
 
+interface PermissionsPageProps {
+  readonly needsMicrophonePermission: boolean;
+  readonly needsAccessibilityPermission: boolean;
+}
+
 const PERMISSION_META: Partial<Record<PermissionType, PermissionMeta>> = {
   [PermissionType.PERMISSION_TYPE_MICROPHONE]: {
     label: 'Microphone',
@@ -26,7 +31,8 @@ const FALLBACK_META: PermissionMeta = {
 /**
  * Permissions settings page -- macOS permission statuses with explicit request and refresh actions.
  */
-export function PermissionsPage(): React.JSX.Element {
+export function PermissionsPage(props: PermissionsPageProps): React.JSX.Element {
+  const { needsMicrophonePermission, needsAccessibilityPermission } = props;
   const {
     loading,
     visiblePermissions,
@@ -52,6 +58,15 @@ export function PermissionsPage(): React.JSX.Element {
           <p className="permissions-page__description">
             macOS permissions required for MoVoice to record your voice and paste text into other apps.
           </p>
+          {(needsMicrophonePermission || needsAccessibilityPermission) && (
+            <p className="permissions-page__setup-hint">
+              {needsMicrophonePermission && needsAccessibilityPermission
+                ? 'Please grant Microphone and Accessibility permissions to start recording.'
+                : (needsMicrophonePermission
+                  ? 'Please grant Microphone permission to start recording.'
+                  : 'Please grant Accessibility permission to paste transcriptions into other apps.')}
+            </p>
+          )}
         </div>
       </div>
 

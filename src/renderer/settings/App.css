@@ -96,6 +96,20 @@
   pointer-events: none;
 }
 
+.settings-nav-item__label {
+  min-width: 0;
+  flex: 1;
+}
+
+.settings-nav-item__marker {
+  border-radius: 9999px;
+  width: 0.5rem;
+  height: 0.5rem;
+  flex-shrink: 0;
+  background-color: color-mix(in oklch, var(--destructive) 82%, #ff8b8b);
+  box-shadow: 0 0 0 1px color-mix(in oklch, var(--destructive) 45%, transparent);
+}
+
 /* ─── Content area ──────────────────────────────────────────────────────── */
 
 .settings-content {
