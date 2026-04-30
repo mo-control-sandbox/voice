@@ -78,8 +78,17 @@ export class Application {
   async initialize(): Promise<void> {
     await this.historyStore.initialize();
     this.backgroundWindow.initialize();
-    const initialReadiness = await this.readiness.refresh();
-    this.trayController.setReadiness(initialReadiness.isReady);
+    let initialReadinessHandled = false;
+    this.readiness.onChange((state) => {
+      const isReady = state.modelReady && state.microphoneGranted && state.accessibilityGranted;
+      this.trayController.setReadiness(isReady);
+      this.trayController.refresh();
+      if (!initialReadinessHandled) {
+        initialReadinessHandled = true;
+        if (!isReady) this.welcomeWindow.show();
+      }
+    });
+
     this.trayController.initialize();
 
     this.dockManager.initialize(true);
@@ -87,27 +96,20 @@ export class Application {
 
     registerDesktopIpc();
     registerPermissionsIpc(native.systemPermissions, () => {
-      void this.readiness.refresh();
+      void this.readiness.recompute();
     });
     registerReverseIpcBridge(this.recordingController, this.historyStore);
     registerRecordingIpc(this.recordingController);
     registerSettingsIpc(this.settings, this.shortcutManager, () => {
-      void this.readiness.refresh();
+      void this.readiness.recompute();
     });
     registerStatsIpc(this.historyStore);
     registerHistoryIpc(this.historyStore, this.sessionStorage);
 
     this.recordingOverlay.initialize();
-
-    if (!initialReadiness.isReady) {
-      this.welcomeWindow.show();
-    }
+    await this.readiness.recompute();
 
     this.recordingRuntimeCoordinator.initialize();
-    this.readiness.onReadinessChange((snapshot) => {
-      this.trayController.setReadiness(snapshot.isReady);
-      this.trayController.refresh();
-    });
     this.settings.onShortcutKeyChanged(() => { this.trayController.refresh(); });
   }
 

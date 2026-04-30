@@ -2,75 +2,87 @@ import { PermissionStatus, PermissionType } from '../gen/permissions';
 import type { SystemPermissionsService } from '../gen/native/permissions';
 import type { SettingsStore } from '../settings/SettingsStore';
 
-export interface ReadinessSnapshot {
-  readonly isReady: boolean;
+/**
+ * The stages of the application readiness to transcribe speech.
+ */
+export interface Readiness {
   readonly modelReady: boolean;
   readonly microphoneGranted: boolean;
   readonly accessibilityGranted: boolean;
 }
 
-type ReadinessListener = (snapshot: ReadinessSnapshot, previous: ReadinessSnapshot | null) => void;
+const NOT_READY: Readiness = {
+  modelReady: false,
+  microphoneGranted: false,
+  accessibilityGranted: false,
+};
+
+type ReadinessListener = (state: Readiness) => void;
 
 /**
- * Owns readiness state in the main process and publishes reactive updates.
+ * Answers the question, if the application is ready to transcribe voice to text.
  */
 export class ReadinessCoordinator {
-  private snapshot: ReadinessSnapshot | null = null;
   private readonly listeners = new Set<ReadinessListener>();
-  private refreshInFlight: Promise<ReadinessSnapshot> | null = null;
+  private state: Readiness = NOT_READY;
+  private hasComputedState = false;
+  private recomputeInFlight: Promise<void> | null = null;
 
   constructor(
     private readonly settings: SettingsStore,
     private readonly systemPermissions: SystemPermissionsService,
   ) {}
 
-  onReadinessChange(listener: ReadinessListener): () => void {
+  /**
+   * Subscribes to readiness state changes.
+   */
+  onChange(listener: ReadinessListener): () => void {
     this.listeners.add(listener);
     return () => {
       this.listeners.delete(listener);
     };
   }
 
+  /**
+   * Returns whether recording can start immediately for the current environment and settings.
+   */
   async isReady(): Promise<boolean> {
-    const snapshot = await this.refresh();
-    return snapshot.isReady;
+    await this.recompute();
+    return this.state.modelReady && this.state.microphoneGranted && this.state.accessibilityGranted;
   }
 
-  async refresh(): Promise<ReadinessSnapshot> {
-    if (this.refreshInFlight !== null) return this.refreshInFlight;
+  /**
+   * Re-evaluates readiness from settings and OS permissions, then updates state and emits change events.
+   */
+  async recompute(): Promise<void> {
+    if (this.recomputeInFlight !== null) return this.recomputeInFlight;
 
-    this.refreshInFlight = (async () => {
-      const next = await this.computeSnapshot();
-      const previous = this.snapshot;
-      let changed = false;
-      if (previous === null) {
-        changed = true;
-      } else {
-        changed = previous.modelReady !== next.modelReady
-          || previous.microphoneGranted !== next.microphoneGranted
-          || previous.accessibilityGranted !== next.accessibilityGranted
-          || previous.isReady !== next.isReady;
-      }
+    this.recomputeInFlight = (async () => {
+      const next = await this.computeReadiness();
+      const changed = !this.hasComputedState
+        || this.state.modelReady !== next.modelReady
+        || this.state.microphoneGranted !== next.microphoneGranted
+        || this.state.accessibilityGranted !== next.accessibilityGranted;
 
       if (changed) {
-        this.snapshot = next;
+        this.state = next;
+        this.hasComputedState = true;
         for (const listener of this.listeners) {
-          listener(next, previous);
+          listener(next);
         }
       }
-      this.snapshot = next;
-
-      return next;
+      this.state = next;
+      this.hasComputedState = true;
     })();
 
     try {
-      return await this.refreshInFlight;
+      return await this.recomputeInFlight;
     } finally {
-      this.refreshInFlight = null;
+      this.recomputeInFlight = null;
     }
   }
 
-  private async computeSnapshot(): Promise<ReadinessSnapshot> {
+  private async computeReadiness(): Promise<Readiness> {
     const modelReady = this.settings.isModelReady();
     const result = await this.systemPermissions.GetPermissionsStatus({});
     const grantedStatus = PermissionStatus.PERMISSION_STATUS_GRANTED as number;
@@ -87,7 +99,6 @@ export class ReadinessCoordinator {
       modelReady,
       microphoneGranted,
       accessibilityGranted,
-      isReady: modelReady && microphoneGranted && accessibilityGranted,
     };
   }
 }
