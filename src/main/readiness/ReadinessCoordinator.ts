@@ -26,7 +26,7 @@ export class ReadinessCoordinator {
   private readonly listeners = new Set<ReadinessListener>();
   private state: Readiness = NOT_READY;
   private hasComputedState = false;
-  private recomputeInFlight: Promise<void> | null = null;
+  private recomputeRoutine: Promise<void> | null = null;
 
   constructor(
     private readonly settings: SettingsStore,
@@ -55,9 +55,9 @@ export class ReadinessCoordinator {
    * Re-evaluates readiness from settings and OS permissions, then updates state and emits change events.
    */
   async recompute(): Promise<void> {
-    if (this.recomputeInFlight !== null) return this.recomputeInFlight;
+    if (this.recomputeRoutine !== null) return this.recomputeRoutine;
 
-    this.recomputeInFlight = (async () => {
+    this.recomputeRoutine = (async () => {
       const next = await this.computeReadiness();
       const changed = !this.hasComputedState
         || this.state.modelReady !== next.modelReady
@@ -76,20 +76,20 @@ export class ReadinessCoordinator {
     })();
 
     try {
-      return await this.recomputeInFlight;
+      return await this.recomputeRoutine;
     } finally {
-      this.recomputeInFlight = null;
+      this.recomputeRoutine = null;
     }
   }
 
   private async computeReadiness(): Promise<Readiness> {
     const modelReady = this.settings.isModelReady();
     const result = await this.systemPermissions.GetPermissionsStatus({});
-    const grantedStatus = PermissionStatus.PERMISSION_STATUS_GRANTED as number;
+    const grantedStatus = PermissionStatus.PERMISSION_STATUS_GRANTED;
 
     const hasGrantedPermission = (type: PermissionType): boolean => {
-      const permission = result.permissions.find((entry) => (entry.type as number) === (type as number));
-      return (permission?.status as number | undefined) === grantedStatus;
+      const permission = result.permissions.find((entry) => entry.type === type);
+      return permission?.status === grantedStatus;
     };
 
     const microphoneGranted = hasGrantedPermission(PermissionType.PERMISSION_TYPE_MICROPHONE);
