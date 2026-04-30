@@ -24,13 +24,7 @@ function formatTime(seconds: number): string {
  * Custom audio player with play/pause, scrubber, and time display.
  *
  * Creates a blob URL from the supplied audio bytes and revokes it on unmount.
- * The scrubber uses an invisible range input over a visual fill bar -- this
- * keeps the scrubber keyboard-accessible while allowing full styling control.
- *
- * Keyboard contract (when scrubber is focused):
- *   ArrowLeft / ArrowRight -- seek -/+5 s
- *   Home                   -- seek to 0:00
- *   End                    -- seek to end
+ * The scrubber uses an invisible range input over a visual fill bar.
  */
 export function AudioPlayer({ audioData }: AudioPlayerProps): React.JSX.Element {
   const audioRef   = useRef<HTMLAudioElement>(null);
@@ -82,15 +76,6 @@ export function AudioPlayer({ audioData }: AudioPlayerProps): React.JSX.Element 
     const time = parseFloat(e.target.value);
     audio.currentTime = time;
     setCurrentTime(time);
-  }
-
-  function handleScrubberKeyDown(e: React.KeyboardEvent<HTMLInputElement>): void {
-    const audio = audioRef.current;
-    if (audio === null) return;
-    if (e.key === 'ArrowLeft')  { audio.currentTime = Math.max(0, audio.currentTime - 5); e.preventDefault(); }
-    if (e.key === 'ArrowRight') { audio.currentTime = Math.min(duration, audio.currentTime + 5); e.preventDefault(); }
-    if (e.key === 'Home')       { audio.currentTime = 0; e.preventDefault(); }
-    if (e.key === 'End')        { audio.currentTime = duration; e.preventDefault(); }
   }
 
   const isNotSaved    = audioData !== null && audioData.length === 0;
@@ -146,7 +131,6 @@ export function AudioPlayer({ audioData }: AudioPlayerProps): React.JSX.Element 
               aria-label="Seek"
               disabled={isDisabled}
               onChange={handleScrubberChange}
-              onKeyDown={handleScrubberKeyDown}
             />
             <div className="audio-player__track">
               <div className="audio-player__fill" style={{ width: `${String(progress)}%` }} />
