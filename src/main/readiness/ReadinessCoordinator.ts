@@ -1,6 +1,6 @@
 import { PermissionStatus, PermissionType } from '../gen/permissions';
-import type { SystemPermissionsService } from '../gen/native/permissions';
 import type { SettingsStore } from '../settings/SettingsStore';
+import type { AppPermissionsBackend } from '../system/AppPermissionsBackend';
 
 /**
  * The stages of the application readiness to transcribe speech.
@@ -30,7 +30,7 @@ export class ReadinessCoordinator {
 
   constructor(
     private readonly settings: SettingsStore,
-    private readonly systemPermissions: SystemPermissionsService,
+    private readonly permissionsBackend: AppPermissionsBackend,
   ) {}
 
   /**
@@ -76,19 +76,19 @@ export class ReadinessCoordinator {
     })();
 
     try {
-      return await this.recomputeRoutine;
+      return this.recomputeRoutine;
     } finally {
       this.recomputeRoutine = null;
     }
   }
 
-  private async computeReadiness(): Promise<Readiness> {
+  private computeReadiness(): Readiness {
     const modelReady = this.settings.isModelReady();
-    const result = await this.systemPermissions.GetPermissionsStatus({});
+    const permissions = this.permissionsBackend.getPermissionsStatus();
     const grantedStatus = PermissionStatus.PERMISSION_STATUS_GRANTED;
 
     const hasGrantedPermission = (type: PermissionType): boolean => {
-      const permission = result.permissions.find((entry) => entry.type === type);
+      const permission = permissions.find((entry) => entry.type === type);
       return permission?.status === grantedStatus;
     };
 

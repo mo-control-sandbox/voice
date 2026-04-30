@@ -1,55 +1,53 @@
 import { ipc } from '@mobrowser/api';
-import type { SystemPermissionsService } from '../gen/native/permissions';
 import { PermissionsService as createPermissionsService, type PermissionsService as PermissionsServiceInterface } from '../gen/ipc_service';
 import type { PermissionTypeRequest } from '../gen/permissions';
+import type { AppPermissionsBackend } from './AppPermissionsBackend';
 
 /**
  * Registers the Permissions IPC service in the main process, delegating all
  * permission queries and actions to the native module.
  */
 export function registerPermissionsIpc(
-  systemPermissions: SystemPermissionsService,
+  permissionsBackend: AppPermissionsBackend,
   onPermissionsChanged?: () => void,
 ): void {
-  ipc.registerService(createPermissionsService(new PermissionsService(systemPermissions, onPermissionsChanged)));
+  ipc.registerService(createPermissionsService(new PermissionsService(permissionsBackend, onPermissionsChanged)));
 }
 
 class PermissionsService implements PermissionsServiceInterface {
   constructor(
-    private readonly systemPermissions: SystemPermissionsService,
+    private readonly permissionsBackend: AppPermissionsBackend,
     private readonly onPermissionsChanged?: () => void,
   ) {}
 
   /**
    * Returns the current macOS authorisation status for all required permissions.
    */
-  async GetPermissions() {
-    const result = await this.systemPermissions.GetPermissionsStatus({});
-    return { permissions: result.permissions };
+  GetPermissions() {
+    return Promise.resolve({ permissions: this.permissionsBackend.getPermissionsStatus() });
   }
 
   /**
    * Opens the appropriate System Settings privacy pane for the given permission type.
    */
-  async OpenSystemSettings(request: PermissionTypeRequest) {
-    await this.systemPermissions.OpenSystemSettings({ type: request.type });
-    return {};
+  OpenSystemSettings(request: PermissionTypeRequest) {
+    this.permissionsBackend.openSystemSettings(request.type);
+    return Promise.resolve({});
   }
 
   /**
    * Re-queries all permissions and returns a fresh snapshot.
    */
-  async RefreshPermissions() {
-    const result = await this.systemPermissions.GetPermissionsStatus({});
+  RefreshPermissions() {
     this.onPermissionsChanged?.();
-    return { permissions: result.permissions };
+    return Promise.resolve({ permissions: this.permissionsBackend.getPermissionsStatus() });
   }
 
   /**
    * Triggers the OS permission prompt; for already-denied permissions opens System Settings.
    */
   async RequestPermission(request: PermissionTypeRequest) {
-    await this.systemPermissions.RequestPermission({ type: request.type });
+    await this.permissionsBackend.requestPermission(request.type);
     this.onPermissionsChanged?.();
     return {};
   }

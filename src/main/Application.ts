@@ -1,4 +1,3 @@
-import { native } from './gen/native';
 import { SettingsStore } from './settings/SettingsStore';
 import { ShortcutManager } from './system/ShortcutManager';
 import { DockManager } from './system/DockManager';
@@ -22,6 +21,7 @@ import { registerStatsIpc } from './settings/StatsCalculator';
 import { registerHistoryIpc } from './sessions/History';
 import { registerDesktopIpc } from './system/DesktopService';
 import { WindowPermissionPolicy } from './windowing/WindowPermissionPolicy';
+import { AppPermissionsBackend } from './system/AppPermissionsBackend';
 
 /**
  * The application entry point.
@@ -31,7 +31,8 @@ export class Application {
   private readonly sessionStorage = new SessionStorage();
   private readonly historyStore = new History(this.sessionStorage);
   private readonly windowPermissionPolicy = new WindowPermissionPolicy();
-  private readonly readiness = new ReadinessCoordinator(this.settings, native.systemPermissions);
+  private readonly appPermissionsBackend = new AppPermissionsBackend();
+  private readonly readiness = new ReadinessCoordinator(this.settings, this.appPermissionsBackend);
 
   private readonly recordingController = new RecordingSessionController(
     this.settings,
@@ -83,7 +84,7 @@ export class Application {
     this.registerShortcut();
 
     registerDesktopIpc();
-    registerPermissionsIpc(native.systemPermissions, () => {
+    registerPermissionsIpc(this.appPermissionsBackend, () => {
       void this.readiness.recompute();
     });
     registerReverseIpcBridge(this.recordingController, this.historyStore);
