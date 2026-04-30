@@ -2,11 +2,7 @@ import { clipboard } from '@mobrowser/api';
 import { native } from '../gen/native';
 
 /**
- * Writes transcribed text to the clipboard and, when the Accessibility
- * permission allows it, synthesises Cmd+V into the current frontmost app.
- *
- * The clipboard write always happens so the user can paste manually even if
- * automatic paste is unavailable.
+ * Clipboard-backed text paste executor.
  */
 export class Clipboard {
   private readonly queue: string[] = [];

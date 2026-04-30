@@ -3,8 +3,7 @@ import { DesktopService as createDesktopService, type DesktopService as DesktopS
 import type { OpenUrlRequest } from '../gen/desktop';
 
 /**
- * Registers the Desktop IPC service in the main process, delegating
- * URL-opening requests to the OS default browser via the MoBrowser desktop API.
+ * Registers the Desktop IPC service in the main process.
  */
 export function registerDesktopIpc(): void {
   ipc.registerService(createDesktopService(new DesktopService()));
