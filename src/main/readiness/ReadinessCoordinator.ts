@@ -77,13 +77,14 @@ export class ReadinessCoordinator {
     })();
 
     try {
-      return this.recomputeRoutine;
+      await this.recomputeRoutine;
+      return;
     } finally {
       this.recomputeRoutine = null;
     }
   }
 
-  private computeReadiness(): Readiness {
+  private computeReadiness(): Promise<Readiness> {
     const modelReady = this.settings.isModelReady();
     const permissions = this.permissions.getPermissionsStatus();
     const grantedStatus = PermissionStatus.PERMISSION_STATUS_GRANTED;
@@ -96,11 +97,11 @@ export class ReadinessCoordinator {
     const microphoneGranted = hasGrantedPermission(PermissionType.PERMISSION_TYPE_MICROPHONE);
     const accessibilityGranted = hasGrantedPermission(PermissionType.PERMISSION_TYPE_ACCESSIBILITY);
 
-    return {
+    return Promise.resolve({
       modelReady,
       microphoneGranted,
       accessibilityGranted,
-    };
+    });
   }
 
   private calculateIsReady(state: Readiness): boolean {

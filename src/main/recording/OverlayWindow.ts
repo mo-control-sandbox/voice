@@ -5,8 +5,6 @@ import type { RecordingStatus } from './RecordingSessionController';
  * Native overlay window shown while a recording session is active.
  */
 export class OverlayWindow {
-  initialize(): void {}
-
   update(status: RecordingStatus): void {
     if (status === 'recording') {
       void native.recordingOverlay.Show({ phase: 'recording' });

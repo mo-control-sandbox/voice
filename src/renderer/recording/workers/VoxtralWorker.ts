@@ -275,7 +275,7 @@ async function runStreamingTranscription(
       const chunkInputs = await voxtralProcessor._call(
         audioBuffer.slice(startIdx - trimmedSamples, batchEndSample - trimmedSamples),
         { is_streaming: true, is_first_audio_chunk: false },
-      ) as SubsequentChunkOutput;
+      );
 
       yield chunkInputs.input_features;
       melFrameIdx += chunkInputs.input_features.dims[2];

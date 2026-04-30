@@ -3,7 +3,7 @@ import { globalShortcut } from '@mobrowser/api';
 /**
  * Describes a global shortcut binding and its action.
  */
-type Shortcut = {
+interface Shortcut {
   /**
    * The key combination string used for OS-level registration.
    */
@@ -12,7 +12,7 @@ type Shortcut = {
    * Handler invoked when the shortcut is triggered.
    */
   readonly handler: () => void;
-};
+}
 
 /**
  * Owns the lifecycle of the application recording shortcut in the OS registry.

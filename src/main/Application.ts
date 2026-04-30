@@ -93,7 +93,6 @@ export class Application {
     registerStatsIpc(this.historyStore);
     registerHistoryIpc(this.historyStore, this.sessionStorage);
 
-    this.overlayWindow.initialize();
     await this.readiness.recompute();
 
     this.recordingController.onStateChange((status) => {
@@ -101,10 +100,10 @@ export class Application {
       this.trayController.refresh();
     });
     this.recordingController.onTranscribed((text) => {
-      void this.clipboard.pasteText(text);
+      this.clipboard.pasteText(text);
     });
     this.recordingController.onPartiallyTranscribed((text) => {
-      void this.clipboard.pasteText(text);
+      this.clipboard.pasteText(text);
     });
     this.recordingController.onSessionAborted(() => {
       this.clipboard.cancelPending();
