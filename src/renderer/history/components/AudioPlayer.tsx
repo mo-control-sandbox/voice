@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Play, Pause } from 'lucide-react';
+import { formatPlayerClock } from '../dateTime';
 import './AudioPlayer.css';
 
 interface AudioPlayerProps {
@@ -9,15 +10,6 @@ interface AudioPlayerProps {
    * empty = audio was not saved for this session.
    */
   readonly audioData: Uint8Array | null;
-}
-
-/** Formats seconds as m:ss with zero-padded seconds. Returns "--:--" for non-finite input. */
-function formatTime(seconds: number): string {
-  if (!Number.isFinite(seconds)) return '--:--';
-  const total = Math.floor(seconds);
-  const m = Math.floor(total / 60);
-  const s = total % 60;
-  return `${String(m)}:${String(s).padStart(2, '0')}`;
 }
 
 /**
@@ -115,7 +107,7 @@ export function AudioPlayer({ audioData }: AudioPlayerProps): React.JSX.Element 
         }
       </button>
 
-      <span className="audio-player__time">{formatTime(currentTime)}</span>
+      <span className="audio-player__time">{formatPlayerClock(currentTime)}</span>
 
       {isUnavailable
         ? <span className="audio-player__unavailable">{isUnplayable ? 'Audio unavailable' : 'Audio not saved'}</span>
@@ -139,7 +131,7 @@ export function AudioPlayer({ audioData }: AudioPlayerProps): React.JSX.Element 
         )
       }
 
-      <span className="audio-player__time">{formatTime(duration)}</span>
+      <span className="audio-player__time">{formatPlayerClock(duration)}</span>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Check, Copy, FolderOpen } from 'lucide-react';
 import type { SessionRecordProto } from '../../gen/history';
+import { formatHistoryLongDateTime, formatMinutesAndSeconds } from '../dateTime';
 import { AudioPlayer } from './AudioPlayer';
 import './SessionDetail.css';
 
@@ -9,22 +10,6 @@ interface SessionDetailProps {
   readonly audioData: Uint8Array | null;
   readonly onDelete: (id: string) => void;
   readonly onOpenInFinder: (id: string) => void;
-}
-
-/** Formats a Unix ms timestamp as a long readable string. */
-function formatDate(ms: number): string {
-  return new Date(ms).toLocaleString(undefined, {
-    dateStyle: 'long',
-    timeStyle: 'short',
-  });
-}
-
-/** Formats audio duration in seconds as m:ss. */
-function formatAudioDuration(seconds: number): string {
-  const total = Math.round(seconds);
-  const m = Math.floor(total / 60);
-  const s = total % 60;
-  return `${String(m)}:${String(s).padStart(2, '0')}`;
 }
 
 /**
@@ -120,7 +105,7 @@ export function SessionDetail({
         <span className="session-detail__section-label">Details</span>
         <dl className="session-detail__meta">
           <dt className="session-detail__meta-label">Date</dt>
-          <dd className="session-detail__meta-value">{formatDate(session.startedAt)}</dd>
+          <dd className="session-detail__meta-value">{formatHistoryLongDateTime(session.startedAt)}</dd>
 
           <dt className="session-detail__meta-label">Engine</dt>
           <dd className="session-detail__meta-value">{session.transcriptionEngineLabel}</dd>
@@ -131,7 +116,7 @@ export function SessionDetail({
           </dd>
 
           <dt className="session-detail__meta-label">Audio duration</dt>
-          <dd className="session-detail__meta-value">{formatAudioDuration(session.audioDurationSeconds)}</dd>
+          <dd className="session-detail__meta-value">{formatMinutesAndSeconds(session.audioDurationSeconds)}</dd>
 
           <dt className="session-detail__meta-label">Words</dt>
           <dd className="session-detail__meta-value">{String(session.wordCount)}</dd>

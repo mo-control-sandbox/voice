@@ -1,4 +1,5 @@
 import type { SessionRecordProto } from '../../gen/history';
+import { formatHistoryShortDateTime, formatMinutesAndSeconds } from '../dateTime';
 import './SessionItem.css';
 
 interface SessionItemProps {
@@ -6,24 +7,6 @@ interface SessionItemProps {
   readonly isSelected: boolean;
   readonly onSelect: (id: string) => void;
   readonly onDelete: (id: string) => void;
-}
-
-/** Formats a Unix ms timestamp as "Apr 20, 2:34 PM". */
-function formatDate(ms: number): string {
-  return new Date(ms).toLocaleString(undefined, {
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-}
-
-/** Formats audio duration in seconds as m:ss. */
-function formatDuration(seconds: number): string {
-  const total = Math.round(seconds);
-  const m = Math.floor(total / 60);
-  const s = total % 60;
-  return `${String(m)}:${String(s).padStart(2, '0')}`;
 }
 
 /** A single row in the history session list. */
@@ -49,8 +32,8 @@ export function SessionItem({ session, isSelected, onSelect, onDelete }: Session
     >
       <div className="session-item__body">
         <div className="session-item__row">
-          <span className="session-item__date">{formatDate(session.startedAt)}</span>
-          <span className="session-item__duration">{formatDuration(session.audioDurationSeconds)}</span>
+          <span className="session-item__date">{formatHistoryShortDateTime(session.startedAt)}</span>
+          <span className="session-item__duration">{formatMinutesAndSeconds(session.audioDurationSeconds)}</span>
         </div>
         <div className="session-item__meta">
           <span className="session-item__engine">{session.transcriptionEngineLabel}</span>
