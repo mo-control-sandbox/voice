@@ -9,12 +9,9 @@ import type { WindowPermissionPolicy } from '../windowing/WindowPermissionPolicy
  * Never shown to the user. Kept alive for the application lifetime so that the
  * microphone, model weights, and warm-up state persist across recording sessions.
  */
-export class BackgroundWindow {
+export class RecordingWorkerWindow {
   constructor(private readonly permissionPolicy: WindowPermissionPolicy) {}
 
-  /**
-   * Creates the hidden window and wires up the microphone permission grant.
-   */
   initialize(): void {
     this.createWindow();
   }

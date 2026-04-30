@@ -10,7 +10,7 @@ import { StartRecordingFromIntentUseCase } from './recording/StartRecordingFromI
 import { RecordingRuntimeCoordinator } from './recording/RecordingRuntimeCoordinator';
 import { TranscriptionPasteOrchestrator } from './recording/TranscriptionPasteOrchestrator';
 import { TrayController } from './TrayController';
-import { BackgroundWindow } from './recording/BackgroundWindow';
+import { RecordingWorkerWindow } from './recording/RecordingWorkerWindow';
 import { RecordingOverlay } from './recording/RecordingOverlay';
 import { SettingsWindow } from './settings/SettingsWindow';
 import { HistoryWindow } from './sessions/HistoryWindow';
@@ -41,7 +41,7 @@ export class Application {
     this.sessionStorage,
   );
 
-  private readonly backgroundWindow = new BackgroundWindow(this.windowPermissionPolicy);
+  private readonly recordingWorkerWindow = new RecordingWorkerWindow(this.windowPermissionPolicy);
   private readonly recordingOverlay = new RecordingOverlay(this.recordingController);
   private readonly dockManager = new DockManager();
   private readonly settingsWindow = new SettingsWindow(this.dockManager, this.windowPermissionPolicy);
@@ -77,7 +77,7 @@ export class Application {
    */
   async initialize(): Promise<void> {
     await this.historyStore.initialize();
-    this.backgroundWindow.initialize();
+    this.recordingWorkerWindow.initialize();
     let initialReadinessHandled = false;
     this.readiness.onChange((state) => {
       const isReady = state.modelReady && state.microphoneGranted && state.accessibilityGranted;
