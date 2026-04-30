@@ -11,18 +11,16 @@ import type { WindowPermissionPolicy } from '../windowing/WindowPermissionPolicy
 export class WelcomeWindow {
   private readonly windowController: SingletonWindow;
 
-  /**
-   * Creates the singleton Welcome window controller and wires permission requests for onboarding flows.
-   */
   constructor(
     private readonly dockManager: DockManager,
     permissionPolicy: WindowPermissionPolicy,
   ) {
     this.windowController = new SingletonWindow(() => {
+      const size = { width: 680, height: 620 };
       const window = new BrowserWindow({
         url: rendererWindowUrl('welcome'),
-        size: { width: 680, height: 620 },
-        minimumSize: { width: 680, height: 620 },
+        size,
+        minimumSize: size,
         title: 'MoVoice Initial Configuration',
         resizable: false,
         windowTitleVisible: true,
@@ -41,9 +39,6 @@ export class WelcomeWindow {
     });
   }
 
-  /**
-   * Opens the Welcome window, or focuses it if already visible.
-   */
   show(): void {
     this.windowController.show();
   }

@@ -16,10 +16,11 @@ export class SettingsWindow {
     permissionPolicy: WindowPermissionPolicy,
   ) {
     this.windowController = new SingletonWindow(() => {
+      const size = { width: 960, height: 700 };
       const window = new BrowserWindow({
         url: rendererWindowUrl('settings'),
-        size: { width: 960, height: 700 },
-        minimumSize: { width: 960, height: 700 },
+        size,
+        minimumSize: size,
         title: 'Settings',
         resizable: false
       });

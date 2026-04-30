@@ -14,10 +14,11 @@ export class AboutWindow {
    */
   constructor(private readonly dockManager: DockManager) {
     this.windowController = new SingletonWindow(() => {
+      const size = { width: 400, height: 300 };
       const window = new BrowserWindow({
         url: rendererWindowUrl('about'),
-        size: { width: 400, height: 300 },
-        minimumSize: { width: 400, height: 300 },
+        size,
+        minimumSize: size,
         title: 'About MoVoice',
         windowTitlebarVisible: true,
         resizable: false
