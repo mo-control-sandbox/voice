@@ -51,6 +51,7 @@ export class Application {
   private readonly trayController = new TrayController(
     this.recordingController,
     this.settings,
+    this.readiness,
     this.settingsWindow,
     this.historyWindow,
     this.aboutWindow,
@@ -63,10 +64,7 @@ export class Application {
     await this.historyStore.initialize();
     this.recordingWorkerWindow.initialize();
     let initialReadinessHandled = false;
-    this.readiness.onChange((state) => {
-      const isReady = state.modelReady && state.microphoneGranted && state.accessibilityGranted;
-      this.trayController.setReadiness(isReady);
-      this.trayController.refresh();
+    this.readiness.onChange((isReady) => {
       if (!initialReadinessHandled) {
         initialReadinessHandled = true;
         if (!isReady && !this.settings.hasCompletedOnboarding()) {
@@ -75,7 +73,7 @@ export class Application {
       }
     });
 
-    this.trayController.initialize();
+    this.trayController.refresh();
 
     this.dockManager.initialize();
     this.registerShortcut();

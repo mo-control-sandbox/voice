@@ -4,42 +4,43 @@ import type { SettingsStore } from './settings/SettingsStore';
 import type { SettingsWindow } from './settings/SettingsWindow';
 import type { HistoryWindow } from './sessions/HistoryWindow';
 import type { AboutWindow } from './AboutWindow';
+import type { ReadinessCoordinator } from './readiness/ReadinessCoordinator';
 
 /**
  * Manages the menu-bar tray icon for MoVoice.
  */
 export class TrayController {
-  private tray: Tray | null = null;
+  private readonly tray: Tray;
   private isReady = false;
 
   constructor(
     private readonly controller: RecordingSessionController,
     private readonly settings: SettingsStore,
+    private readonly readiness: ReadinessCoordinator,
     private readonly settingsWindow: SettingsWindow,
     private readonly historyWindow: HistoryWindow,
     private readonly aboutWindow: AboutWindow,
-  ) {}
-
-  /**
-   * Creates the tray icon and performs the first menu build.
-   */
-  initialize(): void {
+  ) {
     const imagePath = `${app.getPath('appResources')}/imageTemplate.png`;
     this.tray = new Tray({ imagePath, tooltip: 'MoVoice' });
-    this.tray.on('mouseUp', () => { this.tray?.openMenu(); });
-    this.refresh();
+    this.tray.on('mouseUp', () => { this.tray.openMenu(); });
+    this.registerReadinessListener();
   }
 
-  setReadiness(isReady: boolean): void {
-    this.isReady = isReady;
+  /**
+   * Synchronizes tray readiness state with the readiness coordinator.
+   */
+  private registerReadinessListener(): void {
+    this.readiness.onChange((ready) => {
+      this.isReady = ready;
+      this.refresh();
+    });
   }
 
   /**
    * Rebuilds the context menu from the current recording state.
    */
   refresh(): void {
-    if (this.tray === null) return;
-
     const state = this.controller.getState();
     const { shortcutKey } = this.settings.get();
     const hasCompletedOnboarding = this.settings.hasCompletedOnboarding();

@@ -17,7 +17,7 @@ const NOT_READY: Readiness = {
   accessibilityGranted: false,
 };
 
-type ReadinessListener = (state: Readiness) => void;
+type ReadinessListener = (ready: boolean) => void;
 
 /**
  * Answers the question, if the application is ready to transcribe voice to text.
@@ -48,7 +48,7 @@ export class ReadinessCoordinator {
    */
   async isReady(): Promise<boolean> {
     await this.recompute();
-    return this.state.modelReady && this.state.microphoneGranted && this.state.accessibilityGranted;
+    return this.calculateIsReady(this.state);
   }
 
   /**
@@ -67,8 +67,9 @@ export class ReadinessCoordinator {
       if (changed) {
         this.state = next;
         this.hasComputedState = true;
+        const isReady = this.calculateIsReady(next);
         for (const listener of this.listeners) {
-          listener(next);
+          listener(isReady);
         }
       }
       this.state = next;
@@ -100,5 +101,9 @@ export class ReadinessCoordinator {
       microphoneGranted,
       accessibilityGranted,
     };
+  }
+
+  private calculateIsReady(state: Readiness): boolean {
+    return state.modelReady && state.microphoneGranted && state.accessibilityGranted;
   }
 }
