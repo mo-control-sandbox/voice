@@ -1,19 +1,19 @@
 import { BrowserWindow } from '@mobrowser/api';
 import type { DockManager } from './system/DockManager';
 import { rendererWindowUrl } from './RendererWindowUrl';
-import { SingletonWindowController } from './windowing/SingletonWindowController';
+import { SingletonWindow } from './windowing/SingletonWindow';
 
 /**
  * Manages the About dialog as a singleton window.
  */
 export class AboutWindow {
-  private readonly windowController: SingletonWindowController;
+  private readonly windowController: SingletonWindow;
 
   /**
    * Creates the singleton About window controller and registers the window with dock visibility tracking.
    */
   constructor(private readonly dockManager: DockManager) {
-    this.windowController = new SingletonWindowController(() => {
+    this.windowController = new SingletonWindow(() => {
       const window = new BrowserWindow({
         url: rendererWindowUrl('about'),
         size: { width: 400, height: 300 },

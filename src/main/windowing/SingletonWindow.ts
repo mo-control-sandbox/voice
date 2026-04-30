@@ -3,7 +3,7 @@ import type { BrowserWindow } from '@mobrowser/api';
 /**
  * Owns singleton window reuse so each caller can expose a stable show intent.
  */
-export class SingletonWindowController {
+export class SingletonWindow {
   private window: BrowserWindow | null = null;
 
   constructor(private readonly createWindow: () => BrowserWindow) {}

@@ -1,7 +1,7 @@
 import { BrowserWindow } from '@mobrowser/api';
 import type { DockManager } from '../system/DockManager';
 import { rendererWindowUrl } from '../RendererWindowUrl';
-import { SingletonWindowController } from '../windowing/SingletonWindowController';
+import { SingletonWindow } from '../windowing/SingletonWindow';
 import { attachPermissionHandler } from '../windowing/attachPermissionHandler';
 import type { WindowPermissionPolicy } from '../windowing/WindowPermissionPolicy';
 
@@ -9,13 +9,13 @@ import type { WindowPermissionPolicy } from '../windowing/WindowPermissionPolicy
  * Manages the Settings dialog as a singleton window.
  */
 export class SettingsWindow {
-  private readonly windowController: SingletonWindowController;
+  private readonly windowController: SingletonWindow;
 
   constructor(
     private readonly dockManager: DockManager,
     permissionPolicy: WindowPermissionPolicy,
   ) {
-    this.windowController = new SingletonWindowController(() => {
+    this.windowController = new SingletonWindow(() => {
       const window = new BrowserWindow({
         url: rendererWindowUrl('settings'),
         size: { width: 960, height: 700 },

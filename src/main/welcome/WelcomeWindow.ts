@@ -1,7 +1,7 @@
 import { BrowserWindow } from '@mobrowser/api';
 import type { DockManager } from '../system/DockManager';
 import { rendererWindowUrl } from '../RendererWindowUrl';
-import { SingletonWindowController } from '../windowing/SingletonWindowController';
+import { SingletonWindow } from '../windowing/SingletonWindow';
 import { attachPermissionHandler } from '../windowing/attachPermissionHandler';
 import type { WindowPermissionPolicy } from '../windowing/WindowPermissionPolicy';
 
@@ -9,7 +9,7 @@ import type { WindowPermissionPolicy } from '../windowing/WindowPermissionPolicy
  * Manages the first-launch Welcome wizard as a singleton window.
  */
 export class WelcomeWindow {
-  private readonly windowController: SingletonWindowController;
+  private readonly windowController: SingletonWindow;
 
   /**
    * Creates the singleton Welcome window controller and wires permission requests for onboarding flows.
@@ -18,7 +18,7 @@ export class WelcomeWindow {
     private readonly dockManager: DockManager,
     permissionPolicy: WindowPermissionPolicy,
   ) {
-    this.windowController = new SingletonWindowController(() => {
+    this.windowController = new SingletonWindow(() => {
       const window = new BrowserWindow({
         url: rendererWindowUrl('welcome'),
         size: { width: 680, height: 620 },
