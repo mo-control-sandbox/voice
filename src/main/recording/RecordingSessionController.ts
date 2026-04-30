@@ -99,7 +99,7 @@ export class RecordingSessionController {
       settings.saveTranscripts,
     );
 
-    this.transition('recording');
+    this.changeStatus('recording');
   }
 
   /**
@@ -107,7 +107,7 @@ export class RecordingSessionController {
    */
   stop(): void {
     if (this.stage !== 'recording') return;
-    this.transition('processing');
+    this.changeStatus('processing');
   }
 
   /**
@@ -127,7 +127,7 @@ export class RecordingSessionController {
     if (this.stage === 'idle') return;
     this.session = null;
     this.onSessionAbortedCallback?.();
-    this.transition('idle');
+    this.changeStatus('idle');
   }
 
   /**
@@ -172,7 +172,7 @@ export class RecordingSessionController {
       this.onTranscribedCallback?.(payload.text);
     }
 
-    this.transition('idle');
+    this.changeStatus('idle');
     return true;
   }
 
@@ -183,7 +183,7 @@ export class RecordingSessionController {
     return this.session;
   }
 
-  private transition(next: RecordingStatus): void {
+  private changeStatus(next: RecordingStatus): void {
     this.stage = next;
     this.onStageChangeCallback?.(next);
   }
