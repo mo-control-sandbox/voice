@@ -2,23 +2,18 @@ import { useEffect, useState } from 'react';
 import type { SessionRecordProto } from '../gen/history';
 import { SessionList } from './components/SessionList';
 import { SessionDetail } from './components/SessionDetail';
-import { historyRevisionChannel } from './infrastructure/HistoryRevisionChannel';
-import { HistoryService } from './services/HistoryService';
+import { HistoryService } from './HistoryService';
 import './HistoryApp.css';
 
 const historyService = new HistoryService();
 
 /**
  * Root component for the History window.
- *
- * Owns all IPC for the history feature via HistoryService. Fetches the session
- * list on mount and re-fetches whenever the main-side history revision changes.
- * Fetches audio data each time the selected session changes.
  */
 export function HistoryApp(): React.JSX.Element {
-  const [sessions, setSessions]   = useState<SessionRecordProto[]>([]);
+  const [sessions, setSessions] = useState<SessionRecordProto[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [audioData, setAudioData]   = useState<Uint8Array | null>(null);
+  const [audioData, setAudioData] = useState<Uint8Array | null>(null);
 
   async function fetchSessions(): Promise<void> {
     const response = await historyService.getSessions();
@@ -28,7 +23,7 @@ export function HistoryApp(): React.JSX.Element {
   useEffect(() => {
     void fetchSessions();
 
-    return historyRevisionChannel.subscribe(async () => {
+    return historyService.subscribeToHistoryChanges(async () => {
       await fetchSessions();
     });
   }, []);
