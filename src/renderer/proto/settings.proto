@@ -2,50 +2,151 @@ syntax = "proto3";
 
 import "google/protobuf/empty.proto";
 
+/**
+ * Request for loading persisted settings.
+ */
 message GetSettingsRequest {}
 
+/**
+ * Persisted settings values required by renderer features.
+ */
 message SettingsProto {
-  bool   save_transcripts      = 2;
-  bool   save_audio            = 3;
-  string shortcut_key          = 4;
+  /**
+   * Enables transcript file persistence for new sessions.
+   */
+  bool save_transcripts = 2;
+  /**
+   * Enables audio file persistence for new sessions.
+   */
+  bool save_audio = 3;
+  /**
+   * Global shortcut accelerator string.
+   */
+  string shortcut_key = 4;
+  /**
+   * Preferred input audio device identifier.
+   */
   string audio_input_device_id = 5;
-  string active_model_id       = 6;
-  string primary_language      = 7;
+  /**
+   * Active transcription model identifier.
+   */
+  string active_model_id = 6;
+  /**
+   * Preferred language code for transcription.
+   */
+  string primary_language = 7;
 }
 
+/**
+ * Request for selecting the audio input device.
+ */
 message SetAudioInputDeviceRequest {
   string device_id = 1;
 }
 
+/**
+ * Request for updating the global shortcut accelerator.
+ */
 message SetShortcutKeyRequest {
   string shortcut_key = 1;
 }
 
+/**
+ * Request for toggling one boolean setting.
+ */
 message SetBooleanSettingRequest {
   bool value = 1;
 }
 
+/**
+ * Request for toggling shortcut capture mode in settings UI.
+ */
 message SetShortcutCaptureModeRequest {
   bool capturing = 1;
 }
 
+/**
+ * Request for changing the active model identifier.
+ */
 message SetActiveModelIdRequest {
   string active_model_id = 1;
 }
 
+/**
+ * Request for changing the preferred language value.
+ */
 message SetPrimaryLanguageRequest {
   string primary_language = 1;
 }
 
+/**
+ * Dashboard metrics shown in the settings dialog.
+ */
+message DashboardStats {
+  /**
+   * Total seconds of estimated time saved by completed sessions.
+   */
+  double total_time_saved_seconds = 1;
+  /**
+   * Count of completed transcription sessions.
+   */
+  int32 total_sessions = 2;
+  /**
+   * Total words produced by completed sessions.
+   */
+  int32 total_words = 3;
+  /**
+   * Average words per minute across completed sessions.
+   */
+  double words_per_minute = 4;
+  /**
+   * Estimated keystrokes saved by completed sessions.
+   */
+  int32 keystrokes_saved = 5;
+}
+
+/**
+ * Settings read and update contract between renderer and main process.
+ */
 service SettingsService {
-  rpc GetSettings(GetSettingsRequest)                         returns (SettingsProto);
-  rpc SetAudioInputDevice(SetAudioInputDeviceRequest)         returns (google.protobuf.Empty);
-  rpc SetShortcutKey(SetShortcutKeyRequest)                   returns (google.protobuf.Empty);
-  rpc SetSaveTranscripts(SetBooleanSettingRequest)            returns (google.protobuf.Empty);
-  rpc SetSaveAudio(SetBooleanSettingRequest)                  returns (google.protobuf.Empty);
-  rpc SetShortcutCaptureMode(SetShortcutCaptureModeRequest)   returns (google.protobuf.Empty);
-  rpc SetActiveModelId(SetActiveModelIdRequest)               returns (google.protobuf.Empty);
-  rpc SetPrimaryLanguage(SetPrimaryLanguageRequest)           returns (google.protobuf.Empty);
-  rpc MarkOnboardingComplete(google.protobuf.Empty)           returns (google.protobuf.Empty);
-  rpc SetModelReady(SetBooleanSettingRequest)                 returns (google.protobuf.Empty);
+  /**
+   * Returns current persisted settings values.
+   */
+  rpc GetSettings(GetSettingsRequest) returns (SettingsProto);
+  /**
+   * Persists selected audio input device identifier.
+   */
+  rpc SetAudioInputDevice(SetAudioInputDeviceRequest) returns (google.protobuf.Empty);
+  /**
+   * Persists global shortcut accelerator.
+   */
+  rpc SetShortcutKey(SetShortcutKeyRequest) returns (google.protobuf.Empty);
+  /**
+   * Persists transcript-saving preference.
+   */
+  rpc SetSaveTranscripts(SetBooleanSettingRequest) returns (google.protobuf.Empty);
+  /**
+   * Persists audio-saving preference.
+   */
+  rpc SetSaveAudio(SetBooleanSettingRequest) returns (google.protobuf.Empty);
+  /**
+   * Enables or disables shortcut capture mode in settings.
+   */
+  rpc SetShortcutCaptureMode(SetShortcutCaptureModeRequest) returns (google.protobuf.Empty);
+  /**
+   * Persists active model identifier selection.
+   */
+  rpc SetActiveModelId(SetActiveModelIdRequest) returns (google.protobuf.Empty);
+  /**
+   * Persists preferred transcription language.
+   */
+  rpc SetPrimaryLanguage(SetPrimaryLanguageRequest) returns (google.protobuf.Empty);
+  /**
+   * Marks onboarding as completed.
+   */
+  rpc MarkOnboardingComplete(google.protobuf.Empty) returns (google.protobuf.Empty);
+  /**
+   * Persists model readiness status used by readiness checks.
+   */
+  rpc SetModelReady(SetBooleanSettingRequest) returns (google.protobuf.Empty);
 }

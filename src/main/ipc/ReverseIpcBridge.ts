@@ -1,5 +1,6 @@
 import { ipc } from '@mobrowser/api';
 import { ReverseIpcBridgeService as createReverseIpcBridgeService, type ReverseIpcBridgeService as ReverseIpcBridgeServiceInterface } from '../gen/ipc_service';
+import { RecordingPhase } from '../gen/reverse_ipc_bridge';
 import type { PollHistoryRevisionRequest, PollRecordingRequest } from '../gen/reverse_ipc_bridge';
 import type { History } from '../sessions/History';
 import type { RecordingSessionController } from '../recording/RecordingSessionController';
@@ -28,7 +29,7 @@ class ReverseIpcBridgeService implements ReverseIpcBridgeServiceInterface {
     const session = this.controller.getActiveSession();
     return Promise.resolve({
       recording: {
-        state: this.controller.getState(),
+        phase: this.toRecordingPhase(this.controller.getState()),
         sessionId: session?.id ?? '',
         startedAt: session?.startedAt ?? 0,
         saveAudio: session?.saveAudio ?? false,
@@ -41,5 +42,11 @@ class ReverseIpcBridgeService implements ReverseIpcBridgeServiceInterface {
     return Promise.resolve({
       historyRevision: this.historyRevision,
     });
+  }
+
+  private toRecordingPhase(state: string): RecordingPhase {
+    if (state === 'recording') return RecordingPhase.RECORDING_PHASE_RECORDING;
+    if (state === 'processing') return RecordingPhase.RECORDING_PHASE_PROCESSING;
+    return RecordingPhase.RECORDING_PHASE_IDLE;
   }
 }

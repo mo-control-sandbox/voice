@@ -3,16 +3,23 @@ syntax = "proto3";
 message PollRecordingRequest {}
 message PollHistoryRevisionRequest {}
 
-message RecordingSignalSnapshotProto {
-  string state               = 1;  // "idle" | "recording" | "processing"
-  string session_id          = 2;
-  int64  started_at          = 3;
-  bool   save_audio          = 4;
-  bool   save_transcripts    = 5;
+enum RecordingPhase {
+  RECORDING_PHASE_UNSPECIFIED = 0;
+  RECORDING_PHASE_IDLE = 1;
+  RECORDING_PHASE_RECORDING = 2;
+  RECORDING_PHASE_PROCESSING = 3;
+}
+
+message RecordingState {
+  RecordingPhase phase       = 1;
+  string session_id = 2;
+  int64 started_at = 3;
+  bool save_audio = 4;
+  bool save_transcripts = 5;
 }
 
 message PollRecordingResponse {
-  RecordingSignalSnapshotProto recording = 1;
+  RecordingState recording = 1;
 }
 
 message PollHistoryRevisionResponse {

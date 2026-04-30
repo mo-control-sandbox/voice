@@ -2,10 +2,22 @@ syntax = "proto3";
 
 import "google/protobuf/empty.proto";
 
+/**
+ * Request for opening an external URL in the operating system default handler.
+ */
 message OpenUrlRequest {
+  /**
+   * Absolute URL to open.
+   */
   string url = 1;
 }
 
+/**
+ * Desktop action contract owned by main process integrations.
+ */
 service DesktopService {
+  /**
+   * Opens the provided URL outside the renderer process.
+   */
   rpc OpenUrl(OpenUrlRequest) returns (google.protobuf.Empty);
 }

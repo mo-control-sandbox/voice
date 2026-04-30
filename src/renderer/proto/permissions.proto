@@ -2,12 +2,18 @@ syntax = "proto3";
 
 import "google/protobuf/empty.proto";
 
+/**
+ * Permission kinds required by renderer workflows.
+ */
 enum PermissionType {
   PERMISSION_TYPE_UNSPECIFIED = 0;
   PERMISSION_TYPE_MICROPHONE = 1;
   PERMISSION_TYPE_ACCESSIBILITY = 2;
 }
 
+/**
+ * Effective operating system permission statuses.
+ */
 enum PermissionStatus {
   PERMISSION_STATUS_UNSPECIFIED = 0;
   PERMISSION_STATUS_GRANTED = 1;
@@ -15,22 +21,46 @@ enum PermissionStatus {
   PERMISSION_STATUS_NOT_DETERMINED = 3;
 }
 
+/**
+ * Permission status entry for one permission kind.
+ */
 message PermissionStatusProto {
   PermissionType   type   = 1;
   PermissionStatus status = 2;
 }
 
+/**
+ * Response containing the current permission statuses.
+ */
 message PermissionsResponse {
   repeated PermissionStatusProto permissions = 1;
 }
 
+/**
+ * Request that targets one permission kind.
+ */
 message PermissionTypeRequest {
   PermissionType type = 1;
 }
 
+/**
+ * Permission query and permission-action contract.
+ */
 service PermissionsService {
-  rpc GetPermissions(google.protobuf.Empty)      returns (PermissionsResponse);
-  rpc OpenSystemSettings(PermissionTypeRequest)  returns (google.protobuf.Empty);
-  rpc RefreshPermissions(google.protobuf.Empty)  returns (PermissionsResponse);
-  rpc RequestPermission(PermissionTypeRequest)   returns (google.protobuf.Empty);
+  /**
+   * Returns cached permission statuses.
+   */
+  rpc GetPermissions(google.protobuf.Empty) returns (PermissionsResponse);
+  /**
+   * Opens the operating system settings pane for a permission kind.
+   */
+  rpc OpenSystemSettings(PermissionTypeRequest) returns (google.protobuf.Empty);
+  /**
+   * Re-checks permissions in the operating system and returns refreshed statuses.
+   */
+  rpc RefreshPermissions(google.protobuf.Empty) returns (PermissionsResponse);
+  /**
+   * Triggers a permission request flow for a permission kind when supported.
+   */
+  rpc RequestPermission(PermissionTypeRequest) returns (google.protobuf.Empty);
 }

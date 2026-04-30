@@ -2,39 +2,95 @@ syntax = "proto3";
 
 import "google/protobuf/empty.proto";
 
+/**
+ * Request for cancelling an active recording workflow.
+ */
 message CancelRecordingRequest {
+  /**
+   * Active recording session identifier.
+   */
   string session_id = 1;
-  string reason     = 2;
+  /**
+   * Cancellation reason code used by main process logic.
+   */
+  string reason = 2;
 }
 
+/**
+ * Request for submitting completed transcription output.
+ */
 message SubmitTranscriptionRequest {
-  string session_id                 = 1;
-  string text                       = 2;
-  string detected_language          = 3;
-  float  audio_duration_seconds     = 4;
+  /**
+   * Recording session identifier that produced this transcription.
+   */
+  string session_id = 1;
+  /**
+   * Final transcription text payload.
+   */
+  string text = 2;
+  /**
+   * Language detected for the transcribed text.
+   */
+  string detected_language = 3;
+  /**
+   * Audio duration used for transcription metrics.
+   */
+  float audio_duration_seconds = 4;
+  /**
+   * Human-readable transcription engine label.
+   */
   string transcription_engine_label = 6;
-  reserved                          7; // formerly: bytes pcm
-  bool   streamed                   = 8;
+  /**
+   * Indicates whether partial streaming updates were sent before completion.
+   */
+  bool streamed = 8;
 }
 
+/**
+ * Request for appending one PCM chunk to the active session audio artifact.
+ */
 message AppendAudioChunkRequest {
   string session_id = 1;
-  bytes  pcm        = 2;
+  bytes pcm = 2;
 }
 
+/**
+ * Request for sending one partial transcription update.
+ */
 message PastePartialTranscriptionRequest {
   string session_id = 1;
-  string text       = 2;
+  string text = 2;
 }
 
+/**
+ * Request for transitioning an active recording session into processing.
+ */
 message StopRecordingRequest {
   string session_id = 1;
 }
 
+/**
+ * Recording lifecycle and transcription-result contract.
+ */
 service RecordingService {
-  rpc CancelRecording(CancelRecordingRequest)                       returns (google.protobuf.Empty);
-  rpc SubmitTranscription(SubmitTranscriptionRequest)               returns (google.protobuf.Empty);
-  rpc PastePartialTranscription(PastePartialTranscriptionRequest)   returns (google.protobuf.Empty);
-  rpc StopRecording(StopRecordingRequest)                           returns (google.protobuf.Empty);
-  rpc AppendAudioChunk(AppendAudioChunkRequest)                     returns (google.protobuf.Empty);
+  /**
+   * Cancels an active recording session.
+   */
+  rpc CancelRecording(CancelRecordingRequest) returns (google.protobuf.Empty);
+  /**
+   * Submits completed transcription output for persistence and paste flow.
+   */
+  rpc SubmitTranscription(SubmitTranscriptionRequest) returns (google.protobuf.Empty);
+  /**
+   * Submits one partial transcription segment.
+   */
+  rpc PastePartialTranscription(PastePartialTranscriptionRequest) returns (google.protobuf.Empty);
+  /**
+   * Stops active recording and begins processing.
+   */
+  rpc StopRecording(StopRecordingRequest) returns (google.protobuf.Empty);
+  /**
+   * Appends one PCM chunk to session audio storage.
+   */
+  rpc AppendAudioChunk(AppendAudioChunkRequest) returns (google.protobuf.Empty);
 }

@@ -1,4 +1,4 @@
-import type { RecordingSignalSnapshotProto } from '../../gen/reverse_ipc_bridge';
+import { RecordingPhase, type RecordingState as RecordingSignalState } from '../../gen/reverse_ipc_bridge';
 import type { RecordingGateway } from './RecordingGateway';
 import type { RecordingState, RecordingViewState } from './RecordingState';
 import type { TranscriptionService } from './TranscriptionService';
@@ -81,10 +81,10 @@ export class RecordingOrchestrator {
   /**
    * Applies one recording snapshot update and executes required side effects.
    */
-  private async handleRecordingChanged(next: RecordingSignalSnapshotProto): Promise<void> {
+  private async handleRecordingChanged(next: RecordingSignalState): Promise<void> {
     const prevSessionId = this.lastSessionId;
     const prevState = this.lastState;
-    const nextState = this.toRecordingState(next.state);
+    const nextState = this.toRecordingState(next.phase);
 
     const sessionChanged = next.sessionId !== '' && next.sessionId !== prevSessionId;
     const stateChanged = nextState !== prevState;
@@ -190,12 +190,11 @@ export class RecordingOrchestrator {
   }
 
   /**
-   * Normalizes external snapshot state strings to supported lifecycle values.
+   * Maps proto recording phase to renderer lifecycle state.
    */
-  private toRecordingState(value: string): RecordingState {
-    if (value === 'recording' || value === 'processing' || value === 'idle') {
-      return value;
-    }
+  private toRecordingState(phase: RecordingPhase): RecordingState {
+    if (phase === RecordingPhase.RECORDING_PHASE_RECORDING) return 'recording';
+    if (phase === RecordingPhase.RECORDING_PHASE_PROCESSING) return 'processing';
     return 'idle';
   }
 }

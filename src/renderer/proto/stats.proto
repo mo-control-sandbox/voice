@@ -1,15 +1,18 @@
 syntax = "proto3";
 
+import "settings.proto";
+
+/**
+ * Request for loading dashboard metrics.
+ */
 message GetStatsRequest {}
 
-message DashboardStats {
-  double total_time_saved_seconds = 1;
-  int32  total_sessions           = 2;
-  int32  total_words              = 3;
-  double words_per_minute         = 4;
-  int32  keystrokes_saved         = 5;
-}
-
+/**
+ * Dashboard statistics retrieval contract for the settings dialog.
+ */
 service StatsService {
+  /**
+   * Returns current dashboard metrics.
+   */
   rpc GetStats(GetStatsRequest) returns (DashboardStats);
 }

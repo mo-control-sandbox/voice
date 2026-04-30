@@ -2,6 +2,9 @@ syntax = "proto3";
 
 import "google/protobuf/empty.proto";
 
+/**
+ * Request for loading stored transcription sessions.
+ */
 message GetSessionsRequest {}
 
 /**
@@ -11,34 +14,82 @@ message GetSessionsRequest {}
  * for the session.
  */
 message SessionRecordProto {
-  string id                          = 1;
-  int64  started_at                  = 2;
-  string transcription_engine_label  = 3;
-  double audio_duration_seconds      = 4;
-  int32  word_count                  = 6;
-  string transcription_text          = 7;
-  string detected_language           = 9;
+  /**
+   * Stable session identifier.
+   */
+  string id = 1;
+  /**
+   * Session start timestamp in Unix milliseconds.
+   */
+  int64 started_at = 2;
+  /**
+   * Label of the transcription engine used for this session.
+   */
+  string transcription_engine_label = 3;
+  /**
+   * Captured audio duration in seconds.
+   */
+  double audio_duration_seconds = 4;
+  /**
+   * Number of words in the final transcription text.
+   */
+  int32 word_count = 6;
+  /**
+   * Saved transcription text, or empty when transcript persistence was disabled.
+   */
+  string transcription_text = 7;
+  /**
+   * Language detected by the transcription engine.
+   */
+  string detected_language = 9;
 }
 
+/**
+ * Response containing all visible transcription sessions.
+ */
 message SessionListResponse {
   repeated SessionRecordProto sessions = 1;
 }
 
+/**
+ * Request that targets one session by identifier.
+ */
 message SessionIdRequest {
   string id = 1;
 }
 
+/**
+ * Response containing persisted audio bytes for a session.
+ */
 message AudioDataResponse {
   bytes audio_data = 1;
 }
 
+/**
+ * Request for deleting a stored session and associated artifacts.
+ */
 message DeleteSessionRequest {
   string id = 1;
 }
 
+/**
+ * History retrieval and maintenance contract.
+ */
 service HistoryService {
-  rpc GetSessions(GetSessionsRequest)              returns (SessionListResponse);
-  rpc DeleteSession(DeleteSessionRequest)          returns (google.protobuf.Empty);
-  rpc GetAudioData(SessionIdRequest)               returns (AudioDataResponse);
-  rpc RevealSessionFolder(SessionIdRequest)        returns (google.protobuf.Empty);
+  /**
+   * Returns all stored sessions for history browsing.
+   */
+  rpc GetSessions(GetSessionsRequest) returns (SessionListResponse);
+  /**
+   * Deletes one session and its persisted assets when present.
+   */
+  rpc DeleteSession(DeleteSessionRequest) returns (google.protobuf.Empty);
+  /**
+   * Returns audio bytes for a session when audio persistence is available.
+   */
+  rpc GetAudioData(SessionIdRequest) returns (AudioDataResponse);
+  /**
+   * Opens the session storage folder in the operating system file manager.
+   */
+  rpc RevealSessionFolder(SessionIdRequest) returns (google.protobuf.Empty);
 }

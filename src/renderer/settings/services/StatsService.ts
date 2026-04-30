@@ -1,5 +1,5 @@
 import { ipc } from '../../gen/ipc';
-import type { DashboardStats } from '../../gen/stats';
+import type { DashboardStats } from '../../gen/settings';
 
 /**
  * IPC adapter for the statistics domain.

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Mic, AlignLeft, Gauge, Keyboard, Clock } from 'lucide-react';
-import type { DashboardStats } from '../../gen/stats';
+import type { DashboardStats } from '../../gen/settings';
 import { StatsService } from '../services/StatsService';
 import './DashboardPage.css';
 

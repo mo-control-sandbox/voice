@@ -1,5 +1,5 @@
 import type { CancelRecordingRequest, StopRecordingRequest, SubmitTranscriptionRequest } from '../../gen/recording';
-import type { RecordingSignalSnapshotProto } from '../../gen/reverse_ipc_bridge';
+import type { RecordingState } from '../../gen/reverse_ipc_bridge';
 import type { SettingsProto } from '../../gen/settings';
 
 /**
@@ -10,7 +10,7 @@ export interface RecordingGateway {
    * Subscribes to recording signal snapshots coming from main process polling.
    */
   subscribeRecordingSignals(
-    onChanged: (snapshot: RecordingSignalSnapshotProto) => Promise<void>,
+    onChanged: (snapshot: RecordingState) => Promise<void>,
   ): () => void;
 
   /**

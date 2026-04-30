@@ -1,6 +1,6 @@
 import { ipc } from '../../gen/ipc';
 import type { CancelRecordingRequest, StopRecordingRequest, SubmitTranscriptionRequest } from '../../gen/recording';
-import type { RecordingSignalSnapshotProto } from '../../gen/reverse_ipc_bridge';
+import type { RecordingState } from '../../gen/reverse_ipc_bridge';
 import type { SettingsProto } from '../../gen/settings';
 import { recordingSignalChannel } from './RecordingSignalChannel';
 import type { RecordingGateway } from '../application/RecordingGateway';
@@ -13,7 +13,7 @@ export class IpcRecordingGateway implements RecordingGateway {
    * Registers a recording signal listener with reverse IPC polling.
    */
   subscribeRecordingSignals(
-    onChanged: (snapshot: RecordingSignalSnapshotProto) => Promise<void>,
+    onChanged: (snapshot: RecordingState) => Promise<void>,
   ): () => void {
     return recordingSignalChannel.subscribe(onChanged);
   }
