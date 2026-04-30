@@ -6,7 +6,6 @@ import { SessionStorage } from './sessions/SessionStorage';
 import { History } from './sessions/History';
 import { Clipboard } from './system/Clipboard';
 import { RecordingSessionController } from './recording/RecordingSessionController';
-import { StartRecordingFromIntentUseCase } from './recording/StartRecordingFromIntentUseCase';
 import { TranscriptionPasteOrchestrator } from './recording/TranscriptionPasteOrchestrator';
 import { TrayController } from './TrayController';
 import { RecordingWorkerWindow } from './recording/RecordingWorkerWindow';
@@ -33,32 +32,28 @@ export class Application {
   private readonly sessionStorage = new SessionStorage();
   private readonly historyStore = new History(this.sessionStorage);
   private readonly windowPermissionPolicy = new WindowPermissionPolicy();
+  private readonly readiness = new ReadinessCoordinator(this.settings, native.systemPermissions);
 
   private readonly recordingController = new RecordingSessionController(
     this.settings,
     this.historyStore,
     this.sessionStorage,
+    this.readiness,
+    () => { this.openSetupWindow(); },
   );
 
   private readonly recordingWorkerWindow = new RecordingWorkerWindow(this.windowPermissionPolicy);
-  private readonly overlayWindow = new OverlayWindow(this.recordingController);
+  private readonly overlayWindow = new OverlayWindow();
   private readonly dockManager = new DockManager();
   private readonly settingsWindow = new SettingsWindow(this.dockManager, this.windowPermissionPolicy);
   private readonly historyWindow = new HistoryWindow(this.dockManager);
   private readonly aboutWindow = new AboutWindow(this.dockManager);
   private readonly welcomeWindow = new WelcomeWindow(this.dockManager, this.windowPermissionPolicy);
-  private readonly readiness = new ReadinessCoordinator(this.settings, native.systemPermissions);
   private readonly shortcutManager = new ShortcutManager();
   private readonly clipboard = new Clipboard();
   private readonly transcriptionPasteOrchestrator = new TranscriptionPasteOrchestrator(this.clipboard);
-  private readonly startRecordingFromIntent = new StartRecordingFromIntentUseCase(
-    this.readiness,
-    this.recordingController,
-    this.welcomeWindow,
-  );
   private readonly trayController = new TrayController(
     this.recordingController,
-    this.startRecordingFromIntent,
     this.settings,
     this.settingsWindow,
     this.historyWindow,
@@ -78,7 +73,9 @@ export class Application {
       this.trayController.refresh();
       if (!initialReadinessHandled) {
         initialReadinessHandled = true;
-        if (!isReady) this.welcomeWindow.show();
+        if (!isReady && !this.settings.hasCompletedOnboarding()) {
+          this.welcomeWindow.show();
+        }
       }
     });
 
@@ -102,7 +99,10 @@ export class Application {
     this.overlayWindow.initialize();
     await this.readiness.recompute();
 
-    this.recordingController.onStateChange(() => { this.trayController.refresh(); });
+    this.recordingController.onStateChange((status) => {
+      this.overlayWindow.update(status);
+      this.trayController.refresh();
+    });
     this.recordingController.onTranscribed((text) => {
       this.transcriptionPasteOrchestrator.onTranscriptionCompleted(text);
     });
@@ -127,7 +127,15 @@ export class Application {
         this.recordingController.cancel();
         return;
       }
-      void this.startRecordingFromIntent.startFromUserIntent();
+      void this.recordingController.start();
     });
+  }
+
+  private openSetupWindow(): void {
+    if (!this.settings.hasCompletedOnboarding()) {
+      this.welcomeWindow.show();
+      return;
+    }
+    this.settingsWindow.show();
   }
 }

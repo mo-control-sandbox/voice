@@ -1,9 +1,11 @@
 import { ipc } from '@mobrowser/api';
+import { Mutex } from 'async-mutex';
 import {
   RecordingService as createRecordingService,
   type RecordingService as RecordingServiceInterface,
 } from '../gen/ipc_service';
 import type { AppendAudioChunkRequest, CancelRecordingRequest, PastePartialTranscriptionRequest, StopRecordingRequest, SubmitTranscriptionRequest } from '../gen/recording';
+import type { ReadinessCoordinator } from '../readiness/ReadinessCoordinator';
 import type { SettingsStore } from '../settings/SettingsStore';
 import type { History, TranscriptionSession } from '../sessions/History';
 import type { SessionStorage } from '../sessions/SessionStorage';
@@ -27,6 +29,7 @@ export type PartialTranscriptionCallback = (text: string) => void;
 export class RecordingSessionController {
   private stage: RecordingStatus = 'idle';
   private session: RecordingSession | null = null;
+  private readonly startMutex = new Mutex();
 
   private onStageChangeCallback: ((stage: RecordingStatus) => void) | null = null;
   private onSessionAbortedCallback: (() => void) | null = null;
@@ -40,6 +43,8 @@ export class RecordingSessionController {
     private readonly settings: SettingsStore,
     private readonly historyStore: History,
     private readonly sessionStorage: SessionStorage,
+    private readonly readiness: ReadinessCoordinator,
+    private readonly onNotReady: () => void,
   ) {}
 
   /**
@@ -90,16 +95,26 @@ export class RecordingSessionController {
    *
    * No-op if already recording or processing.
    */
-  start(): void {
-    if (this.stage !== 'idle') return;
+  async start(): Promise<void> {
+    if (this.startMutex.isLocked()) return;
 
-    const settings = this.settings.get();
-    this.session = new RecordingSession(
-      settings.saveAudio,
-      settings.saveTranscripts,
-    );
+    await this.startMutex.runExclusive(async () => {
+      if (this.stage !== 'idle') return;
 
-    this.changeStatus('recording');
+      const ready = await this.readiness.isReady();
+      if (!ready) {
+        this.onNotReady();
+        return;
+      }
+
+      const settings = this.settings.get();
+      this.session = new RecordingSession(
+        settings.saveAudio,
+        settings.saveTranscripts,
+      );
+
+      this.changeStatus('recording');
+    });
   }
 
   /**
@@ -196,9 +211,6 @@ export class RecordingSessionController {
 
 /**
  * Registers the Recording IPC service.
- *
- * Handles both CancelRecording and SubmitTranscription, delegating
- * recording lifecycle updates and persistence to RecordingSessionController.
  */
 export function registerRecordingIpc(controller: RecordingSessionController): void {
   ipc.registerService(createRecordingService(new RecordingService(controller)));
