@@ -7,7 +7,6 @@ import { History } from './sessions/History';
 import { Clipboard } from './system/Clipboard';
 import { RecordingSessionController } from './recording/RecordingSessionController';
 import { StartRecordingFromIntentUseCase } from './recording/StartRecordingFromIntentUseCase';
-import { RecordingRuntimeCoordinator } from './recording/RecordingRuntimeCoordinator';
 import { TranscriptionPasteOrchestrator } from './recording/TranscriptionPasteOrchestrator';
 import { TrayController } from './TrayController';
 import { RecordingWorkerWindow } from './recording/RecordingWorkerWindow';
@@ -39,6 +38,17 @@ export class Application {
     this.settings,
     this.historyStore,
     this.sessionStorage,
+    {
+      onTranscriptionCompleted: (text) => {
+        this.transcriptionPasteOrchestrator.onTranscriptionCompleted(text);
+      },
+      onPartialTranscription: (text) => {
+        this.transcriptionPasteOrchestrator.onPartialTranscription(text);
+      },
+      onSessionAborted: () => {
+        this.transcriptionPasteOrchestrator.onSessionAborted();
+      },
+    },
   );
 
   private readonly recordingWorkerWindow = new RecordingWorkerWindow(this.windowPermissionPolicy);
@@ -57,12 +67,6 @@ export class Application {
     this.recordingController,
     this.welcomeWindow,
   );
-  private readonly recordingRuntimeCoordinator = new RecordingRuntimeCoordinator(
-    this.recordingController,
-    this.transcriptionPasteOrchestrator,
-    () => { this.trayController.refresh(); },
-  );
-
   private readonly trayController = new TrayController(
     this.recordingController,
     this.startRecordingFromIntent,
@@ -109,7 +113,7 @@ export class Application {
     this.overlayWindow.initialize();
     await this.readiness.recompute();
 
-    this.recordingRuntimeCoordinator.initialize();
+    this.recordingController.onStateChange(() => { this.trayController.refresh(); });
     this.settings.onShortcutKeyChanged(() => { this.trayController.refresh(); });
   }
 

@@ -23,6 +23,15 @@ export type TranscriptionCompletedCallback = (text: string) => void;
 export type PartialTranscriptionCallback = (text: string) => void;
 
 /**
+ * Runtime side-effect callbacks emitted by the recording session lifecycle.
+ */
+export type RecordingRuntimeListeners = {
+  onTranscriptionCompleted?: TranscriptionCompletedCallback;
+  onPartialTranscription?: PartialTranscriptionCallback;
+  onSessionAborted?: () => void;
+};
+
+/**
  * Controls the recording session lifecycle: idle, recording, processing, and back to idle.
  */
 export class RecordingSessionController {
@@ -31,9 +40,6 @@ export class RecordingSessionController {
   private audioBuffer: AudioBuffer | null = null;
 
   private readonly listeners: ((state: RecordingState) => void)[] = [];
-  private readonly completionListeners: TranscriptionCompletedCallback[] = [];
-  private readonly partialListeners: PartialTranscriptionCallback[] = [];
-  private readonly abortListeners: (() => void)[] = [];
 
   /**
    * Creates a recording session controller with persistence and settings dependencies.
@@ -42,6 +48,7 @@ export class RecordingSessionController {
     private readonly settings: SettingsStore,
     private readonly historyStore: History,
     private readonly sessionStorage: SessionStorage,
+    private readonly runtimeListeners: RecordingRuntimeListeners = {},
   ) {}
 
   /**
@@ -65,37 +72,13 @@ export class RecordingSessionController {
   }
 
   /**
-   * Registers a callback that fires when a non-streaming transcription is successfully submitted.
-   */
-  onTranscriptionCompleted(cb: TranscriptionCompletedCallback): void {
-    this.completionListeners.push(cb);
-  }
-
-  /**
-   * Registers a callback that fires for each partial transcription chunk
-   * received during a streaming session.
-   */
-  onPartialTranscription(cb: PartialTranscriptionCallback): void {
-    this.partialListeners.push(cb);
-  }
-
-  /**
-   * Registers a callback fired when the active session is aborted.
-   */
-  onSessionAborted(cb: () => void): void {
-    this.abortListeners.push(cb);
-  }
-
-  /**
-   * Forwards a partial transcription chunk to all registered partial listeners.
+   * Forwards one partial transcription chunk to the runtime listener.
    *
    * Returns false if the session ID does not match the active session.
    */
   pastePartialTranscription(payload: PastePartialTranscriptionRequest): boolean {
     if (this.session?.id !== payload.sessionId) return false;
-    for (const cb of this.partialListeners) {
-      cb(payload.text);
-    }
+    this.runtimeListeners.onPartialTranscription?.(payload.text);
     return true;
   }
 
@@ -153,9 +136,7 @@ export class RecordingSessionController {
     if (this.state === 'idle') return;
     this.session = null;
     this.audioBuffer = null;
-    for (const cb of this.abortListeners) {
-      cb();
-    }
+    this.runtimeListeners.onSessionAborted?.();
     this.transition('idle');
   }
 
@@ -199,9 +180,7 @@ export class RecordingSessionController {
     this.audioBuffer = null;
 
     if (!payload.streamed) {
-      for (const cb of this.completionListeners) {
-        cb(payload.text);
-      }
+      this.runtimeListeners.onTranscriptionCompleted?.(payload.text);
     }
 
     this.transition('idle');
