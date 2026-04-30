@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { AudioBuffer } from '../sessions/AudioBuffer';
 
 /**
  * A recording session.
@@ -14,6 +15,11 @@ export class RecordingSession {
    */
   readonly startedAt = Date.now();
 
+  /**
+   * Buffered audio captured for this session when audio persistence is enabled.
+   */
+  readonly audioBuffer: AudioBuffer | null;
+
   constructor(
     /**
      * Whether audio should be written to disk for this session.
@@ -23,5 +29,7 @@ export class RecordingSession {
      * Whether the transcript should be written to disk for this session.
      */
     readonly saveTranscripts: boolean,
-  ) {}
+  ) {
+    this.audioBuffer = saveAudio ? new AudioBuffer() : null;
+  }
 }

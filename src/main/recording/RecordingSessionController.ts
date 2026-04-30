@@ -5,7 +5,6 @@ import {
 } from '../gen/ipc_service';
 import type { AppendAudioChunkRequest, CancelRecordingRequest, PastePartialTranscriptionRequest, StopRecordingRequest, SubmitTranscriptionRequest } from '../gen/recording';
 import type { SettingsStore } from '../settings/SettingsStore';
-import { AudioBuffer } from '../sessions/AudioBuffer';
 import type { History, TranscriptionSession } from '../sessions/History';
 import type { SessionStorage } from '../sessions/SessionStorage';
 import { RecordingSession } from './RecordingSession';
@@ -25,7 +24,7 @@ export type PartialTranscriptionCallback = (text: string) => void;
 /**
  * Runtime side-effect callbacks emitted by the recording session lifecycle.
  */
-export type RecordingRuntimeListeners = {
+export type RecordingRuntimeListener = {
   onTranscriptionCompleted?: TranscriptionCompletedCallback;
   onPartialTranscription?: PartialTranscriptionCallback;
   onSessionAborted?: () => void;
@@ -37,7 +36,6 @@ export type RecordingRuntimeListeners = {
 export class RecordingSessionController {
   private state: RecordingState = 'idle';
   private session: RecordingSession | null = null;
-  private audioBuffer: AudioBuffer | null = null;
 
   private readonly listeners: ((state: RecordingState) => void)[] = [];
 
@@ -48,7 +46,7 @@ export class RecordingSessionController {
     private readonly settings: SettingsStore,
     private readonly historyStore: History,
     private readonly sessionStorage: SessionStorage,
-    private readonly runtimeListeners: RecordingRuntimeListeners = {},
+    private readonly runtimeListeners: RecordingRuntimeListener = {},
   ) {}
 
   /**
@@ -106,7 +104,6 @@ export class RecordingSessionController {
       !settings.dontSaveAudio,
       !settings.dontSaveTranscripts,
     );
-    this.audioBuffer = this.session.saveAudio ? new AudioBuffer() : null;
 
     this.transition('recording');
   }
@@ -126,7 +123,7 @@ export class RecordingSessionController {
    */
   appendAudioChunk(payload: AppendAudioChunkRequest): void {
     if (this.session?.id !== payload.sessionId) return;
-    this.audioBuffer?.append(payload.pcm);
+    this.session.audioBuffer?.append(payload.pcm);
   }
 
   /**
@@ -135,7 +132,6 @@ export class RecordingSessionController {
   cancel(): void {
     if (this.state === 'idle') return;
     this.session = null;
-    this.audioBuffer = null;
     this.runtimeListeners.onSessionAborted?.();
     this.transition('idle');
   }
@@ -168,8 +164,8 @@ export class RecordingSessionController {
 
     await this.historyStore.addSession(record);
 
-    if (session.saveAudio && this.audioBuffer !== null) {
-      await this.sessionStorage.saveAudio(session.id, this.audioBuffer.toWavBytes());
+    if (session.saveAudio && session.audioBuffer !== null) {
+      await this.sessionStorage.saveAudio(session.id, session.audioBuffer.toWavBytes());
     }
 
     if (session.saveTranscripts) {
@@ -177,7 +173,6 @@ export class RecordingSessionController {
     }
 
     this.session = null;
-    this.audioBuffer = null;
 
     if (!payload.streamed) {
       this.runtimeListeners.onTranscriptionCompleted?.(payload.text);
