@@ -24,9 +24,9 @@ export interface TranscriptionSession {
  */
 export class History {
   private readonly historyPath: string;
-  private sessions: TranscriptionSession[] = [];
   private readonly persistMutex = new Mutex();
   private readonly changeListeners = new Set<() => void>();
+  private sessions: TranscriptionSession[] = [];
 
   constructor(private readonly sessionStorage: SessionStorage) {
     this.historyPath = path.join(app.getPath('userData'), 'history.json');
