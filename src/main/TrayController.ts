@@ -24,13 +24,6 @@ export class TrayController {
     const imagePath = `${app.getPath('appResources')}/imageTemplate.png`;
     this.tray = new Tray({ imagePath, tooltip: 'MoVoice' });
     this.tray.on('mouseUp', () => { this.tray.openMenu(); });
-    this.registerReadinessListener();
-  }
-
-  /**
-   * Synchronizes tray readiness state with the readiness coordinator.
-   */
-  private registerReadinessListener(): void {
     this.readiness.onChange((ready) => {
       this.isReady = ready;
       this.refresh();
@@ -41,64 +34,86 @@ export class TrayController {
    * Rebuilds the context menu from the current recording state.
    */
   refresh(): void {
+    const items = [
+      this.createRecordingActionItem(),
+      ...this.createNavigationItems(),
+      ...this.createApplicationItems(),
+    ];
+    this.tray.setMenu(new Menu({ items }));
+  }
+
+  /**
+   * Returns the primary action item based on recording and readiness state.
+   */
+  private createRecordingActionItem(): MenuItem {
     const state = this.controller.getState();
     const { shortcutKey } = this.settings.get();
+    if (state !== 'idle') {
+      return new MenuItem({
+        id: 'stopRecording',
+        label: 'Stop',
+        shortcut: shortcutKey,
+        action: () => { this.controller.cancel(); },
+      });
+    }
+    if (this.isReady) {
+      return new MenuItem({
+        id: 'startRecording',
+        label: 'Start Recording',
+        shortcut: shortcutKey,
+        enabled: true,
+        action: () => {
+          void this.controller.start();
+        },
+      });
+    }
+
     const hasCompletedOnboarding = this.settings.hasCompletedOnboarding();
-    const recordingMenuItem = state !== 'idle'
-      ? new MenuItem({
-          id: 'stopRecording',
-          label: 'Stop',
-          shortcut: shortcutKey,
-          action: () => { this.controller.cancel(); },
-        })
-      : (
-          this.isReady
-            ? new MenuItem({
-                id: 'startRecording',
-                label: 'Start Recording',
-                shortcut: shortcutKey,
-                enabled: true,
-                action: () => {
-                  void this.controller.start();
-                },
-              })
-            : new MenuItem({
-                id: 'continueSetup',
-                label: 'Continue Setup',
-                enabled: hasCompletedOnboarding,
-                action: () => {
-                  if (hasCompletedOnboarding) this.settingsWindow.show();
-                },
-              })
-        );
-    this.tray.setMenu(
-      new Menu({
-        items: [
-          recordingMenuItem,
-          new MenuItem({
-            id: 'openHistory',
-            label: 'History',
-            action: () => { this.historyWindow.show(); },
-          }),
-          'separator',
-          new MenuItem({
-            id: 'openSettings',
-            label: 'Settings',
-            action: () => { this.settingsWindow.show(); },
-          }),
-          new MenuItem({
-            id: 'openAbout',
-            label: 'About MoVoice',
-            action: () => { this.aboutWindow.show(); },
-          }),
-          'separator',
-          new MenuItem({
-            id: 'quit',
-            label: 'Quit',
-            action: () => { app.quit(); },
-          }),
-        ],
+    return new MenuItem({
+      id: 'continueSetup',
+      label: 'Continue Setup',
+      enabled: hasCompletedOnboarding,
+      action: () => {
+        if (hasCompletedOnboarding) this.settingsWindow.show();
+      },
+    });
+  }
+
+  /**
+   * Returns items that navigate to secondary application windows.
+   */
+  private createNavigationItems(): (MenuItem | 'separator')[] {
+    return [
+      new MenuItem({
+        id: 'openHistory',
+        label: 'History',
+        action: () => { this.historyWindow.show(); },
       }),
-    );
+      'separator',
+      new MenuItem({
+        id: 'openSettings',
+        label: 'Settings',
+        action: () => { this.settingsWindow.show(); },
+      }),
+      new MenuItem({
+        id: 'openAbout',
+        label: 'About MoVoice',
+        action: () => { this.aboutWindow.show(); },
+      }),
+    ];
+  }
+
+  /**
+   * Returns items that manage application-level actions.
+   */
+  private createApplicationItems(): (MenuItem | 'separator')[] {
+    return [
+      'separator',
+      new MenuItem({
+        id: 'quit',
+        label: 'Quit',
+        action: () => { app.quit(); },
+      }),
+    ];
   }
 }
