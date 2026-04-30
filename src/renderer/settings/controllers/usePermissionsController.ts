@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { PermissionStatus, type PermissionStatusProto, type PermissionType } from '../../gen/permissions';
 import {
   REQUIRED_PERMISSION_TYPES,
-  SETTINGS_PERMISSION_POLL_INTERVAL_MS,
+  PERMISSION_POLL_INTERVAL_MS,
   SETTINGS_PERMISSION_POLL_TIMEOUT_MS,
 } from '../../capabilities/permissions/constants';
 import { hasMissingPermissions } from '../../capabilities/permissions/permissionSnapshot';
@@ -39,7 +39,7 @@ export function usePermissionsController(): {
     startPolling: startPermissionPolling,
     stopPolling: clearPermissionPolling,
   } = usePermissionPolling({
-    intervalMs: SETTINGS_PERMISSION_POLL_INTERVAL_MS,
+    intervalMs: PERMISSION_POLL_INTERVAL_MS,
     timeoutMs: SETTINGS_PERMISSION_POLL_TIMEOUT_MS,
     poll: async (): Promise<boolean> => {
       const latestPermissions = await refreshPermissionsSnapshot();

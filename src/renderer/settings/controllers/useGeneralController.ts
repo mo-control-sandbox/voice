@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { PermissionStatus, PermissionType } from '../../gen/permissions';
 import { getAudioInputDevices, type AudioInputDevice, subscribeToAudioInputChanges } from '../../capabilities/audio/audioInputDevices';
 import {
-  SETTINGS_PERMISSION_POLL_INTERVAL_MS,
+  PERMISSION_POLL_INTERVAL_MS,
   SETTINGS_PERMISSION_POLL_TIMEOUT_MS,
 } from '../../capabilities/permissions/constants';
 import { getPermissionStatus } from '../../capabilities/permissions/permissionSnapshot';
@@ -120,7 +120,7 @@ export function useGeneralController(): {
     startPolling: startMicPermissionPolling,
     stopPolling: clearMicPermissionPolling,
   } = usePermissionPolling({
-    intervalMs: SETTINGS_PERMISSION_POLL_INTERVAL_MS,
+    intervalMs: PERMISSION_POLL_INTERVAL_MS,
     timeoutMs: SETTINGS_PERMISSION_POLL_TIMEOUT_MS,
     poll: async (): Promise<boolean> => {
       const status = await refreshMicPermissionStatus();
