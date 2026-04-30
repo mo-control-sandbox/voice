@@ -20,7 +20,6 @@ import { registerSettingsIpc } from './settings/SettingsStore';
 import { registerStatsIpc } from './settings/StatsCalculator';
 import { registerHistoryIpc } from './sessions/History';
 import { registerDesktopIpc } from './system/DesktopService';
-import { WindowPermissionPolicy } from './windowing/WindowPermissionPolicy';
 
 /**
  * The application entry point.
@@ -29,7 +28,6 @@ export class Application {
   private readonly settings = new SettingsStore();
   private readonly sessionStorage = new SessionStorage();
   private readonly historyStore = new History(this.sessionStorage);
-  private readonly windowPermissionPolicy = new WindowPermissionPolicy();
   private readonly permissions = new Permissions();
   private readonly readiness = new ReadinessCoordinator(this.settings, this.permissions);
 
@@ -41,13 +39,13 @@ export class Application {
     () => { this.openSetupWindow(); },
   );
 
-  private readonly recordingWorkerWindow = new RecordingWorkerWindow(this.windowPermissionPolicy);
+  private readonly recordingWorkerWindow = new RecordingWorkerWindow();
   private readonly overlayWindow = new OverlayWindow();
   private readonly dockManager = new DockManager();
-  private readonly settingsWindow = new SettingsWindow(this.dockManager, this.windowPermissionPolicy);
+  private readonly settingsWindow = new SettingsWindow(this.dockManager);
   private readonly historyWindow = new HistoryWindow(this.dockManager);
   private readonly aboutWindow = new AboutWindow(this.dockManager);
-  private readonly welcomeWindow = new WelcomeWindow(this.dockManager, this.windowPermissionPolicy);
+  private readonly welcomeWindow = new WelcomeWindow(this.dockManager);
   private readonly shortcutManager = new ShortcutManager();
   private readonly clipboard = new Clipboard();
   private readonly trayController = new TrayController(

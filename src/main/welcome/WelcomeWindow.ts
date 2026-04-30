@@ -3,7 +3,6 @@ import type { DockManager } from '../system/DockManager';
 import { attachPermissionHandler } from '../system/Permissions';
 import { rendererWindowUrl } from '../RendererWindowUrl';
 import { SingletonWindow } from '../windowing/SingletonWindow';
-import type { WindowPermissionPolicy } from '../windowing/WindowPermissionPolicy';
 
 /**
  * Manages the first-launch Welcome wizard as a singleton window.
@@ -11,10 +10,7 @@ import type { WindowPermissionPolicy } from '../windowing/WindowPermissionPolicy
 export class WelcomeWindow {
   private readonly windowController: SingletonWindow;
 
-  constructor(
-    private readonly dockManager: DockManager,
-    permissionPolicy: WindowPermissionPolicy,
-  ) {
+  constructor(private readonly dockManager: DockManager) {
     this.windowController = new SingletonWindow(() => {
       const size = { width: 680, height: 620 };
       const window = new BrowserWindow({
@@ -32,7 +28,7 @@ export class WelcomeWindow {
           zoom: false,
         },
       });
-      attachPermissionHandler(window, permissionPolicy);
+      attachPermissionHandler(window);
       window.centerWindow();
       this.dockManager.track(window);
       return window;

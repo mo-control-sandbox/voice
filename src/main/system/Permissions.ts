@@ -8,7 +8,6 @@ import {
 } from '@mobrowser/api';
 import { PermissionStatus, PermissionType, type PermissionStatusProto, type PermissionTypeRequest } from '../gen/permissions';
 import { PermissionsService as createPermissionsService, type PermissionsService as PermissionsServiceInterface } from '../gen/ipc_service';
-import type { WindowPermissionPolicy } from '../windowing/WindowPermissionPolicy';
 
 /**
  * Translates MoVoice permission types to MōBrowser application permissions.
@@ -59,14 +58,13 @@ export class Permissions {
 }
 
 /**
- * Connects window permission requests to the shared permission policy.
+ * Connects window permission requests to the shared application permission policy.
  */
-export function attachPermissionHandler(
-  window: BrowserWindow,
-  permissionPolicy: WindowPermissionPolicy,
-): void {
-  window.browser.handle('requestPermissions', (params: RequestPermissionsParams) => (
-    Promise.resolve(permissionPolicy.getAction(params))
+export function attachPermissionHandler(window: BrowserWindow): void {
+  window.browser.handle('requestPermissions', async (params: RequestPermissionsParams) => (
+    params.permissionType === 'microphone' || params.permissionType === 'AudioCapture'
+      ? 'grant'
+      : 'deny'
   ));
 }
 

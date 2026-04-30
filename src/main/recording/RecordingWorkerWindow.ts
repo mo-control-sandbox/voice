@@ -1,7 +1,6 @@
 import { BrowserWindow } from '@mobrowser/api';
 import { rendererWindowUrl } from '../RendererWindowUrl';
 import { attachPermissionHandler } from '../system/Permissions';
-import type { WindowPermissionPolicy } from '../windowing/WindowPermissionPolicy';
 
 /**
  * Persistent hidden window that hosts the audio capture and transcription pipeline.
@@ -10,8 +9,6 @@ import type { WindowPermissionPolicy } from '../windowing/WindowPermissionPolicy
  * microphone, model weights, and warm-up state persist across recording sessions.
  */
 export class RecordingWorkerWindow {
-  constructor(private readonly permissionPolicy: WindowPermissionPolicy) {}
-
   initialize(): void {
     this.createWindow();
   }
@@ -21,7 +18,7 @@ export class RecordingWorkerWindow {
       url: rendererWindowUrl('background'),
       activationIndependenceEnabled: true,
     });
-    attachPermissionHandler(win, this.permissionPolicy);
+    attachPermissionHandler(win);
     return win;
   }
 }

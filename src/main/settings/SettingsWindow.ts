@@ -3,7 +3,6 @@ import { attachPermissionHandler } from '../system/Permissions';
 import type { DockManager } from '../system/DockManager';
 import { rendererWindowUrl } from '../RendererWindowUrl';
 import { SingletonWindow } from '../windowing/SingletonWindow';
-import type { WindowPermissionPolicy } from '../windowing/WindowPermissionPolicy';
 
 /**
  * Manages the Settings dialog as a singleton window.
@@ -11,10 +10,7 @@ import type { WindowPermissionPolicy } from '../windowing/WindowPermissionPolicy
 export class SettingsWindow {
   private readonly windowController: SingletonWindow;
 
-  constructor(
-    private readonly dockManager: DockManager,
-    permissionPolicy: WindowPermissionPolicy,
-  ) {
+  constructor(private readonly dockManager: DockManager) {
     this.windowController = new SingletonWindow(() => {
       const size = { width: 960, height: 700 };
       const window = new BrowserWindow({
@@ -24,7 +20,7 @@ export class SettingsWindow {
         title: 'Settings',
         resizable: false
       });
-      attachPermissionHandler(window, permissionPolicy);
+      attachPermissionHandler(window);
       window.setWindowButtonVisible('zoom', false);
       window.centerWindow();
       this.dockManager.track(window);
