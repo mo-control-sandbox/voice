@@ -1,67 +1,83 @@
 import { globalShortcut } from '@mobrowser/api';
 
 /**
- * Manages registration of the global recording shortcut.
+ * Describes a global shortcut binding and its action.
+ */
+type Shortcut = {
+  /**
+   * The key combination string used for OS-level registration.
+   */
+  readonly combination: string;
+  /**
+   * Handler invoked when the shortcut is triggered.
+   */
+  readonly handler: () => void;
+};
+
+/**
+ * Owns the lifecycle of the application recording shortcut in the OS registry.
  */
 export class ShortcutManager {
-  private currentShortcut: string | null = null;
-  private currentCallback: (() => void) | null = null;
+  /**
+   * Currently configured shortcut binding.
+   */
+  private currentShortcut: Shortcut | null = null;
+
+  /**
+   * Indicates whether OS-level registration is temporarily suspended.
+   */
   private paused = false;
 
   /**
-   * Registers the shortcut and the callback to be invoked on this shortcut.
+   * Registers the given binding and replaces any previous one.
    */
-  register(shortcut: string, onToggle: () => void): void {
+  register(combination: string, handler: () => void): void {
     if (this.currentShortcut !== null) {
-      globalShortcut.unregister(this.currentShortcut);
+      globalShortcut.unregister(this.currentShortcut.combination);
     }
-    this.currentShortcut = shortcut;
-    this.currentCallback = onToggle;
+    this.currentShortcut = { combination, handler };
     if (!this.paused) {
-      globalShortcut.register(shortcut, onToggle);
+      globalShortcut.register(combination, handler);
     }
   }
 
   /**
-   * Unregisters the currently active shortcut if one is registered.
+   * Removes the current binding from the OS registry and clears local state.
    */
   unregister(): void {
     if (this.currentShortcut !== null) {
-      globalShortcut.unregister(this.currentShortcut);
+      globalShortcut.unregister(this.currentShortcut.combination);
       this.currentShortcut = null;
-      this.currentCallback = null;
     }
   }
 
   /**
-   * Replaces the registered shortcut key, reusing the existing callback.
+   * Replaces only the shortcut combination while preserving the current handler.
    */
   updateKey(shortcut: string): void {
-    if (this.currentCallback !== null) {
-      this.register(shortcut, this.currentCallback);
+    if (this.currentShortcut !== null) {
+      this.register(shortcut, this.currentShortcut.handler);
     }
   }
 
   /**
-   * Temporarily unregisters the OS-level shortcut hook without forgetting the
-   * current shortcut configuration.
+   * Suspends OS-level shortcut activation without discarding the binding.
    */
   pause(): void {
     if (!this.paused && this.currentShortcut !== null) {
-      globalShortcut.unregister(this.currentShortcut);
+      globalShortcut.unregister(this.currentShortcut.combination);
     }
     this.paused = true;
   }
 
   /**
-   * Re-registers the OS-level shortcut hook after a pause().
-   * No-op if not currently paused.
+   * Restores OS-level activation for the current binding when previously paused.
    */
   resume(): void {
     if (!this.paused) return;
     this.paused = false;
-    if (this.currentShortcut !== null && this.currentCallback !== null) {
-      globalShortcut.register(this.currentShortcut, this.currentCallback);
+    if (this.currentShortcut !== null) {
+      globalShortcut.register(this.currentShortcut.combination, this.currentShortcut.handler);
     }
   }
 }
