@@ -13,10 +13,16 @@ export function registerReverseIpcBridge(controller: RecordingSessionController,
 }
 
 class ReverseIpcBridgeService implements ReverseIpcBridgeServiceInterface {
+  private historyRevision = 0;
+
   constructor(
     private readonly controller: RecordingSessionController,
     private readonly historyStore: HistoryStore,
-  ) {}
+  ) {
+    this.historyStore.onChanged(() => {
+      this.historyRevision++;
+    });
+  }
 
   PollRecording(_request: PollRecordingRequest) {
     const session = this.controller.getActiveSession();
@@ -33,7 +39,7 @@ class ReverseIpcBridgeService implements ReverseIpcBridgeServiceInterface {
 
   PollHistoryRevision(_request: PollHistoryRevisionRequest) {
     return Promise.resolve({
-      historyRevision: this.historyStore.getRevision(),
+      historyRevision: this.historyRevision,
     });
   }
 }

@@ -22,10 +22,10 @@ export interface TranscriptionSession {
  * The persistent store for completed transcription sessions.
  */
 export class HistoryStore {
-  private sessions: TranscriptionSession[] = [];
   private readonly historyPath: string;
-  private revision = 0;
+  private sessions: TranscriptionSession[] = [];
   private persistQueue: Promise<void> = Promise.resolve();
+  private readonly changeListeners = new Set<() => void>();
 
   constructor(private readonly sessionStorage: SessionStorage) {
     this.historyPath = path.join(app.getPath('userData'), 'history.json');
@@ -59,13 +59,6 @@ export class HistoryStore {
   }
 
   /**
-   * Monotonically increasing counter incremented on every mutation.
-   */
-  getRevision(): number {
-    return this.revision;
-  }
-
-  /**
    * All session records in insertion order.
    */
   getSessions(): TranscriptionSession[] {
@@ -84,8 +77,8 @@ export class HistoryStore {
    */
   async addSession(record: TranscriptionSession): Promise<void> {
     this.sessions.push(record);
-    this.revision++;
     await this.persist();
+    this.notifyChanged();
   }
 
   /**
@@ -95,9 +88,23 @@ export class HistoryStore {
     const index = this.sessions.findIndex((s) => s.id === id);
     if (index === -1) return;
     this.sessions.splice(index, 1);
-    this.revision++;
     await this.persist();
     await this.sessionStorage.deleteSessionFiles(id);
+    this.notifyChanged();
+  }
+
+  /**
+   * Registers a callback that is invoked after history mutations.
+   */
+  onChanged(listener: () => void): void {
+    this.changeListeners.add(listener);
+  }
+
+  /**
+   * Unregisters a previously registered change callback.
+   */
+  offChanged(listener: () => void): void {
+    this.changeListeners.delete(listener);
   }
 
   /**
@@ -125,6 +132,12 @@ export class HistoryStore {
         }
       });
     return this.persistQueue;
+  }
+
+  private notifyChanged(): void {
+    for (const listener of this.changeListeners) {
+      listener();
+    }
   }
 }
 
