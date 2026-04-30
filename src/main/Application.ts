@@ -63,10 +63,10 @@ export class Application {
   async initialize(): Promise<void> {
     await this.historyStore.initialize();
     this.recordingWorkerWindow.initialize();
-    let initialReadinessHandled = false;
+    let initialWelcomeAutoShowHandled = false;
     this.readiness.onChange((isReady) => {
-      if (!initialReadinessHandled) {
-        initialReadinessHandled = true;
+      if (!initialWelcomeAutoShowHandled) {
+        initialWelcomeAutoShowHandled = true;
         if (!isReady && !this.settings.hasCompletedOnboarding()) {
           this.welcomeWindow.show();
         }
@@ -76,7 +76,10 @@ export class Application {
     this.trayController.refresh();
 
     this.dockManager.initialize();
-    this.registerShortcut();
+    const { shortcutKey } = this.settings.get();
+    this.shortcutManager.register(shortcutKey, () => {
+      this.recordingController.handleShortcutTrigger();
+    });
 
     registerDesktopIpc();
     registerPermissionsIpc(this.permissions, () => {
@@ -107,22 +110,6 @@ export class Application {
       this.clipboard.cancelPending();
     });
     this.settings.onShortcutKeyChanged(() => { this.trayController.refresh(); });
-  }
-
-  private registerShortcut(): void {
-    const { shortcutKey } = this.settings.get();
-    this.shortcutManager.register(shortcutKey, () => {
-      const state = this.recordingController.getState();
-      if (state === 'recording') {
-        this.recordingController.stop();
-        return;
-      }
-      if (state === 'processing') {
-        this.recordingController.cancel();
-        return;
-      }
-      void this.recordingController.start();
-    });
   }
 
   private openSetupWindow(): void {

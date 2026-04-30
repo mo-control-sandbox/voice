@@ -126,6 +126,21 @@ export class RecordingSessionController {
   }
 
   /**
+   * Applies shortcut intent to the current stage.
+   */
+  handleShortcutTrigger(): void {
+    if (this.stage === 'recording') {
+      this.stop();
+      return;
+    }
+    if (this.stage === 'processing') {
+      this.cancel();
+      return;
+    }
+    void this.start();
+  }
+
+  /**
    * Appends a raw PCM chunk to the active session's audio file on disk.
    *
    * Silently discarded when no session is active or the session IDs do not match.
