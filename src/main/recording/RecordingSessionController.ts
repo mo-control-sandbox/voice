@@ -5,6 +5,7 @@ import {
 } from '../gen/ipc_service';
 import type { AppendAudioChunkRequest, CancelRecordingRequest, PastePartialTranscriptionRequest, StopRecordingRequest, SubmitTranscriptionRequest } from '../gen/recording';
 import type { SettingsStore } from '../settings/SettingsStore';
+import { AudioBuffer } from '../sessions/AudioBuffer';
 import type { History, TranscriptionSession } from '../sessions/History';
 import type { SessionStorage } from '../sessions/SessionStorage';
 import { RecordingSession } from './RecordingSession';
@@ -27,6 +28,7 @@ export type PartialTranscriptionCallback = (text: string) => void;
 export class RecordingSessionController {
   private state: RecordingState = 'idle';
   private session: RecordingSession | null = null;
+  private audioBuffer: AudioBuffer | null = null;
 
   private readonly listeners: ((state: RecordingState) => void)[] = [];
   private readonly completionListeners: TranscriptionCompletedCallback[] = [];
@@ -121,6 +123,7 @@ export class RecordingSessionController {
       settings.dontSaveAudio,
       settings.dontSaveTranscripts,
     );
+    this.audioBuffer = settings.dontSaveAudio ? null : new AudioBuffer();
 
     this.transition('recording');
   }
@@ -138,9 +141,9 @@ export class RecordingSessionController {
    *
    * Silently discarded when no session is active or the session IDs do not match.
    */
-  async appendAudioChunk(payload: AppendAudioChunkRequest): Promise<void> {
+  appendAudioChunk(payload: AppendAudioChunkRequest): void {
     if (this.session?.id !== payload.sessionId) return;
-    await this.sessionStorage.appendAudioChunk(payload.sessionId, payload.pcm);
+    this.audioBuffer?.append(payload.pcm);
   }
 
   /**
@@ -148,15 +151,12 @@ export class RecordingSessionController {
    */
   cancel(): void {
     if (this.state === 'idle') return;
-    const id = this.session?.id;
     this.session = null;
+    this.audioBuffer = null;
     for (const cb of this.abortListeners) {
       cb();
     }
     this.transition('idle');
-    if (id !== undefined) {
-      void this.sessionStorage.discardAudioStream(id);
-    }
   }
 
   /**
@@ -187,13 +187,16 @@ export class RecordingSessionController {
 
     await this.historyStore.addSession(record);
 
-    await this.sessionStorage.finalizeAudioStream(session.id);
+    if (!session.dontSaveAudio && this.audioBuffer !== null) {
+      await this.sessionStorage.saveAudio(session.id, this.audioBuffer.toWavBytes());
+    }
 
     if (!session.dontSaveTranscripts) {
       await this.sessionStorage.saveTranscript(session.id, payload.text);
     }
 
     this.session = null;
+    this.audioBuffer = null;
 
     if (!payload.streamed) {
       for (const cb of this.completionListeners) {
@@ -260,8 +263,8 @@ class RecordingService implements RecordingServiceInterface {
     return Promise.resolve({});
   }
 
-  async AppendAudioChunk(request: AppendAudioChunkRequest) {
-    await this.controller.appendAudioChunk(request);
-    return {};
+  AppendAudioChunk(request: AppendAudioChunkRequest) {
+    this.controller.appendAudioChunk(request);
+    return Promise.resolve({});
   }
 }
