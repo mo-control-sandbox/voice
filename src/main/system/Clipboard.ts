@@ -48,6 +48,7 @@ export class Clipboard {
 
   private async doPasteText(text: string): Promise<void> {
     clipboard.write('text/plain', text);
+    await new Promise((resolve) => { setTimeout(resolve, 20); });
     await native.automation.Paste({});
   }
 }
