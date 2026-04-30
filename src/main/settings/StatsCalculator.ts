@@ -1,7 +1,7 @@
 import { ipc } from '@mobrowser/api';
 import { StatsService as createStatsService, type StatsService as StatsServiceInterface } from '../gen/ipc_service';
 import type { DashboardStats, GetStatsRequest } from '../gen/stats';
-import type { TranscriptionSession } from '../history/HistoryStore';
+import type { TranscriptionSession } from '../sessions/History';
 
 /*
  * Assumed average typing speed for the time-saved calculation.

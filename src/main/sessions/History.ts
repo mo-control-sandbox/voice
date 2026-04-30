@@ -4,7 +4,7 @@ import { app, desktop, ipc } from '@mobrowser/api';
 import { Mutex } from 'async-mutex';
 import { HistoryService as createHistoryService, type HistoryService as HistoryServiceInterface } from '../gen/ipc_service';
 import type { DeleteSessionRequest, GetSessionsRequest, SessionIdRequest } from '../gen/history';
-import type { SessionStorage } from '../recording/SessionStorage';
+import type { SessionStorage } from '../sessions/SessionStorage';
 
 /**
  * A completed transcription session.
@@ -22,7 +22,7 @@ export interface TranscriptionSession {
 /**
  * The persistent store for completed transcription sessions.
  */
-export class HistoryStore {
+export class History {
   private readonly historyPath: string;
   private sessions: TranscriptionSession[] = [];
   private readonly persistMutex = new Mutex();
@@ -42,13 +42,13 @@ export class HistoryStore {
       if (Array.isArray(parsed)) {
         this.sessions = parsed as TranscriptionSession[];
       } else {
-        console.warn('[HistoryStore] history.json root payload must be an array; ignoring stored history.');
+        console.warn('[History] history.json root payload must be an array; ignoring stored history.');
       }
     } catch (err) {
       if (isFileMissingError(err)) {
         return;
       }
-      console.error('[HistoryStore] Failed to read history.json:', err);
+      console.error('[History] Failed to read history.json:', err);
     }
   }
 
@@ -117,7 +117,7 @@ export class HistoryStore {
         try {
           await fs.promises.writeFile(this.historyPath, payload, 'utf8');
         } catch (err) {
-          console.error('[HistoryStore] Failed to write history.json:', err);
+          console.error('[History] Failed to write history.json:', err);
         }
       });
   }
@@ -140,13 +140,13 @@ function isFileMissingError(value: unknown): value is NodeJS.ErrnoException {
 /**
  * Registers the history IPC service.
  */
-export function registerHistoryIpc(historyStore: HistoryStore, sessionStorage: SessionStorage): void {
+export function registerHistoryIpc(historyStore: History, sessionStorage: SessionStorage): void {
   ipc.registerService(createHistoryService(new HistoryService(historyStore, sessionStorage)));
 }
 
 class HistoryService implements HistoryServiceInterface {
   constructor(
-    private readonly historyStore: HistoryStore,
+    private readonly historyStore: History,
     private readonly sessionStorage: SessionStorage,
   ) {}
 

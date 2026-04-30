@@ -2,8 +2,8 @@ import { native } from './gen/native';
 import { SettingsStore } from './settings/SettingsStore';
 import { ShortcutManager } from './system/ShortcutManager';
 import { DockManager } from './system/DockManager';
-import { SessionStorage } from './recording/SessionStorage';
-import { HistoryStore } from './history/HistoryStore';
+import { SessionStorage } from './sessions/SessionStorage';
+import { History } from './sessions/History';
 import { Clipboard } from './system/Clipboard';
 import { RecordingSessionController } from './recording/RecordingSessionController';
 import { StartRecordingFromIntentUseCase } from './recording/StartRecordingFromIntentUseCase';
@@ -13,7 +13,7 @@ import { TrayController } from './TrayController';
 import { BackgroundWindow } from './recording/BackgroundWindow';
 import { RecordingOverlay } from './recording/RecordingOverlay';
 import { SettingsWindow } from './settings/SettingsWindow';
-import { HistoryWindow } from './history/HistoryWindow';
+import { HistoryWindow } from './sessions/HistoryWindow';
 import { AboutWindow } from './AboutWindow';
 import { WelcomeWindow } from './welcome/WelcomeWindow';
 import { ReadinessCoordinator } from './readiness/ReadinessCoordinator';
@@ -22,7 +22,7 @@ import { registerRecordingIpc } from './recording/RecordingSessionController';
 import { registerReverseIpcBridge } from './ipc/ReverseIpcBridge';
 import { registerSettingsIpc } from './settings/SettingsStore';
 import { registerStatsIpc } from './settings/StatsCalculator';
-import { registerHistoryIpc } from './history/HistoryStore';
+import { registerHistoryIpc } from './sessions/History';
 import { registerDesktopIpc } from './system/DesktopService';
 import { WindowPermissionPolicy } from './windowing/WindowPermissionPolicy';
 
@@ -32,7 +32,7 @@ import { WindowPermissionPolicy } from './windowing/WindowPermissionPolicy';
 export class Application {
   private readonly settings = new SettingsStore();
   private readonly sessionStorage = new SessionStorage();
-  private readonly historyStore = new HistoryStore(this.sessionStorage);
+  private readonly historyStore = new History(this.sessionStorage);
   private readonly windowPermissionPolicy = new WindowPermissionPolicy();
 
   private readonly recordingController = new RecordingSessionController(

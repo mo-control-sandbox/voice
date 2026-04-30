@@ -2,7 +2,7 @@ import { app, Tray, Menu, MenuItem } from '@mobrowser/api';
 import type { RecordingSessionController } from './recording/RecordingSessionController';
 import type { SettingsStore } from './settings/SettingsStore';
 import type { SettingsWindow } from './settings/SettingsWindow';
-import type { HistoryWindow } from './history/HistoryWindow';
+import type { HistoryWindow } from './sessions/HistoryWindow';
 import type { AboutWindow } from './AboutWindow';
 import type { StartRecordingFromIntentUseCase } from './recording/StartRecordingFromIntentUseCase';
 

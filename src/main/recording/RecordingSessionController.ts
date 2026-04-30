@@ -5,8 +5,8 @@ import {
 } from '../gen/ipc_service';
 import type { AppendAudioChunkRequest, CancelRecordingRequest, PastePartialTranscriptionRequest, StopRecordingRequest, SubmitTranscriptionRequest } from '../gen/recording';
 import type { SettingsStore } from '../settings/SettingsStore';
-import type { HistoryStore, TranscriptionSession } from '../history/HistoryStore';
-import type { SessionStorage } from './SessionStorage';
+import type { History, TranscriptionSession } from '../sessions/History';
+import type { SessionStorage } from '../sessions/SessionStorage';
 import { RecordingSession } from './RecordingSession';
 
 export type RecordingState = 'idle' | 'recording' | 'processing';
@@ -38,7 +38,7 @@ export class RecordingSessionController {
    */
   constructor(
     private readonly settings: SettingsStore,
-    private readonly historyStore: HistoryStore,
+    private readonly historyStore: History,
     private readonly sessionStorage: SessionStorage,
   ) {}
 
