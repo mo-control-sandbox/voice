@@ -1,28 +1,20 @@
 import { ipc } from '../../gen/ipc';
 import type { CancelRecordingRequest, StopRecordingRequest, SubmitTranscriptionRequest } from '../../gen/recording';
 import type { RecordingState } from '../../gen/reverse_ipc_bridge';
-import type { SettingsProto } from '../../gen/settings';
 import { recordingSignalChannel } from './RecordingSignalChannel';
-import type { RecordingGateway } from '../application/RecordingGateway';
+import type { RecordingStateGateway } from '../application/RecordingStateGateway';
 
 /**
  * IPC-backed gateway for recording renderer operations.
  */
-export class IpcRecordingGateway implements RecordingGateway {
+export class IpcRecordingGateway implements RecordingStateGateway {
   /**
-   * Registers a recording signal listener with reverse IPC polling.
+   * Registers a listener for recording state snapshots from reverse IPC polling.
    */
-  subscribeRecordingSignals(
+  subscribeToRecordingState(
     onChanged: (snapshot: RecordingState) => Promise<void>,
   ): () => void {
     return recordingSignalChannel.subscribe(onChanged);
-  }
-
-  /**
-   * Reads current settings from the main process.
-   */
-  async getSettings(): Promise<SettingsProto> {
-    return ipc.settings.GetSettings({});
   }
 
   /**
@@ -42,7 +34,7 @@ export class IpcRecordingGateway implements RecordingGateway {
   /**
    * Sends one partial transcription chunk.
    */
-  async pastePartialTranscription(sessionId: string, text: string): Promise<void> {
+  async streamPartialTranscription(sessionId: string, text: string): Promise<void> {
     await ipc.recording.PastePartialTranscription({ sessionId, text });
   }
 

@@ -1,7 +1,8 @@
 import { RecordingPhase, type RecordingState as RecordingSignalState } from '../../gen/reverse_ipc_bridge';
-import type { RecordingGateway } from './RecordingGateway';
+import type { RecordingStateGateway } from './RecordingStateGateway';
 import type { RecordingState, RecordingViewState } from './RecordingState';
 import type { TranscriptionService } from './TranscriptionService';
+import type { RecordSeetingsProvider } from '../infrastructure/RecordSeetingsProvider';
 
 const AUDIO_START_FAILURE_DISMISS_MS = 2000;
 
@@ -35,7 +36,8 @@ export class RecordingOrchestrator {
   private stateCallback: ((state: RecordingViewState) => void) | null = null;
 
   constructor(
-    private readonly gateway: RecordingGateway,
+    private readonly gateway: RecordingStateGateway,
+    private readonly settingsProvider: RecordSeetingsProvider,
     private readonly transcriptionService: TranscriptionService,
   ) {}
 
@@ -46,7 +48,7 @@ export class RecordingOrchestrator {
     this.stateCallback = onStateChanged;
     let active = true;
 
-    const unregister = this.gateway.subscribeRecordingSignals(async (next) => {
+    const unregister = this.gateway.subscribeToRecordingState(async (next) => {
       if (!active) {
         return;
       }
@@ -94,7 +96,7 @@ export class RecordingOrchestrator {
     this.notifyState();
 
     if (sessionChanged || (stateChanged && nextState === 'recording')) {
-      const settings = await this.gateway.getSettings();
+      const audioInputDeviceId = await this.settingsProvider.getAudioInputDeviceId();
       const sessionId = next.sessionId;
       const onAudioChunk = next.saveAudio
         ? (pcm: Uint8Array) => { void this.gateway.appendAudioChunk(sessionId, pcm); }
@@ -102,7 +104,7 @@ export class RecordingOrchestrator {
 
       const startResult = await this.transcriptionService.startCapture({
         sessionId,
-        audioInputDeviceId: settings.audioInputDeviceId,
+        audioInputDeviceId,
         onTrackEnded: () => {
           void this.gateway.cancelRecording({
             sessionId,
@@ -110,7 +112,7 @@ export class RecordingOrchestrator {
           });
         },
         onPartialResult: (text) => {
-          void this.gateway.pastePartialTranscription(sessionId, text);
+          void this.gateway.streamPartialTranscription(sessionId, text);
         },
         onBatchMaxDurationReached: () => {
           void this.gateway.stopRecording({ sessionId });
