@@ -1,6 +1,6 @@
 import { PermissionStatus, PermissionType } from '../gen/permissions';
 import type { SettingsStore } from '../settings/SettingsStore';
-import type { AppPermissionsBackend } from '../system/AppPermissionsBackend';
+import type { Permissions } from '../system/Permissions';
 
 /**
  * The stages of the application readiness to transcribe speech.
@@ -30,7 +30,7 @@ export class ReadinessCoordinator {
 
   constructor(
     private readonly settings: SettingsStore,
-    private readonly permissionsBackend: AppPermissionsBackend,
+    private readonly permissions: Permissions,
   ) {}
 
   /**
@@ -84,7 +84,7 @@ export class ReadinessCoordinator {
 
   private computeReadiness(): Readiness {
     const modelReady = this.settings.isModelReady();
-    const permissions = this.permissionsBackend.getPermissionsStatus();
+    const permissions = this.permissions.getPermissionsStatus();
     const grantedStatus = PermissionStatus.PERMISSION_STATUS_GRANTED;
 
     const hasGrantedPermission = (type: PermissionType): boolean => {

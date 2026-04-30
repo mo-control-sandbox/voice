@@ -13,7 +13,7 @@ import { HistoryWindow } from './sessions/HistoryWindow';
 import { AboutWindow } from './AboutWindow';
 import { WelcomeWindow } from './welcome/WelcomeWindow';
 import { ReadinessCoordinator } from './readiness/ReadinessCoordinator';
-import { registerPermissionsIpc } from './system/PermissionsService';
+import { Permissions, registerPermissionsIpc } from './system/Permissions';
 import { registerRecordingIpc } from './recording/RecordingSessionController';
 import { registerReverseIpcBridge } from './ipc/ReverseIpcBridge';
 import { registerSettingsIpc } from './settings/SettingsStore';
@@ -21,7 +21,6 @@ import { registerStatsIpc } from './settings/StatsCalculator';
 import { registerHistoryIpc } from './sessions/History';
 import { registerDesktopIpc } from './system/DesktopService';
 import { WindowPermissionPolicy } from './windowing/WindowPermissionPolicy';
-import { AppPermissionsBackend } from './system/AppPermissionsBackend';
 
 /**
  * The application entry point.
@@ -31,8 +30,8 @@ export class Application {
   private readonly sessionStorage = new SessionStorage();
   private readonly historyStore = new History(this.sessionStorage);
   private readonly windowPermissionPolicy = new WindowPermissionPolicy();
-  private readonly appPermissionsBackend = new AppPermissionsBackend();
-  private readonly readiness = new ReadinessCoordinator(this.settings, this.appPermissionsBackend);
+  private readonly permissions = new Permissions();
+  private readonly readiness = new ReadinessCoordinator(this.settings, this.permissions);
 
   private readonly recordingController = new RecordingSessionController(
     this.settings,
@@ -84,7 +83,7 @@ export class Application {
     this.registerShortcut();
 
     registerDesktopIpc();
-    registerPermissionsIpc(this.appPermissionsBackend, () => {
+    registerPermissionsIpc(this.permissions, () => {
       void this.readiness.recompute();
     });
     registerReverseIpcBridge(this.recordingController, this.historyStore);

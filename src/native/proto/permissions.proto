@@ -5,8 +5,7 @@ import "google/protobuf/empty.proto";
 enum PermissionType {
   PERMISSION_TYPE_UNSPECIFIED = 0;
   PERMISSION_TYPE_MICROPHONE = 1;
-  PERMISSION_TYPE_SPEECH_RECOGNITION = 2;
-  PERMISSION_TYPE_ACCESSIBILITY = 3;
+  PERMISSION_TYPE_ACCESSIBILITY = 2;
 }
 
 enum PermissionStatus {
