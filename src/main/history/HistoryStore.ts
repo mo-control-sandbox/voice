@@ -1,6 +1,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { app, desktop, ipc } from '@mobrowser/api';
+import { Mutex } from 'async-mutex';
 import { HistoryService as createHistoryService, type HistoryService as HistoryServiceInterface } from '../gen/ipc_service';
 import type { DeleteSessionRequest, GetSessionsRequest, SessionIdRequest } from '../gen/history';
 import type { SessionStorage } from '../recording/SessionStorage';
@@ -24,7 +25,7 @@ export interface TranscriptionSession {
 export class HistoryStore {
   private readonly historyPath: string;
   private sessions: TranscriptionSession[] = [];
-  private persistQueue: Promise<void> = Promise.resolve();
+  private readonly persistMutex = new Mutex();
   private readonly changeListeners = new Set<() => void>();
 
   constructor(private readonly sessionStorage: SessionStorage) {
@@ -39,14 +40,7 @@ export class HistoryStore {
       const raw = await fs.promises.readFile(this.historyPath, 'utf8');
       const parsed: unknown = JSON.parse(raw);
       if (Array.isArray(parsed)) {
-        const sanitized = parsed.filter(isSessionRecord);
-        if (sanitized.length !== parsed.length) {
-          console.warn('[HistoryStore] history.json contains invalid session records; ignoring malformed entries.');
-        }
-        this.sessions = sanitized;
-        if (sanitized.length !== parsed.length) {
-          await this.persist();
-        }
+        this.sessions = parsed as TranscriptionSession[];
       } else {
         console.warn('[HistoryStore] history.json root payload must be an array; ignoring stored history.');
       }
@@ -108,10 +102,7 @@ export class HistoryStore {
   }
 
   /**
-   * Opens the session's storage directory in Finder.
-   *
-   * Falls back to the audio file when the directory itself cannot be shown
-   * directly, and is a no-op when no files for the session exist yet.
+   * Opens the session's storage directory in file explorer.
    */
   revealSessionFolder(id: string): void {
     const dir = this.sessionStorage.getSessionDir(id);
@@ -122,16 +113,13 @@ export class HistoryStore {
 
   private persist(): Promise<void> {
     const payload = JSON.stringify(this.sessions, null, 2);
-    this.persistQueue = this.persistQueue
-      .catch(() => undefined)
-      .then(async () => {
+    return this.persistMutex.runExclusive(async () => {
         try {
           await fs.promises.writeFile(this.historyPath, payload, 'utf8');
         } catch (err) {
           console.error('[HistoryStore] Failed to write history.json:', err);
         }
       });
-    return this.persistQueue;
   }
 
   private notifyChanged(): void {
@@ -139,21 +127,6 @@ export class HistoryStore {
       listener();
     }
   }
-}
-
-function isSessionRecord(value: unknown): value is TranscriptionSession {
-  if (!isObject(value)) return false;
-  return typeof value.id === 'string'
-    && typeof value.startedAt === 'number'
-    && Number.isFinite(value.startedAt)
-    && typeof value.transcriptionEngineLabel === 'string'
-    && typeof value.audioDurationSeconds === 'number'
-    && Number.isFinite(value.audioDurationSeconds)
-    && typeof value.wordCount === 'number'
-    && Number.isInteger(value.wordCount)
-    && value.wordCount >= 0
-    && (typeof value.transcriptionText === 'string' || value.transcriptionText === null)
-    && typeof value.detectedLanguage === 'string';
 }
 
 function isObject(value: unknown): value is Record<string, unknown> {
