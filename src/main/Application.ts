@@ -79,7 +79,7 @@ export class Application {
 
     this.trayController.initialize();
 
-    this.dockManager.initialize(true);
+    this.dockManager.initialize();
     this.registerShortcut();
 
     registerDesktopIpc();
