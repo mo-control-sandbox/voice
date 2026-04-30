@@ -1,10 +1,8 @@
 import { getRendererModelRepository } from '../services/getRendererModelRepository';
 import { MoVoiceBackendFactory } from '../recording/services/MoVoiceBackendFactory';
 import { RecordingController } from '../recording/RecordingController';
-import { DefaultTranscriptionService } from '../recording/services/DefaultTranscriptionService';
+import { TranscriptionService } from '../recording/application/TranscriptionService';
 import { RecordingOrchestrator } from '../recording/application/RecordingOrchestrator';
-import { RecordingIpc } from '../recording/infrastructure/RecordingIpc';
-import { RecordSeetingsProvider } from '../recording/infrastructure/RecordSeetingsProvider';
 
 /*
  * Singletons that persist for the lifetime of the transcription worker window. Keeping
@@ -12,14 +10,12 @@ import { RecordSeetingsProvider } from '../recording/infrastructure/RecordSeetin
  * React re-renders.
  */
 const modelRepository = getRendererModelRepository();
-const transcriptionService = new DefaultTranscriptionService(
+const transcriptionService = new TranscriptionService(
   modelRepository,
   new MoVoiceBackendFactory(),
 );
-const recordingIpc = new RecordingIpc();
-const settingsProvider = new RecordSeetingsProvider();
 const controller = new RecordingController(
-  new RecordingOrchestrator(recordingIpc, settingsProvider, transcriptionService),
+  new RecordingOrchestrator(transcriptionService),
 );
 
 function prewarmSilently(): void {

@@ -1,15 +1,29 @@
+import { ipc } from '../../gen/ipc';
+import type { CancelRecordingRequest, StopRecordingRequest, SubmitTranscriptionRequest } from '../../gen/recording';
 import { RecordingPhase, type RecordingState as RecordingSignalState } from '../../gen/reverse_ipc_bridge';
 import type { RecordingState, RecordingViewState } from './RecordingState';
 import type { TranscriptionService } from './TranscriptionService';
-import type { RecordingIpc } from '../infrastructure/RecordingIpc';
-import type { RecordSeetingsProvider } from '../infrastructure/RecordSeetingsProvider';
+import { PolledChannel } from '../../infra/ipc/PolledChannel';
+import { SettingsService } from '../../settings/services/SettingsService';
 
 const AUDIO_START_FAILURE_DISMISS_MS = 2000;
+const RECORDING_POLL_INTERVAL_MS = 1000 / 30;
 
 /**
  * Coordinates recording lifecycle transitions between signal snapshots and services.
  */
 export class RecordingOrchestrator {
+  private readonly settingsService = new SettingsService();
+  private readonly recordingStateChannel = new PolledChannel<RecordingSignalState, string>({
+    intervalMs: RECORDING_POLL_INTERVAL_MS,
+    poll: async () => {
+      const response = await ipc.reverseIpcBridge.PollRecording({});
+      return response.recording;
+    },
+    getKey: (snapshot) => `${snapshot.phase}:${snapshot.sessionId}`,
+    logLabel: 'RecordingSignalChannel',
+  });
+
   /**
    * Last observed session identifier from recording signal snapshots.
    */
@@ -35,11 +49,7 @@ export class RecordingOrchestrator {
    */
   private stateCallback: ((state: RecordingViewState) => void) | null = null;
 
-  constructor(
-    private readonly gateway: RecordingIpc,
-    private readonly settingsProvider: RecordSeetingsProvider,
-    private readonly transcriptionService: TranscriptionService,
-  ) {}
+  constructor(private readonly transcriptionService: TranscriptionService) {}
 
   /**
    * Starts orchestrator signal subscription and emits view-state updates.
@@ -48,7 +58,7 @@ export class RecordingOrchestrator {
     this.stateCallback = onStateChanged;
     let active = true;
 
-    const unregister = this.gateway.subscribeToRecordingState(async (next) => {
+    const unregister = this.recordingStateChannel.subscribe(async (next) => {
       if (!active) {
         return;
       }
@@ -76,7 +86,7 @@ export class RecordingOrchestrator {
 
     void (async () => {
       await cancelPromise;
-      await this.gateway.cancelRecording({ sessionId, reason: 'USER_CANCELLED' });
+      await this.cancelRecording({ sessionId, reason: 'USER_CANCELLED' });
     })();
   }
 
@@ -96,26 +106,26 @@ export class RecordingOrchestrator {
     this.notifyState();
 
     if (sessionChanged || (stateChanged && nextState === 'recording')) {
-      const audioInputDeviceId = await this.settingsProvider.getAudioInputDeviceId();
+      const settings = await this.settingsService.getSettings();
       const sessionId = next.sessionId;
       const onAudioChunk = next.saveAudio
-        ? (pcm: Uint8Array) => { void this.gateway.appendAudioChunk(sessionId, pcm); }
+        ? (pcm: Uint8Array) => { void this.appendAudioChunk(sessionId, pcm); }
         : (_pcm: Uint8Array) => undefined;
 
       const startResult = await this.transcriptionService.startCapture({
         sessionId,
-        audioInputDeviceId,
+        audioInputDeviceId: settings.audioInputDeviceId,
         onTrackEnded: () => {
-          void this.gateway.cancelRecording({
+          void this.cancelRecording({
             sessionId,
             reason: 'DEVICE_DISCONNECTED',
           });
         },
         onPartialResult: (text) => {
-          void this.gateway.streamPartialTranscription(sessionId, text);
+          void this.streamPartialTranscription(sessionId, text);
         },
         onBatchMaxDurationReached: () => {
-          void this.gateway.stopRecording({ sessionId });
+          void this.stopRecording({ sessionId });
         },
         onAudioChunk,
       });
@@ -136,9 +146,9 @@ export class RecordingOrchestrator {
       const processingResult = await processingPromise;
 
       if (processingResult.status === 'completed') {
-        await this.gateway.submitTranscription(processingResult.submission);
+        await this.submitTranscription(processingResult.submission);
       } else {
-        await this.gateway.cancelRecording({ sessionId: next.sessionId, reason: 'CANCELLED' });
+        await this.cancelRecording({ sessionId: next.sessionId, reason: 'CANCELLED' });
       }
       return;
     }
@@ -177,7 +187,7 @@ export class RecordingOrchestrator {
       this.errorDismissTimer = null;
       this.errorMessage = null;
       this.notifyState();
-      void this.gateway.cancelRecording({ sessionId, reason: 'AUDIO_START_FAILED' });
+      void this.cancelRecording({ sessionId, reason: 'AUDIO_START_FAILED' });
     }, AUDIO_START_FAILURE_DISMISS_MS);
   }
 
@@ -198,5 +208,40 @@ export class RecordingOrchestrator {
     if (phase === RecordingPhase.RECORDING_PHASE_RECORDING) return 'recording';
     if (phase === RecordingPhase.RECORDING_PHASE_PROCESSING) return 'processing';
     return 'idle';
+  }
+
+  /**
+   * Sends a session cancellation request.
+   */
+  private async cancelRecording(request: CancelRecordingRequest): Promise<void> {
+    await ipc.recording.CancelRecording(request);
+  }
+
+  /**
+   * Sends a stop request for the provided session.
+   */
+  private async stopRecording(request: StopRecordingRequest): Promise<void> {
+    await ipc.recording.StopRecording(request);
+  }
+
+  /**
+   * Sends one partial transcription chunk.
+   */
+  private async streamPartialTranscription(sessionId: string, text: string): Promise<void> {
+    await ipc.recording.PastePartialTranscription({ sessionId, text });
+  }
+
+  /**
+   * Sends completed transcription payload.
+   */
+  private async submitTranscription(request: SubmitTranscriptionRequest): Promise<void> {
+    await ipc.recording.SubmitTranscription(request);
+  }
+
+  /**
+   * Sends a raw PCM chunk for incremental audio persistence.
+   */
+  private async appendAudioChunk(sessionId: string, pcm: Uint8Array): Promise<void> {
+    await ipc.recording.AppendAudioChunk({ sessionId, pcm });
   }
 }
