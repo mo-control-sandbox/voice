@@ -1,8 +1,8 @@
 import { BrowserWindow } from '@mobrowser/api';
 import type { DockManager } from '../system/DockManager';
+import { attachPermissionHandler } from '../system/Permissions';
 import { rendererWindowUrl } from '../RendererWindowUrl';
 import { SingletonWindow } from '../windowing/SingletonWindow';
-import { attachPermissionHandler } from '../windowing/attachPermissionHandler';
 import type { WindowPermissionPolicy } from '../windowing/WindowPermissionPolicy';
 
 /**

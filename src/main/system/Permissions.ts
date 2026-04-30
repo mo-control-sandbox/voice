@@ -1,6 +1,14 @@
-import { app, ipc, type PermissionName, type PermissionStatus as AppPermissionStatus } from '@mobrowser/api';
+import {
+  app,
+  ipc,
+  type BrowserWindow,
+  type PermissionName,
+  type PermissionStatus as AppPermissionStatus,
+  type RequestPermissionsParams,
+} from '@mobrowser/api';
 import { PermissionStatus, PermissionType, type PermissionStatusProto, type PermissionTypeRequest } from '../gen/permissions';
 import { PermissionsService as createPermissionsService, type PermissionsService as PermissionsServiceInterface } from '../gen/ipc_service';
+import type { WindowPermissionPolicy } from '../windowing/WindowPermissionPolicy';
 
 /**
  * Translates MoVoice permission types to MōBrowser application permissions.
@@ -48,6 +56,18 @@ export class Permissions {
     if (name === null) return;
     app.permissions.openSystemSettings(name);
   }
+}
+
+/**
+ * Connects window permission requests to the shared permission policy.
+ */
+export function attachPermissionHandler(
+  window: BrowserWindow,
+  permissionPolicy: WindowPermissionPolicy,
+): void {
+  window.browser.handle('requestPermissions', (params: RequestPermissionsParams) => (
+    Promise.resolve(permissionPolicy.getAction(params))
+  ));
 }
 
 /**

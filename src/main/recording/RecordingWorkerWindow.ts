@@ -1,6 +1,6 @@
 import { BrowserWindow } from '@mobrowser/api';
 import { rendererWindowUrl } from '../RendererWindowUrl';
-import { attachPermissionHandler } from '../windowing/attachPermissionHandler';
+import { attachPermissionHandler } from '../system/Permissions';
 import type { WindowPermissionPolicy } from '../windowing/WindowPermissionPolicy';
 
 /**
