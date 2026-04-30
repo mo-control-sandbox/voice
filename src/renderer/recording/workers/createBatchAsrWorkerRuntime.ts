@@ -69,7 +69,7 @@ export function createBatchAsrWorkerRuntime<TPipeline>(
 
   async function run(input: BatchRunInput): Promise<void> {
     isRunning = true;
-    console.log(`[${config.workerName}] inference start: requestId=${input.requestId} samples=${input.samples.length}`);
+    console.log(`[${config.workerName}] inference start: requestId=${input.requestId} samples=${String(input.samples.length)}`);
 
     try {
       if (pipeline === null) {
@@ -83,7 +83,7 @@ export function createBatchAsrWorkerRuntime<TPipeline>(
       }
 
       const output = await config.runInference(pipeline, input);
-      console.log(`[${config.workerName}] inference complete: requestId=${input.requestId} chars=${output.text.length}`);
+      console.log(`[${config.workerName}] inference complete: requestId=${input.requestId} chars=${String(output.text.length)}`);
       self.postMessage({
         type: 'result',
         requestId: input.requestId,
@@ -108,4 +108,3 @@ export function createBatchAsrWorkerRuntime<TPipeline>(
     }
   }
 }
-

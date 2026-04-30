@@ -65,11 +65,6 @@
               border-color var(--duration-fast) var(--ease-out);
 }
 
-.session-detail__copy-btn:hover:not(:disabled) {
-  background-color: var(--accent);
-  color: var(--accent-foreground);
-}
-
 .session-detail__copy-btn:focus-visible {
   outline: 3px solid var(--ring);
   outline-offset: 2px;
@@ -77,6 +72,11 @@
 
 .session-detail__copy-btn:disabled {
   opacity: 0.4;
+}
+
+.session-detail__copy-btn:hover:not(:disabled) {
+  background-color: var(--accent);
+  color: var(--accent-foreground);
 }
 
 .session-detail__copy-icon {

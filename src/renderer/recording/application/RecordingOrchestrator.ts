@@ -97,7 +97,7 @@ export class RecordingOrchestrator {
       const settings = await this.gateway.getSettings();
       const sessionId = next.sessionId;
       const onAudioChunk = next.dontSaveAudio
-        ? (_pcm: Uint8Array) => {}
+        ? (_pcm: Uint8Array) => undefined
         : (pcm: Uint8Array) => { void this.gateway.appendAudioChunk(sessionId, pcm); };
 
       const startResult = await this.transcriptionService.startCapture({

@@ -148,14 +148,12 @@ export class OPFSModelCache implements ModelFileStore {
         }
       }
     };
-    const effectiveSignal = internalController.signal;
-
-    let unhandledRejectionListener: ((event: PromiseRejectionEvent) => void) | null = null;
+    let unhandledRejectionListener!: (event: PromiseRejectionEvent) => void;
     const unhandledRejection = new Promise<never>((_, reject) => {
       unhandledRejectionListener = (event: PromiseRejectionEvent): void => {
         event.preventDefault();
         internalController.abort(event.reason);
-        reject(event.reason as unknown);
+        reject(event.reason instanceof Error ? event.reason : new Error(String(event.reason)));
       };
       window.addEventListener('unhandledrejection', unhandledRejectionListener);
     });
@@ -165,7 +163,6 @@ export class OPFSModelCache implements ModelFileStore {
         const pipe = await pipeline('automatic-speech-recognition', repo, {
           dtype: { encoder_model: 'q4', decoder_model_merged: 'q4' },
           progress_callback: progressCallback,
-          signal: effectiveSignal,
         });
         await pipe.dispose();
       } else if (definition.inferenceMode === 'voxtral-realtime') {
@@ -175,18 +172,16 @@ export class OPFSModelCache implements ModelFileStore {
               dtype: { audio_encoder: 'q4f16', embed_tokens: 'q4f16', decoder_model_merged: 'q4f16' },
               device: 'webgpu',
               progress_callback: progressCallback,
-              signal: effectiveSignal,
             }) as VoxtralRealtimeForConditionalGeneration;
             await model.dispose();
           })(),
-          VoxtralRealtimeProcessor.from_pretrained(repo, { signal: effectiveSignal }),
+          VoxtralRealtimeProcessor.from_pretrained(repo),
         ]);
       } else {
         const pipe = await pipeline('automatic-speech-recognition', repo, {
           dtype: 'q4',
           device: 'webgpu',
           progress_callback: progressCallback,
-          signal: effectiveSignal,
         });
         await pipe.dispose();
       }
@@ -196,15 +191,13 @@ export class OPFSModelCache implements ModelFileStore {
     try {
       await Promise.race([loadModel(), unhandledRejection]);
       if (postDownloadStageStart !== undefined) {
-        console.log(`[moVoice] Post-100% stage (WASM init + dispose + marker): ${(performance.now() - postDownloadStageStart).toFixed(0)}ms`);
+        console.log(`[moVoice] Post-100% stage: ${(performance.now() - postDownloadStageStart).toFixed(0)}ms`);
       }
     } catch (error) {
       await this.removeModelDir(repo);
       throw error;
     } finally {
-      if (unhandledRejectionListener !== null) {
-        window.removeEventListener('unhandledrejection', unhandledRejectionListener);
-      }
+      window.removeEventListener('unhandledrejection', unhandledRejectionListener);
     }
   }
 
