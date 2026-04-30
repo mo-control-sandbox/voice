@@ -23,8 +23,8 @@ async function warmUpAudioInputAccess(): Promise<boolean> {
  * Enumerates available audio input devices after a permission-safe warm-up.
  */
 export async function getAudioInputDevices(): Promise<readonly AudioInputDevice[]> {
-  const isAudioInputAccessAvailable = await warmUpAudioInputAccess();
-  if (!isAudioInputAccessAvailable) {
+  const isAudioAvailable = await warmUpAudioInputAccess();
+  if (!isAudioAvailable) {
     return [];
   }
 

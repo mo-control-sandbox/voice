@@ -2,7 +2,7 @@ import { ipc } from '../../gen/ipc';
 import type { CancelRecordingRequest, StopRecordingRequest, SubmitTranscriptionRequest } from '../../gen/recording';
 import type { RecordingSignalSnapshotProto } from '../../gen/reverse_ipc_bridge';
 import type { SettingsProto } from '../../gen/settings';
-import { recordingSignalChannel } from '../../ipc/ReverseIpcBridge';
+import { recordingSignalChannel } from '../../infra/ipc/ReverseIpcBridge';
 import type { RecordingGateway } from '../application/RecordingGateway';
 
 /**

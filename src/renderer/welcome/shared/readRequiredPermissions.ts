@@ -1,5 +1,5 @@
 import type { PermissionStatus } from '../../gen/permissions';
-import { PermissionSet } from '../../capabilities/permissions/PermissionSet';
+import { PermissionSet } from '../../infra/permissions/PermissionSet';
 import { PermissionsService } from '../../settings/services/PermissionsService';
 
 const permissionsService = new PermissionsService();

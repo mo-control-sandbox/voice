@@ -1,6 +1,6 @@
-import { ipc } from '../gen/ipc';
-import type { RecordingSignalSnapshotProto } from '../gen/reverse_ipc_bridge';
-import { PollingLoop } from '../capabilities/polling/PollingLoop';
+import { ipc } from '../../gen/ipc';
+import type { RecordingSignalSnapshotProto } from '../../gen/reverse_ipc_bridge';
+import { PollingLoop } from './PollingLoop';
 
 const RECORDING_POLL_INTERVAL_MS = 1000 / 30;
 const HISTORY_POLL_INTERVAL_MS = 1000;

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { PollingLoop } from '../polling/PollingLoop';
+import { PollingLoop } from '../ipc/PollingLoop';
 
 interface PermissionPollingOptions {
   readonly intervalMs: number;

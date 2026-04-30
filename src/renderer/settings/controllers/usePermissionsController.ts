@@ -3,8 +3,8 @@ import { PermissionStatus, type PermissionStatusProto, type PermissionType } fro
 import {
   PermissionSet,
   PERMISSION_POLL_INTERVAL_MS,
-} from '../../capabilities/permissions/PermissionSet';
-import { usePermissionPolling } from '../../capabilities/permissions/usePermissionPolling';
+} from '../../infra/permissions/PermissionSet';
+import { usePermissionPolling } from '../../infra/permissions/usePermissionPolling';
 import { PermissionsService } from '../services/PermissionsService';
 
 const permissionsService = new PermissionsService();

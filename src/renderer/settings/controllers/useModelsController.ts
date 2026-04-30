@@ -3,7 +3,7 @@ import type { ModelEntry } from '../../types/models';
 import { getRendererModelRepository } from '../../services/getRendererModelRepository';
 import { reportModelReadiness } from '../../services/ModelReadinessReporter';
 import { notifyModelActivated } from '../../services/notifyModelActivated';
-import { PollingLoop } from '../../capabilities/polling/PollingLoop';
+import { PollingLoop } from '../../infra/ipc/PollingLoop';
 
 const POLL_INTERVAL_MS = 500;
 

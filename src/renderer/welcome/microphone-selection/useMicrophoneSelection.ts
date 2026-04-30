@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { getAudioInputDevices, subscribeToAudioInputChanges, type AudioInputDevice } from '../../capabilities/audio/audioInputDevices';
+import { getAudioInputDevices, subscribeToAudioInputChanges, type AudioInputDevice } from '../../infra/audio/audioDevices';
 import { SettingsService } from '../../settings/services/SettingsService';
 
 const settingsService = new SettingsService();

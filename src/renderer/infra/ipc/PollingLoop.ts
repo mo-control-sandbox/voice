@@ -18,7 +18,10 @@ interface PollingLoopOptions {
 }
 
 /**
- * Runs periodic async polling without overlapping ticks.
+ * Provides the shared main-to-renderer polling channel used by renderer features.
+ *
+ * Runs periodic async ticks without overlap so multiple domains can safely
+ * receive main-process updates through a consistent polling mechanism.
  */
 export class PollingLoop {
   private intervalId: ReturnType<typeof setInterval> | null = null;

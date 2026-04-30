@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { PermissionStatus } from '../../gen/permissions';
 import { getRendererModelRepository } from '../../services/getRendererModelRepository';
-import { PermissionSet } from '../../capabilities/permissions/PermissionSet';
-import { PollingLoop } from '../../capabilities/polling/PollingLoop';
+import { PermissionSet } from '../../infra/permissions/PermissionSet';
+import { PollingLoop } from '../../infra/ipc/PollingLoop';
 import { PermissionsService } from '../services/PermissionsService';
 
 const permissionsService = new PermissionsService();

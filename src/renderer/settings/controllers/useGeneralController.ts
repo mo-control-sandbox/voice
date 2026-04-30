@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { PermissionStatus, PermissionType } from '../../gen/permissions';
-import { getAudioInputDevices, type AudioInputDevice, subscribeToAudioInputChanges } from '../../capabilities/audio/audioInputDevices';
+import { getAudioInputDevices, type AudioInputDevice, subscribeToAudioInputChanges } from '../../infra/audio/audioDevices';
 import {
   PermissionSet,
   PERMISSION_POLL_INTERVAL_MS,
-} from '../../capabilities/permissions/PermissionSet';
-import { usePermissionPolling } from '../../capabilities/permissions/usePermissionPolling';
+} from '../../infra/permissions/PermissionSet';
+import { usePermissionPolling } from '../../infra/permissions/usePermissionPolling';
 import { PermissionsService } from '../services/PermissionsService';
 import { SettingsService } from '../services/SettingsService';
 

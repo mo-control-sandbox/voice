@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
-import type { AudioInputDevice } from '../capabilities/audio/audioInputDevices';
+import type { AudioInputDevice } from '../infra/audio/audioDevices';
 import { PermissionStatus } from '../gen/permissions';
 import type { ModelEntry } from '../types/models';
 import { WIZARD_STEPS, type WizardEventType, reduceWizard } from './flow';

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { PermissionStatus, PermissionType } from '../../gen/permissions';
-import { PERMISSION_POLL_INTERVAL_MS } from '../../capabilities/permissions/PermissionSet';
-import { usePermissionPolling } from '../../capabilities/permissions/usePermissionPolling';
+import { PERMISSION_POLL_INTERVAL_MS } from '../../infra/permissions/PermissionSet';
+import { usePermissionPolling } from '../../infra/permissions/usePermissionPolling';
 import { PermissionsService } from '../../settings/services/PermissionsService';
 import type { WizardEventType } from '../flow';
 import type { FeedbackState } from '../shared/feedback';
