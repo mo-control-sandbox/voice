@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { getRendererModelRepository } from '../services/getRendererModelRepository';
 import { MoVoiceBackendFactory } from '../recording/services/MoVoiceBackendFactory';
 import { RecordingController } from '../recording/RecordingController';
@@ -7,7 +6,7 @@ import { RecordingOrchestrator } from '../recording/application/RecordingOrchest
 import { IpcRecordingGateway } from '../recording/infrastructure/IpcRecordingGateway';
 
 /*
- * Singletons that persist for the lifetime of the background window. Keeping
+ * Singletons that persist for the lifetime of the transcription worker window. Keeping
  * them outside the component ensures model weights and warm-up state survive
  * React re-renders.
  */
@@ -23,7 +22,7 @@ const controller = new RecordingController(
 
 function prewarmSilently(): void {
   void transcriptionService.prewarmCurrentModel().catch((err: unknown) => {
-    console.error('[BackgroundApp] prewarm failed:', err);
+    console.error('[TranscriptionRuntime] prewarm failed:', err);
   });
 }
 
@@ -47,28 +46,19 @@ void navigator.locks.request(
 );
 
 /**
- * Headless background renderer that owns the audio capture and transcription pipeline.
- *
- * Invisible at all times. All activity is driven by RecordingController, which
- * polls the main process for session state and reports audio level and errors
- * back via IPC. The recording window renderer subscribes to those signals to
- * render the HUD.
+ * Headless transcription runtime that owns the audio capture and transcription pipeline.
  */
-export function BackgroundApp(): React.JSX.Element {
-  useEffect(() => {
-    // Prewarm immediately so the inference worker is loaded before the first recording.
-    prewarmSilently();
+export function startTranscriptionRuntime(): () => void {
+  // Prewarm immediately so the inference worker is loaded before the first recording.
+  prewarmSilently();
 
-    // React to model activation events posted by the settings and welcome windows.
-    const channel = new BroadcastChannel('movoice:model-activated');
-    channel.addEventListener('message', prewarmSilently);
+  // React to model activation events posted by the settings and welcome windows.
+  const channel = new BroadcastChannel('movoice:model-activated');
+  channel.addEventListener('message', prewarmSilently);
 
-    const unsubscribe = controller.start(onRecordingStateChanged);
-    return () => {
-      unsubscribe();
-      channel.close();
-    };
-  }, []);
-
-  return <></>;
+  const unsubscribe = controller.start(onRecordingStateChanged);
+  return () => {
+    unsubscribe();
+    channel.close();
+  };
 }

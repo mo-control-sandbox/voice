@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { AboutApp } from './about/AboutApp';
-import { BackgroundApp } from './background/BackgroundApp';
+import { startTranscriptionRuntime } from './background/TranscriptionRuntime';
 import { HistoryApp } from './history/HistoryApp';
 import './index.css';
 import { initTheme } from './lib/theme';
@@ -12,9 +12,10 @@ type RendererWindowKind = 'about' | 'background' | 'history' | 'settings' | 'wel
 
 const RENDERER_WINDOW_PARAM = 'window';
 
-const APP_BY_WINDOW: Record<RendererWindowKind, () => React.JSX.Element> = {
+type UiRendererWindowKind = Exclude<RendererWindowKind, 'background'>;
+
+const APP_BY_WINDOW: Record<UiRendererWindowKind, () => React.JSX.Element> = {
   about: AboutApp,
-  background: BackgroundApp,
   history: HistoryApp,
   settings: SettingsApp,
   welcome: WelcomeApp,
@@ -49,11 +50,15 @@ if (rootElement === null) {
 }
 rootElement.dataset.rendererWindowRoot = rendererWindowKind ?? 'unknown';
 
-const App = rendererWindowKind === null ? null : APP_BY_WINDOW[rendererWindowKind];
-const appElement = App === null ? <></> : React.createElement(App);
+if (rendererWindowKind === 'background') {
+  startTranscriptionRuntime();
+} else {
+  const App = rendererWindowKind === null ? null : APP_BY_WINDOW[rendererWindowKind];
+  const appElement = App === null ? <></> : React.createElement(App);
 
-ReactDOM.createRoot(rootElement).render(
-  <React.StrictMode>
-    {appElement}
-  </React.StrictMode>,
-);
+  ReactDOM.createRoot(rootElement).render(
+    <React.StrictMode>
+      {appElement}
+    </React.StrictMode>,
+  );
+}
