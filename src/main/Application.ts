@@ -11,7 +11,7 @@ import { RecordingRuntimeCoordinator } from './recording/RecordingRuntimeCoordin
 import { TranscriptionPasteOrchestrator } from './recording/TranscriptionPasteOrchestrator';
 import { TrayController } from './TrayController';
 import { RecordingWorkerWindow } from './recording/RecordingWorkerWindow';
-import { RecordingOverlay } from './recording/RecordingOverlay';
+import { OverlayWindow } from './recording/OverlayWindow';
 import { SettingsWindow } from './settings/SettingsWindow';
 import { HistoryWindow } from './sessions/HistoryWindow';
 import { AboutWindow } from './AboutWindow';
@@ -42,7 +42,7 @@ export class Application {
   );
 
   private readonly recordingWorkerWindow = new RecordingWorkerWindow(this.windowPermissionPolicy);
-  private readonly recordingOverlay = new RecordingOverlay(this.recordingController);
+  private readonly overlayWindow = new OverlayWindow(this.recordingController);
   private readonly dockManager = new DockManager();
   private readonly settingsWindow = new SettingsWindow(this.dockManager, this.windowPermissionPolicy);
   private readonly historyWindow = new HistoryWindow(this.dockManager);
@@ -106,7 +106,7 @@ export class Application {
     registerStatsIpc(this.historyStore);
     registerHistoryIpc(this.historyStore, this.sessionStorage);
 
-    this.recordingOverlay.initialize();
+    this.overlayWindow.initialize();
     await this.readiness.recompute();
 
     this.recordingRuntimeCoordinator.initialize();
