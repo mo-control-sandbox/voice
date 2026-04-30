@@ -6,7 +6,6 @@ import { SessionStorage } from './sessions/SessionStorage';
 import { History } from './sessions/History';
 import { Clipboard } from './system/Clipboard';
 import { RecordingSessionController } from './recording/RecordingSessionController';
-import { TranscriptionPasteOrchestrator } from './recording/TranscriptionPasteOrchestrator';
 import { TrayController } from './TrayController';
 import { RecordingWorkerWindow } from './recording/RecordingWorkerWindow';
 import { OverlayWindow } from './recording/OverlayWindow';
@@ -51,7 +50,6 @@ export class Application {
   private readonly welcomeWindow = new WelcomeWindow(this.dockManager, this.windowPermissionPolicy);
   private readonly shortcutManager = new ShortcutManager();
   private readonly clipboard = new Clipboard();
-  private readonly transcriptionPasteOrchestrator = new TranscriptionPasteOrchestrator(this.clipboard);
   private readonly trayController = new TrayController(
     this.recordingController,
     this.settings,
@@ -104,13 +102,13 @@ export class Application {
       this.trayController.refresh();
     });
     this.recordingController.onTranscribed((text) => {
-      this.transcriptionPasteOrchestrator.onTranscriptionCompleted(text);
+      void this.clipboard.execute(text);
     });
     this.recordingController.onPartiallyTranscribed((text) => {
-      this.transcriptionPasteOrchestrator.onPartialTranscription(text);
+      void this.clipboard.execute(text);
     });
     this.recordingController.onSessionAborted(() => {
-      this.transcriptionPasteOrchestrator.onSessionAborted();
+      this.clipboard.cancelPending();
     });
     this.settings.onShortcutKeyChanged(() => { this.trayController.refresh(); });
   }
