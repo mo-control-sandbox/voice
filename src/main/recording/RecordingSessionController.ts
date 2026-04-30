@@ -9,7 +9,7 @@ import type { History, TranscriptionSession } from '../sessions/History';
 import type { SessionStorage } from '../sessions/SessionStorage';
 import { RecordingSession } from './RecordingSession';
 
-export type RecordingState = 'idle' | 'recording' | 'processing';
+export type RecordingStatus = 'idle' | 'recording' | 'processing';
 
 /**
  * Callback fired once per successfully completed non-streaming transcription.
@@ -22,22 +22,17 @@ export type TranscriptionCompletedCallback = (text: string) => void;
 export type PartialTranscriptionCallback = (text: string) => void;
 
 /**
- * Runtime side-effect callbacks emitted by the recording session lifecycle.
- */
-export type RecordingRuntimeListener = {
-  onTranscriptionCompleted?: TranscriptionCompletedCallback;
-  onPartialTranscription?: PartialTranscriptionCallback;
-  onSessionAborted?: () => void;
-};
-
-/**
  * Controls the recording session lifecycle: idle, recording, processing, and back to idle.
  */
 export class RecordingSessionController {
-  private state: RecordingState = 'idle';
+  private stage: RecordingStatus = 'idle';
   private session: RecordingSession | null = null;
 
-  private readonly listeners: ((state: RecordingState) => void)[] = [];
+  private readonly stageListeners: ((stage: RecordingStatus) => void)[] = [];
+  private readonly sessionAbortedListeners: (() => void)[] = [];
+  private readonly transcriptionCompletedListeners: TranscriptionCompletedCallback[] = [];
+  private readonly partialTranscriptionListeners: PartialTranscriptionCallback[] = [];
+  
 
   /**
    * Creates a recording session controller with persistence and settings dependencies.
@@ -46,27 +41,41 @@ export class RecordingSessionController {
     private readonly settings: SettingsStore,
     private readonly historyStore: History,
     private readonly sessionStorage: SessionStorage,
-    private readonly runtimeListeners: RecordingRuntimeListener = {},
   ) {}
 
   /**
-   * Returns the current FSM state.
+   * Returns the current recording stage.
    */
-  getState(): RecordingState {
-    return this.state;
+  getState(): RecordingStatus {
+    return this.stage;
   }
 
   /**
-   * Registers a callback that fires on every state transition.
-   *
-   * @returns an unsubscribe function.
+   * Registers a callback that fires when the recording stage changes.
    */
-  onStateChange(cb: (state: RecordingState) => void): () => void {
-    this.listeners.push(cb);
-    return () => {
-      const idx = this.listeners.indexOf(cb);
-      if (idx !== -1) this.listeners.splice(idx, 1);
-    };
+  onStateChange(cb: (stage: RecordingStatus) => void): void {
+    this.stageListeners.push(cb);
+  }
+
+  /**
+   * Registers a callback that fires after a completed non-streaming transcription.
+   */
+  onTranscribed(cb: TranscriptionCompletedCallback): void {
+    this.transcriptionCompletedListeners.push(cb);
+  }
+
+  /**
+   * Registers a callback that fires for each streamed partial transcription.
+   */
+  onPartiallyTranscribed(cb: PartialTranscriptionCallback): void {
+    this.partialTranscriptionListeners.push(cb);
+  }
+
+  /**
+   * Registers a callback that fires when the active session is canceled.
+   */
+  onSessionAborted(cb: () => void): void {
+    this.sessionAbortedListeners.push(cb);
   }
 
   /**
@@ -76,7 +85,9 @@ export class RecordingSessionController {
    */
   pastePartialTranscription(payload: PastePartialTranscriptionRequest): boolean {
     if (this.session?.id !== payload.sessionId) return false;
-    this.runtimeListeners.onPartialTranscription?.(payload.text);
+    for (const listener of this.partialTranscriptionListeners) {
+      listener(payload.text);
+    }
     return true;
   }
 
@@ -84,9 +95,9 @@ export class RecordingSessionController {
    * Toggles recording: starts if idle, stops if recording. No-op while processing.
    */
   toggle(): void {
-    if (this.state === 'idle') {
+    if (this.stage === 'idle') {
       this.start();
-    } else if (this.state === 'recording') {
+    } else if (this.stage === 'recording') {
       this.stop();
     }
   }
@@ -97,7 +108,7 @@ export class RecordingSessionController {
    * No-op if already recording or processing.
    */
   start(): void {
-    if (this.state !== 'idle') return;
+    if (this.stage !== 'idle') return;
 
     const settings = this.settings.get();
     this.session = new RecordingSession(
@@ -112,7 +123,7 @@ export class RecordingSessionController {
    * Transitions from recording to processing.
    */
   stop(): void {
-    if (this.state !== 'recording') return;
+    if (this.stage !== 'recording') return;
     this.transition('processing');
   }
 
@@ -130,9 +141,11 @@ export class RecordingSessionController {
    * Cancels the current session and returns to idle.
    */
   cancel(): void {
-    if (this.state === 'idle') return;
+    if (this.stage === 'idle') return;
     this.session = null;
-    this.runtimeListeners.onSessionAborted?.();
+    for (const listener of this.sessionAbortedListeners) {
+      listener();
+    }
     this.transition('idle');
   }
 
@@ -143,7 +156,7 @@ export class RecordingSessionController {
    * Returns false if the session ID does not match the active session (stale result).
    */
   async completeTranscription(payload: SubmitTranscriptionRequest): Promise<boolean> {
-    if (this.state !== 'processing') return false;
+    if (this.stage !== 'processing') return false;
     if (this.session?.id !== payload.sessionId) {
       console.warn('[RecordingSessionController] completeTranscription: session ID mismatch, ignoring.');
       return false;
@@ -175,7 +188,9 @@ export class RecordingSessionController {
     this.session = null;
 
     if (!payload.streamed) {
-      this.runtimeListeners.onTranscriptionCompleted?.(payload.text);
+      for (const listener of this.transcriptionCompletedListeners) {
+        listener(payload.text);
+      }
     }
 
     this.transition('idle');
@@ -189,9 +204,9 @@ export class RecordingSessionController {
     return this.session;
   }
 
-  private transition(next: RecordingState): void {
-    this.state = next;
-    for (const cb of this.listeners) {
+  private transition(next: RecordingStatus): void {
+    this.stage = next;
+    for (const cb of this.stageListeners) {
       cb(next);
     }
   }
@@ -206,7 +221,7 @@ export class RecordingSessionController {
  * Registers the Recording IPC service.
  *
  * Handles both CancelRecording and SubmitTranscription, delegating
- * state transitions and persistence to RecordingSessionController.
+ * recording lifecycle updates and persistence to RecordingSessionController.
  */
 export function registerRecordingIpc(controller: RecordingSessionController): void {
   ipc.registerService(createRecordingService(new RecordingService(controller)));

@@ -38,17 +38,6 @@ export class Application {
     this.settings,
     this.historyStore,
     this.sessionStorage,
-    {
-      onTranscriptionCompleted: (text) => {
-        this.transcriptionPasteOrchestrator.onTranscriptionCompleted(text);
-      },
-      onPartialTranscription: (text) => {
-        this.transcriptionPasteOrchestrator.onPartialTranscription(text);
-      },
-      onSessionAborted: () => {
-        this.transcriptionPasteOrchestrator.onSessionAborted();
-      },
-    },
   );
 
   private readonly recordingWorkerWindow = new RecordingWorkerWindow(this.windowPermissionPolicy);
@@ -114,6 +103,15 @@ export class Application {
     await this.readiness.recompute();
 
     this.recordingController.onStateChange(() => { this.trayController.refresh(); });
+    this.recordingController.onTranscribed((text) => {
+      this.transcriptionPasteOrchestrator.onTranscriptionCompleted(text);
+    });
+    this.recordingController.onPartiallyTranscribed((text) => {
+      this.transcriptionPasteOrchestrator.onPartialTranscription(text);
+    });
+    this.recordingController.onSessionAborted(() => {
+      this.transcriptionPasteOrchestrator.onSessionAborted();
+    });
     this.settings.onShortcutKeyChanged(() => { this.trayController.refresh(); });
   }
 
