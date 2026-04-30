@@ -4,15 +4,27 @@ export interface AudioInputDevice {
 }
 
 /**
- * Enumerates available audio input devices after a permission-safe warm-up.
+ * Requests temporary microphone access so device labels become available.
  */
-export async function getAudioInputDevices(): Promise<readonly AudioInputDevice[]> {
+async function warmUpAudioInputAccess(): Promise<boolean> {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
     stream.getTracks().forEach((track) => {
+      // We release the mic immediately because we only need permission/labels.
       track.stop();
     });
+    return true;
   } catch {
+    return false;
+  }
+}
+
+/**
+ * Enumerates available audio input devices after a permission-safe warm-up.
+ */
+export async function getAudioInputDevices(): Promise<readonly AudioInputDevice[]> {
+  const isAudioInputAccessAvailable = await warmUpAudioInputAccess();
+  if (!isAudioInputAccessAvailable) {
     return [];
   }
 
