@@ -1,4 +1,5 @@
 import { AudioPipeline } from '../audio/AudioPipeline';
+import { PcmAudio } from '../audio/PcmAudio';
 import type { RendererModelRepository } from '../../services/RendererModelRepository';
 import type { SubmitTranscriptionRequest } from '../../gen/recording';
 import type { MoVoiceBackendFactory } from '../services/MoVoiceBackendFactory';
@@ -51,16 +52,6 @@ const AUDIO_FLUSH_SAMPLES = 16000;
  * Does not affect saved audio -- only the buffer handed to the model.
  */
 const SILENCE_PADDING_S = 1;
-
-/**
- * Returns a new Float32Array with SILENCE_PADDING_S seconds of zeros appended.
- */
-function withSilencePadding(samples: Float32Array, sampleRate: number): Float32Array {
-  const paddingSamples = Math.round(sampleRate * SILENCE_PADDING_S);
-  const padded = new Float32Array(samples.length + paddingSamples);
-  padded.set(samples);
-  return padded;
-}
 
 /**
  * Maps a getUserMedia error to a short, user-readable sentence.
@@ -265,15 +256,15 @@ export class TranscriptionService {
     } else {
       const audio = pipeline !== null
         ? await pipeline.stop()
-        : { samples: new Float32Array(0), sampleRate: 16000, channelCount: 1 };
+        : new PcmAudio(new Float32Array(0), 16000, 1);
 
-      audioDurationSeconds = audio.samples.length / audio.sampleRate;
+      audioDurationSeconds = audio.durationSeconds;
 
       if (backend !== null && backend.mode === 'batch') {
         // Pass silence-padded samples to the model; the saved PCM stays unpadded.
-        const paddedSamples = withSilencePadding(audio.samples, audio.sampleRate);
+        const paddedAudio = audio.withSilencePadding(SILENCE_PADDING_S);
         result = await backend.transcribe(
-          { ...audio, samples: paddedSamples },
+          paddedAudio,
           language,
           abortController.signal,
         );
@@ -281,12 +272,7 @@ export class TranscriptionService {
 
       // Send the full resampled PCM as a single chunk for disk persistence.
       if (this.audioChunkCallback !== null) {
-        const pcmBytes = new Uint8Array(
-          audio.samples.buffer,
-          audio.samples.byteOffset,
-          audio.samples.byteLength,
-        );
-        this.audioChunkCallback(pcmBytes);
+        this.audioChunkCallback(audio.toPcmBytes());
       }
     }
 

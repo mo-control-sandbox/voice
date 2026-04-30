@@ -1,4 +1,4 @@
-import type { PcmAudio } from './PcmAudio';
+import { PcmAudio } from './PcmAudio';
 
 /**
  * AudioPipeline manages microphone capture and PCM accumulation for a single
@@ -113,13 +113,13 @@ export class AudioPipeline {
     this.workletNode = null;
 
     const sampleRate = this.audioContext?.sampleRate ?? 44100;
-    const allChunks = this.mergeChunks();
+    const mergedAudio = PcmAudio.mergeChunks(this.pcmChunks, sampleRate, 1);
+    this.pcmChunks = [];
 
     await this.audioContext?.close();
     this.audioContext = null;
 
-    const samples = await this.resampleTo16kHz(allChunks, sampleRate);
-    return { samples, sampleRate: 16000, channelCount: 1 };
+    return mergedAudio.resampleTo(16000);
   }
 
   /**
@@ -131,40 +131,4 @@ export class AudioPipeline {
     this.trackEndedCallback = cb;
   }
 
-  // ── Private helpers ────────────────────────────────────────────────────────
-
-  private mergeChunks(): Float32Array {
-    const total = this.pcmChunks.reduce((sum, c) => sum + c.length, 0);
-    const merged = new Float32Array(total);
-    let offset = 0;
-    for (const chunk of this.pcmChunks) {
-      merged.set(chunk, offset);
-      offset += chunk.length;
-    }
-    this.pcmChunks = [];
-    return merged;
-  }
-
-  private async resampleTo16kHz(
-    input: Float32Array,
-    inputSampleRate: number,
-  ): Promise<Float32Array> {
-    if (input.length === 0) return new Float32Array(0);
-
-    const targetSampleRate = 16000;
-    const outputLength = Math.ceil((input.length * targetSampleRate) / inputSampleRate);
-
-    const offlineCtx = new OfflineAudioContext(1, outputLength, targetSampleRate);
-    const buffer = offlineCtx.createBuffer(1, input.length, inputSampleRate);
-    // Copy via a fresh ArrayBuffer-backed Float32Array to satisfy strict typing.
-    buffer.copyToChannel(new Float32Array(input), 0);
-
-    const source = offlineCtx.createBufferSource();
-    source.buffer = buffer;
-    source.connect(offlineCtx.destination);
-    source.start(0);
-
-    const rendered = await offlineCtx.startRendering();
-    return rendered.getChannelData(0);
-  }
 }
