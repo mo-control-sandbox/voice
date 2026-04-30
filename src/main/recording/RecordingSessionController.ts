@@ -103,10 +103,10 @@ export class RecordingSessionController {
 
     const settings = this.settings.get();
     this.session = new RecordingSession(
-      settings.dontSaveAudio,
-      settings.dontSaveTranscripts,
+      !settings.dontSaveAudio,
+      !settings.dontSaveTranscripts,
     );
-    this.audioBuffer = settings.dontSaveAudio ? null : new AudioBuffer();
+    this.audioBuffer = this.session.saveAudio ? new AudioBuffer() : null;
 
     this.transition('recording');
   }
@@ -162,17 +162,17 @@ export class RecordingSessionController {
       transcriptionEngineLabel: payload.transcriptionEngineLabel,
       audioDurationSeconds: payload.audioDurationSeconds,
       wordCount,
-      transcriptionText: session.dontSaveTranscripts ? null : payload.text,
+      transcriptionText: session.saveTranscripts ? payload.text : null,
       detectedLanguage: payload.detectedLanguage,
     };
 
     await this.historyStore.addSession(record);
 
-    if (!session.dontSaveAudio && this.audioBuffer !== null) {
+    if (session.saveAudio && this.audioBuffer !== null) {
       await this.sessionStorage.saveAudio(session.id, this.audioBuffer.toWavBytes());
     }
 
-    if (!session.dontSaveTranscripts) {
+    if (session.saveTranscripts) {
       await this.sessionStorage.saveTranscript(session.id, payload.text);
     }
 

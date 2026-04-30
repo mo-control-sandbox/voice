@@ -10,18 +10,18 @@ export class RecordingSession {
   readonly id = randomUUID();
 
   /**
-   * Unix timestamp (ms) when the session was created.
+   * Unix timestamp when the session was created.
    */
   readonly startedAt = Date.now();
 
   constructor(
     /**
-     * Whether audio should NOT be written to disk for this session.
+     * Whether audio should be written to disk for this session.
      */
-    readonly dontSaveAudio: boolean,
+    readonly saveAudio: boolean,
     /**
-     * Whether the transcript should NOT be written to disk for this session.
+     * Whether the transcript should be written to disk for this session.
      */
-    readonly dontSaveTranscripts: boolean,
+    readonly saveTranscripts: boolean,
   ) {}
 }
