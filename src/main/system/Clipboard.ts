@@ -1,4 +1,5 @@
 import { clipboard } from '@mobrowser/api';
+import { Mutex } from 'async-mutex';
 import { native } from '../gen/native';
 import { PermissionStatus, PermissionType } from '../gen/native/permissions';
 
@@ -11,7 +12,7 @@ import { PermissionStatus, PermissionType } from '../gen/native/permissions';
  */
 export class Clipboard {
   private accessibilityGranted: boolean | null = null;
-  private queue: Promise<void> = Promise.resolve();
+  private readonly executeMutex = new Mutex();
   private executionGeneration = 0;
 
   /**
@@ -22,11 +23,10 @@ export class Clipboard {
    */
   execute(text: string): Promise<void> {
     const generation = this.executionGeneration;
-    this.queue = this.queue.then(async () => {
+    return this.executeMutex.runExclusive(async () => {
       if (generation !== this.executionGeneration) return;
       await this.doExecute(text);
     });
-    return this.queue;
   }
 
   /**
@@ -50,7 +50,6 @@ export class Clipboard {
    */
   cancelPending(): void {
     this.executionGeneration += 1;
-    this.queue = Promise.resolve();
   }
 
   private async doExecute(text: string): Promise<void> {
