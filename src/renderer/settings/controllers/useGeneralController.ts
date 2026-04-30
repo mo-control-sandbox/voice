@@ -4,7 +4,6 @@ import { getAudioInputDevices, type AudioInputDevice, subscribeToAudioInputChang
 import {
   PermissionSet,
   PERMISSION_POLL_INTERVAL_MS,
-  SETTINGS_PERMISSION_POLL_TIMEOUT_MS,
 } from '../../capabilities/permissions/PermissionSet';
 import { usePermissionPolling } from '../../capabilities/permissions/usePermissionPolling';
 import { PermissionsService } from '../services/PermissionsService';
@@ -121,7 +120,6 @@ export function useGeneralController(): {
     stopPolling: clearMicPermissionPolling,
   } = usePermissionPolling({
     intervalMs: PERMISSION_POLL_INTERVAL_MS,
-    timeoutMs: SETTINGS_PERMISSION_POLL_TIMEOUT_MS,
     poll: async (): Promise<boolean> => {
       const status = await refreshMicPermissionStatus();
       if (status !== PermissionStatus.PERMISSION_STATUS_GRANTED) {

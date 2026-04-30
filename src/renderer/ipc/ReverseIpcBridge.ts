@@ -1,5 +1,6 @@
 import { ipc } from '../gen/ipc';
 import type { RecordingSignalSnapshotProto } from '../gen/reverse_ipc_bridge';
+import { PollingLoop } from '../capabilities/polling/PollingLoop';
 
 const RECORDING_POLL_INTERVAL_MS = 1000 / 30;
 const HISTORY_POLL_INTERVAL_MS = 1000;
@@ -19,16 +20,21 @@ type HistoryRevisionHandler = (revision: number) => Promise<void>;
  */
 class RecordingSignalChannel {
   private readonly handlers = new Set<RecordingSignalHandler>();
-  private intervalId: ReturnType<typeof setInterval> | null = null;
+  private readonly pollingLoop = new PollingLoop({
+    intervalMs: RECORDING_POLL_INTERVAL_MS,
+    tick: async () => this.tick(),
+    onError: (err: unknown) => {
+      console.error('[ReverseIpcBridge] PollRecording error:', err);
+    },
+  });
   private lastRecordingKey = '';
-  private isTickRunning = false;
 
   /**
    * Registers a recording snapshot handler.
    */
   subscribe(handler: RecordingSignalHandler): () => void {
     this.handlers.add(handler);
-    if (this.intervalId === null) this.startPolling();
+    if (!this.pollingLoop.isRunning()) this.startPolling();
     return () => { this.deregister(handler); };
   }
 
@@ -38,35 +44,24 @@ class RecordingSignalChannel {
   }
 
   private startPolling(): void {
-    this.intervalId = setInterval(() => { void this.tick(); }, RECORDING_POLL_INTERVAL_MS);
-    void this.tick();
+    this.pollingLoop.start();
   }
 
   private stopPolling(): void {
-    if (this.intervalId !== null) {
-      clearInterval(this.intervalId);
-      this.intervalId = null;
-    }
+    this.pollingLoop.stop();
   }
 
-  private async tick(): Promise<void> {
-    if (this.isTickRunning) return;
-    this.isTickRunning = true;
-    try {
-      const response = await ipc.reverseIpcBridge.PollRecording({});
-      const snapshot = response.recording;
-      if (snapshot === undefined) return;
+  private async tick(): Promise<boolean> {
+    const response = await ipc.reverseIpcBridge.PollRecording({});
+    const snapshot = response.recording;
+    if (snapshot === undefined) return false;
 
-      const recordingKey = `${snapshot.state}:${snapshot.sessionId}`;
-      if (recordingKey === this.lastRecordingKey) return;
+    const recordingKey = `${snapshot.state}:${snapshot.sessionId}`;
+    if (recordingKey === this.lastRecordingKey) return false;
 
-      this.lastRecordingKey = recordingKey;
-      await dispatchHandlers(this.handlers, snapshot, 'recording');
-    } catch (err) {
-      console.error('[ReverseIpcBridge] PollRecording error:', err);
-    } finally {
-      this.isTickRunning = false;
-    }
+    this.lastRecordingKey = recordingKey;
+    await dispatchHandlers(this.handlers, snapshot, 'recording');
+    return false;
   }
 }
 
@@ -75,16 +70,21 @@ class RecordingSignalChannel {
  */
 class HistoryRevisionChannel {
   private readonly handlers = new Set<HistoryRevisionHandler>();
-  private intervalId: ReturnType<typeof setInterval> | null = null;
+  private readonly pollingLoop = new PollingLoop({
+    intervalMs: HISTORY_POLL_INTERVAL_MS,
+    tick: async () => this.tick(),
+    onError: (err: unknown) => {
+      console.error('[ReverseIpcBridge] PollHistoryRevision error:', err);
+    },
+  });
   private lastHistoryRevision = -1;
-  private isTickRunning = false;
 
   /**
    * Registers a history revision handler.
    */
   subscribe(handler: HistoryRevisionHandler): () => void {
     this.handlers.add(handler);
-    if (this.intervalId === null) this.startPolling();
+    if (!this.pollingLoop.isRunning()) this.startPolling();
     return () => { this.deregister(handler); };
   }
 
@@ -94,34 +94,23 @@ class HistoryRevisionChannel {
   }
 
   private startPolling(): void {
-    this.intervalId = setInterval(() => { void this.tick(); }, HISTORY_POLL_INTERVAL_MS);
-    void this.tick();
+    this.pollingLoop.start();
   }
 
   private stopPolling(): void {
-    if (this.intervalId !== null) {
-      clearInterval(this.intervalId);
-      this.intervalId = null;
-    }
+    this.pollingLoop.stop();
   }
 
-  private async tick(): Promise<void> {
-    if (this.isTickRunning) return;
-    this.isTickRunning = true;
-    try {
-      const response = await ipc.reverseIpcBridge.PollHistoryRevision({});
-      if (response.historyRevision === this.lastHistoryRevision) return;
+  private async tick(): Promise<boolean> {
+    const response = await ipc.reverseIpcBridge.PollHistoryRevision({});
+    if (response.historyRevision === this.lastHistoryRevision) return false;
 
-      const isFirstPoll = this.lastHistoryRevision === -1;
-      this.lastHistoryRevision = response.historyRevision;
-      if (isFirstPoll) return;
+    const isFirstPoll = this.lastHistoryRevision === -1;
+    this.lastHistoryRevision = response.historyRevision;
+    if (isFirstPoll) return false;
 
-      await dispatchHandlers(this.handlers, response.historyRevision, 'history revision');
-    } catch (err) {
-      console.error('[ReverseIpcBridge] PollHistoryRevision error:', err);
-    } finally {
-      this.isTickRunning = false;
-    }
+    await dispatchHandlers(this.handlers, response.historyRevision, 'history revision');
+    return false;
   }
 }
 

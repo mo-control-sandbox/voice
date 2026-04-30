@@ -3,7 +3,6 @@ import { PermissionStatus, type PermissionStatusProto, type PermissionType } fro
 import {
   PermissionSet,
   PERMISSION_POLL_INTERVAL_MS,
-  SETTINGS_PERMISSION_POLL_TIMEOUT_MS,
 } from '../../capabilities/permissions/PermissionSet';
 import { usePermissionPolling } from '../../capabilities/permissions/usePermissionPolling';
 import { PermissionsService } from '../services/PermissionsService';
@@ -39,7 +38,6 @@ export function usePermissionsController(): {
     stopPolling: clearPermissionPolling,
   } = usePermissionPolling({
     intervalMs: PERMISSION_POLL_INTERVAL_MS,
-    timeoutMs: SETTINGS_PERMISSION_POLL_TIMEOUT_MS,
     poll: async (): Promise<boolean> => {
       const latestPermissions = await refreshPermissionsSnapshot();
       const permissionSet = PermissionSet.fromProto(latestPermissions);

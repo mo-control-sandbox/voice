@@ -36,7 +36,6 @@ export function useMicrophonePermission(params: {
     stopPolling: stopMicrophonePolling,
   } = usePermissionPolling({
     intervalMs: PERMISSION_POLL_INTERVAL_MS,
-    timeoutMs: 0,
     poll: async (): Promise<boolean> => {
       const latestStatus = await refreshMicrophoneStatus();
       if (

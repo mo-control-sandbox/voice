@@ -3,6 +3,7 @@ import type { ModelEntry } from '../../types/models';
 import { getRendererModelRepository } from '../../services/getRendererModelRepository';
 import { reportModelReadiness } from '../../services/ModelReadinessReporter';
 import { notifyModelActivated } from '../../services/notifyModelActivated';
+import { PollingLoop } from '../../capabilities/polling/PollingLoop';
 
 const MODEL_POLL_INTERVAL_MS = 500;
 
@@ -23,7 +24,7 @@ export function useModelSelection(): {
 } {
   const [models, setModels] = useState<ModelEntry[]>([]);
   const [downloadErrors, setDownloadErrors] = useState<ReadonlyMap<string, string>>(new Map());
-  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pollingRef = useRef<PollingLoop | null>(null);
 
   const hasReadyActiveModel = useMemo(
     () => models.some((model) => (
@@ -46,19 +47,23 @@ export function useModelSelection(): {
   }, []);
 
   useEffect(() => {
+    pollingRef.current ??= new PollingLoop({
+      intervalMs: MODEL_POLL_INTERVAL_MS,
+      tick: async () => {
+        await refreshModels();
+        return false;
+      },
+    });
     const hasActiveDownload = models.some((model) => model.downloadProgress !== null);
     if (hasActiveDownload) {
-      pollingRef.current ??= setInterval(() => {
-        void refreshModels();
-      }, MODEL_POLL_INTERVAL_MS);
-    } else if (pollingRef.current !== null) {
-      clearInterval(pollingRef.current);
-      pollingRef.current = null;
+      pollingRef.current.start();
+    } else {
+      pollingRef.current.stop();
     }
 
     return () => {
       if (pollingRef.current !== null) {
-        clearInterval(pollingRef.current);
+        pollingRef.current.stop();
         pollingRef.current = null;
       }
     };

@@ -14,11 +14,6 @@ export const REQUIRED_PERMISSION_TYPES = [
 export const PERMISSION_POLL_INTERVAL_MS = 500;
 
 /**
- * Timeout used by settings permission polling that waits for System Settings updates.
- */
-export const SETTINGS_PERMISSION_POLL_TIMEOUT_MS = 30_000;
-
-/**
  * Represents the current permissions state used by renderer workflows.
  *
  * Owns permission status lookups and required-permission checks for onboarding

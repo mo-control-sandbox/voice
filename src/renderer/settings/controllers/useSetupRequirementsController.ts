@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
-import { PermissionStatus, PermissionType } from '../../gen/permissions';
+import { PermissionStatus } from '../../gen/permissions';
 import { getRendererModelRepository } from '../../services/getRendererModelRepository';
 import { PermissionSet } from '../../capabilities/permissions/PermissionSet';
+import { PollingLoop } from '../../capabilities/polling/PollingLoop';
 import { PermissionsService } from '../services/PermissionsService';
 
 const permissionsService = new PermissionsService();
@@ -51,16 +52,17 @@ export function useSetupRequirementsController(): SetupRequirementsState {
   }, []);
 
   useEffect(() => {
-    let cancelled = false;
     void refresh();
-    const interval = setInterval(() => {
-      if (!cancelled) {
-        void refresh();
-      }
-    }, REFRESH_INTERVAL_MS);
+    const pollingLoop = new PollingLoop({
+      intervalMs: REFRESH_INTERVAL_MS,
+      tick: async () => {
+        await refresh();
+        return false;
+      },
+    });
+    pollingLoop.start();
     return () => {
-      cancelled = true;
-      clearInterval(interval);
+      pollingLoop.stop();
     };
   }, [refresh]);
 

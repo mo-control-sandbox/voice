@@ -34,7 +34,6 @@ export function useAccessibilityPermission(params: {
     stopPolling: stopAccessibilityPolling,
   } = usePermissionPolling({
     intervalMs: PERMISSION_POLL_INTERVAL_MS,
-    timeoutMs: 0,
     poll: async (): Promise<boolean> => {
       const latestAccessibility = await refreshAccessibilityStatus();
       if (

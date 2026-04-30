@@ -1,73 +1,49 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { PollingLoop } from '../polling/PollingLoop';
 
 interface PermissionPollingOptions {
   readonly intervalMs: number;
-  readonly timeoutMs: number;
   readonly poll: () => Promise<boolean>;
 }
 
 /**
- * Owns reusable polling lifecycle with in-flight guard and optional timeout.
+ * Re-checks permission state until the required condition is reached or polling expires.
  */
 export function usePermissionPolling(options: PermissionPollingOptions): {
   readonly isPolling: boolean;
   readonly startPolling: () => void;
   readonly stopPolling: () => void;
 } {
-  const { intervalMs, timeoutMs, poll } = options;
+  const { intervalMs, poll } = options;
   const [isPolling, setIsPolling] = useState(false);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const pollInFlightRef = useRef(false);
   const pollRef = useRef(poll);
+  const loopRef = useRef<PollingLoop | null>(null);
 
   useEffect(() => {
     pollRef.current = poll;
   }, [poll]);
 
+  useEffect(() => {
+    loopRef.current = new PollingLoop({
+      intervalMs,
+      tick: async () => pollRef.current(),
+      onStop: () => { setIsPolling(false); },
+    });
+    return () => {
+      loopRef.current?.stop();
+      loopRef.current = null;
+    };
+  }, [intervalMs]);
+
   const stopPolling = useCallback((): void => {
-    if (intervalRef.current !== null) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-
-    if (timeoutRef.current !== null) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
-
-    pollInFlightRef.current = false;
+    loopRef.current?.stop();
     setIsPolling(false);
   }, []);
 
   const startPolling = useCallback((): void => {
-    stopPolling();
+    loopRef.current?.start();
     setIsPolling(true);
-
-    const runPoll = async (): Promise<void> => {
-      if (pollInFlightRef.current) return;
-      pollInFlightRef.current = true;
-      try {
-        const shouldStop = await pollRef.current();
-        if (shouldStop) {
-          stopPolling();
-        }
-      } finally {
-        pollInFlightRef.current = false;
-      }
-    };
-
-    intervalRef.current = setInterval(() => {
-      void runPoll();
-    }, intervalMs);
-    void runPoll();
-
-    if (timeoutMs > 0) {
-      timeoutRef.current = setTimeout(() => {
-        stopPolling();
-      }, timeoutMs);
-    }
-  }, [intervalMs, stopPolling, timeoutMs]);
+  }, []);
 
   return {
     isPolling,
