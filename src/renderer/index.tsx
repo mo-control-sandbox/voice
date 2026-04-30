@@ -1,10 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { AboutApp } from './about/AboutApp';
-import { startTranscriptionRuntime } from './background/TranscriptionRuntime';
+import { startTranscriptionRuntime } from './runtime/TranscriptionRuntime';
 import { HistoryApp } from './history/HistoryApp';
 import './index.css';
-import { initTheme } from './lib/theme';
+import { initTheme } from './theme';
 import { SettingsApp } from './settings/App';
 import { WelcomeApp } from './welcome/WelcomeApp';
 
