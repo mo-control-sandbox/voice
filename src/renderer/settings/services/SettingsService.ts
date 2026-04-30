@@ -21,14 +21,14 @@ export class SettingsService {
     await ipc.settings.SetShortcutCaptureMode({ capturing });
   }
 
-  /** Persists the dont-save-transcripts preference. */
-  async setDontSaveTranscripts(value: boolean): Promise<void> {
-    await ipc.settings.SetDontSaveTranscripts({ value });
+  /** Persists the save-transcripts preference. */
+  async setSaveTranscripts(value: boolean): Promise<void> {
+    await ipc.settings.SetSaveTranscripts({ value });
   }
 
-  /** Persists the dont-save-audio preference. */
-  async setDontSaveAudio(value: boolean): Promise<void> {
-    await ipc.settings.SetDontSaveAudio({ value });
+  /** Persists the save-audio preference. */
+  async setSaveAudio(value: boolean): Promise<void> {
+    await ipc.settings.SetSaveAudio({ value });
   }
 
   /** Persists the selected audio input device. */

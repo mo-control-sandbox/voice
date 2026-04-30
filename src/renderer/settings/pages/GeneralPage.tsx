@@ -16,7 +16,7 @@ export function GeneralPage({ onOpenPermissions }: GeneralPageProps): React.JSX.
       devices,
       selectedDeviceId,
       shortcutKey,
-      dontSaveTranscripts,
+      saveTranscripts,
       saveAudio,
       isCapturing,
       isShortcutLoading,
@@ -30,7 +30,7 @@ export function GeneralPage({ onOpenPermissions }: GeneralPageProps): React.JSX.
       setIsCapturing,
       saveShortcut,
       handleDeviceChange,
-      handleDontSaveTranscripts,
+      handleSaveTranscripts,
       handleSaveAudio,
       handleMicPermissionAction,
     },
@@ -61,9 +61,9 @@ export function GeneralPage({ onOpenPermissions }: GeneralPageProps): React.JSX.
           </label>
           <Switch
             id="save-transcripts"
-            checked={!dontSaveTranscripts}
+            checked={saveTranscripts}
             onChange={(value) => {
-              void handleDontSaveTranscripts(!value);
+              void handleSaveTranscripts(value);
             }}
           />
         </div>

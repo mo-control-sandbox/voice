@@ -53,7 +53,7 @@ export interface GeneralControllerState {
   readonly devices: readonly AudioInputDevice[];
   readonly selectedDeviceId: string;
   readonly shortcutKey: string;
-  readonly dontSaveTranscripts: boolean;
+  readonly saveTranscripts: boolean;
   readonly saveAudio: boolean;
   readonly isCapturing: boolean;
   readonly isShortcutLoading: boolean;
@@ -71,7 +71,7 @@ export interface GeneralControllerActions {
   readonly setIsCapturing: (capturing: boolean) => void;
   readonly saveShortcut: (accelerator: string) => Promise<void>;
   readonly handleDeviceChange: (deviceId: string) => Promise<void>;
-  readonly handleDontSaveTranscripts: (value: boolean) => Promise<void>;
+  readonly handleSaveTranscripts: (value: boolean) => Promise<void>;
   readonly handleSaveAudio: (value: boolean) => Promise<void>;
   readonly handleMicPermissionAction: () => Promise<void>;
 }
@@ -90,7 +90,7 @@ export function useGeneralController(): {
   );
   const [shortcutKey, setShortcutKey] = useState('');
   const [isCapturing, setIsCapturing] = useState(false);
-  const [dontSaveTranscripts, setDontSaveTranscripts] = useState(false);
+  const [saveTranscripts, setSaveTranscripts] = useState(true);
   const [saveAudio, setSaveAudio] = useState(true);
   const [isShortcutLoading, setIsShortcutLoading] = useState(true);
   const [isMicLoading, setIsMicLoading] = useState(true);
@@ -140,8 +140,8 @@ export function useGeneralController(): {
         const settingsPromise = settingsService.getSettings().then((settings) => {
           if (cancelledRef.current) return '';
           setShortcutKey(settings.shortcutKey);
-          setDontSaveTranscripts(settings.dontSaveTranscripts);
-          setSaveAudio(!settings.dontSaveAudio);
+          setSaveTranscripts(settings.saveTranscripts);
+          setSaveAudio(settings.saveAudio);
           setIsShortcutLoading(false);
           return settings.audioInputDeviceId;
         });
@@ -226,14 +226,14 @@ export function useGeneralController(): {
     await settingsService.setAudioInputDevice(deviceId);
   }
 
-  async function handleDontSaveTranscripts(value: boolean): Promise<void> {
-    setDontSaveTranscripts(value);
-    await settingsService.setDontSaveTranscripts(value);
+  async function handleSaveTranscripts(value: boolean): Promise<void> {
+    setSaveTranscripts(value);
+    await settingsService.setSaveTranscripts(value);
   }
 
   async function handleSaveAudio(value: boolean): Promise<void> {
     setSaveAudio(value);
-    await settingsService.setDontSaveAudio(!value);
+    await settingsService.setSaveAudio(value);
   }
 
   async function handleMicPermissionAction(): Promise<void> {
@@ -260,7 +260,7 @@ export function useGeneralController(): {
       devices,
       selectedDeviceId,
       shortcutKey,
-      dontSaveTranscripts,
+      saveTranscripts,
       saveAudio,
       isCapturing,
       isShortcutLoading,
@@ -274,7 +274,7 @@ export function useGeneralController(): {
       setIsCapturing,
       saveShortcut,
       handleDeviceChange,
-      handleDontSaveTranscripts,
+      handleSaveTranscripts,
       handleSaveAudio,
       handleMicPermissionAction,
     },

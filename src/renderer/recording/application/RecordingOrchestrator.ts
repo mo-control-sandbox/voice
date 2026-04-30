@@ -96,9 +96,9 @@ export class RecordingOrchestrator {
     if (sessionChanged || (stateChanged && nextState === 'recording')) {
       const settings = await this.gateway.getSettings();
       const sessionId = next.sessionId;
-      const onAudioChunk = next.dontSaveAudio
-        ? (_pcm: Uint8Array) => undefined
-        : (pcm: Uint8Array) => { void this.gateway.appendAudioChunk(sessionId, pcm); };
+      const onAudioChunk = next.saveAudio
+        ? (pcm: Uint8Array) => { void this.gateway.appendAudioChunk(sessionId, pcm); }
+        : (_pcm: Uint8Array) => undefined;
 
       const startResult = await this.transcriptionService.startCapture({
         sessionId,

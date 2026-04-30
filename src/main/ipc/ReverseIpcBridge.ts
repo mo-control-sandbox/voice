@@ -31,8 +31,8 @@ class ReverseIpcBridgeService implements ReverseIpcBridgeServiceInterface {
         state: this.controller.getState(),
         sessionId: session?.id ?? '',
         startedAt: session?.startedAt ?? 0,
-        dontSaveAudio: session ? !session.saveAudio : false,
-        dontSaveTranscripts: session ? !session.saveTranscripts : false,
+        saveAudio: session?.saveAudio ?? false,
+        saveTranscripts: session?.saveTranscripts ?? false,
       },
     });
   }

@@ -28,11 +28,10 @@ export class RecordingSessionController {
   private stage: RecordingStatus = 'idle';
   private session: RecordingSession | null = null;
 
-  private readonly stageListeners: ((stage: RecordingStatus) => void)[] = [];
-  private readonly sessionAbortedListeners: (() => void)[] = [];
-  private readonly transcriptionCompletedListeners: TranscriptionCompletedCallback[] = [];
-  private readonly partialTranscriptionListeners: PartialTranscriptionCallback[] = [];
-  
+  private onStageChangeCallback: ((stage: RecordingStatus) => void) | null = null;
+  private onSessionAbortedCallback: (() => void) | null = null;
+  private onTranscribedCallback: TranscriptionCompletedCallback | null = null;
+  private onPartiallyTranscribedCallback: PartialTranscriptionCallback | null = null;
 
   /**
    * Creates a recording session controller with persistence and settings dependencies.
@@ -54,52 +53,36 @@ export class RecordingSessionController {
    * Registers a callback that fires when the recording stage changes.
    */
   onStateChange(cb: (stage: RecordingStatus) => void): void {
-    this.stageListeners.push(cb);
+    this.onStageChangeCallback = cb;
   }
 
   /**
    * Registers a callback that fires after a completed non-streaming transcription.
    */
   onTranscribed(cb: TranscriptionCompletedCallback): void {
-    this.transcriptionCompletedListeners.push(cb);
+    this.onTranscribedCallback = cb;
   }
 
   /**
    * Registers a callback that fires for each streamed partial transcription.
    */
   onPartiallyTranscribed(cb: PartialTranscriptionCallback): void {
-    this.partialTranscriptionListeners.push(cb);
+    this.onPartiallyTranscribedCallback = cb;
   }
 
   /**
    * Registers a callback that fires when the active session is canceled.
    */
   onSessionAborted(cb: () => void): void {
-    this.sessionAbortedListeners.push(cb);
+    this.onSessionAbortedCallback = cb;
   }
 
   /**
    * Forwards one partial transcription chunk to the runtime listener.
-   *
-   * Returns false if the session ID does not match the active session.
    */
-  pastePartialTranscription(payload: PastePartialTranscriptionRequest): boolean {
-    if (this.session?.id !== payload.sessionId) return false;
-    for (const listener of this.partialTranscriptionListeners) {
-      listener(payload.text);
-    }
-    return true;
-  }
-
-  /**
-   * Toggles recording: starts if idle, stops if recording. No-op while processing.
-   */
-  toggle(): void {
-    if (this.stage === 'idle') {
-      this.start();
-    } else if (this.stage === 'recording') {
-      this.stop();
-    }
+  streamPartialResult(payload: PastePartialTranscriptionRequest): void {
+    if (this.session?.id !== payload.sessionId) return;
+    this.onPartiallyTranscribedCallback?.(payload.text);
   }
 
   /**
@@ -112,8 +95,8 @@ export class RecordingSessionController {
 
     const settings = this.settings.get();
     this.session = new RecordingSession(
-      !settings.dontSaveAudio,
-      !settings.dontSaveTranscripts,
+      settings.saveAudio,
+      settings.saveTranscripts,
     );
 
     this.transition('recording');
@@ -143,9 +126,7 @@ export class RecordingSessionController {
   cancel(): void {
     if (this.stage === 'idle') return;
     this.session = null;
-    for (const listener of this.sessionAbortedListeners) {
-      listener();
-    }
+    this.onSessionAbortedCallback?.();
     this.transition('idle');
   }
 
@@ -188,9 +169,7 @@ export class RecordingSessionController {
     this.session = null;
 
     if (!payload.streamed) {
-      for (const listener of this.transcriptionCompletedListeners) {
-        listener(payload.text);
-      }
+      this.onTranscribedCallback?.(payload.text);
     }
 
     this.transition('idle');
@@ -206,9 +185,7 @@ export class RecordingSessionController {
 
   private transition(next: RecordingStatus): void {
     this.stage = next;
-    for (const cb of this.stageListeners) {
-      cb(next);
-    }
+    this.onStageChangeCallback?.(next);
   }
 
   private countWords(text: string): number {
@@ -241,7 +218,7 @@ class RecordingService implements RecordingServiceInterface {
   }
 
   PastePartialTranscription(request: PastePartialTranscriptionRequest) {
-    this.controller.pastePartialTranscription(request);
+    this.controller.streamPartialResult(request);
     return Promise.resolve({});
   }
 

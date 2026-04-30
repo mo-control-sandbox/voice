@@ -14,8 +14,8 @@ import type { Empty } from '../gen/google/protobuf/empty';
 import type { ShortcutManager } from '../system/ShortcutManager';
 
 const DEFAULTS: SettingsProto = {
-  dontSaveTranscripts: false,
-  dontSaveAudio: false,
+  saveTranscripts: true,
+  saveAudio: true,
   shortcutKey: 'CommandOrControl+Shift+Space',
   audioInputDeviceId: '',
   activeModelId: '',
@@ -34,8 +34,8 @@ export class SettingsStore {
    */
   get(): SettingsProto {
     return {
-      dontSaveTranscripts: prefs.getBoolean('dontSaveTranscripts', DEFAULTS.dontSaveTranscripts),
-      dontSaveAudio: prefs.getBoolean('dontSaveAudio', DEFAULTS.dontSaveAudio),
+      saveTranscripts: prefs.getBoolean('saveTranscripts', DEFAULTS.saveTranscripts),
+      saveAudio: prefs.getBoolean('saveAudio', DEFAULTS.saveAudio),
       shortcutKey: prefs.getString('shortcutKey', DEFAULTS.shortcutKey),
       audioInputDeviceId: prefs.getString('audioInputDeviceId', DEFAULTS.audioInputDeviceId),
       activeModelId: prefs.getString('activeModelId', DEFAULTS.activeModelId),
@@ -44,18 +44,18 @@ export class SettingsStore {
   }
 
   /**
-   * Updates the dont-save-transcripts setting and persists to disk.
+   * Updates the save-transcripts setting and persists to disk.
    */
-  setDontSaveTranscripts(value: boolean): void {
-    prefs.setBoolean('dontSaveTranscripts', value);
+  setSaveTranscripts(value: boolean): void {
+    prefs.setBoolean('saveTranscripts', value);
     prefs.persist();
   }
 
   /**
-   * Updates the dont-save-audio setting and persists to disk.
+   * Updates the save-audio setting and persists to disk.
    */
-  setDontSaveAudio(value: boolean): void {
-    prefs.setBoolean('dontSaveAudio', value);
+  setSaveAudio(value: boolean): void {
+    prefs.setBoolean('saveAudio', value);
     prefs.persist();
   }
 
@@ -176,13 +176,13 @@ class SettingsService implements SettingsServiceInterface {
     return Promise.resolve({});
   }
 
-  SetDontSaveTranscripts(request: SetBooleanSettingRequest) {
-    this.settings.setDontSaveTranscripts(request.value);
+  SetSaveTranscripts(request: SetBooleanSettingRequest) {
+    this.settings.setSaveTranscripts(request.value);
     return Promise.resolve({});
   }
 
-  SetDontSaveAudio(request: SetBooleanSettingRequest) {
-    this.settings.setDontSaveAudio(request.value);
+  SetSaveAudio(request: SetBooleanSettingRequest) {
+    this.settings.setSaveAudio(request.value);
     return Promise.resolve({});
   }
 
