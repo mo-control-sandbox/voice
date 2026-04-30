@@ -102,10 +102,10 @@ export class Application {
       this.trayController.refresh();
     });
     this.recordingController.onTranscribed((text) => {
-      void this.clipboard.execute(text);
+      void this.clipboard.pasteText(text);
     });
     this.recordingController.onPartiallyTranscribed((text) => {
-      void this.clipboard.execute(text);
+      void this.clipboard.pasteText(text);
     });
     this.recordingController.onSessionAborted(() => {
       this.clipboard.cancelPending();
