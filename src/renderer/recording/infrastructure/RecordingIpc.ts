@@ -2,12 +2,11 @@ import { ipc } from '../../gen/ipc';
 import type { CancelRecordingRequest, StopRecordingRequest, SubmitTranscriptionRequest } from '../../gen/recording';
 import type { RecordingState } from '../../gen/reverse_ipc_bridge';
 import { recordingSignalChannel } from './RecordingSignalChannel';
-import type { RecordingStateGateway } from '../application/RecordingStateGateway';
 
 /**
- * IPC-backed gateway for recording renderer operations.
+ * IPC adapter for recording state synchronization and recording commands.
  */
-export class IpcRecordingGateway implements RecordingStateGateway {
+export class RecordingIpc {
   /**
    * Registers a listener for recording state snapshots from reverse IPC polling.
    */

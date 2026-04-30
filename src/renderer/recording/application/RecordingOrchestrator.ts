@@ -1,7 +1,7 @@
 import { RecordingPhase, type RecordingState as RecordingSignalState } from '../../gen/reverse_ipc_bridge';
-import type { RecordingStateGateway } from './RecordingStateGateway';
 import type { RecordingState, RecordingViewState } from './RecordingState';
 import type { TranscriptionService } from './TranscriptionService';
+import type { RecordingIpc } from '../infrastructure/RecordingIpc';
 import type { RecordSeetingsProvider } from '../infrastructure/RecordSeetingsProvider';
 
 const AUDIO_START_FAILURE_DISMISS_MS = 2000;
@@ -36,7 +36,7 @@ export class RecordingOrchestrator {
   private stateCallback: ((state: RecordingViewState) => void) | null = null;
 
   constructor(
-    private readonly gateway: RecordingStateGateway,
+    private readonly gateway: RecordingIpc,
     private readonly settingsProvider: RecordSeetingsProvider,
     private readonly transcriptionService: TranscriptionService,
   ) {}

@@ -3,7 +3,7 @@ import { MoVoiceBackendFactory } from '../recording/services/MoVoiceBackendFacto
 import { RecordingController } from '../recording/RecordingController';
 import { DefaultTranscriptionService } from '../recording/services/DefaultTranscriptionService';
 import { RecordingOrchestrator } from '../recording/application/RecordingOrchestrator';
-import { IpcRecordingGateway } from '../recording/infrastructure/IpcRecordingGateway';
+import { RecordingIpc } from '../recording/infrastructure/RecordingIpc';
 import { RecordSeetingsProvider } from '../recording/infrastructure/RecordSeetingsProvider';
 
 /*
@@ -16,10 +16,10 @@ const transcriptionService = new DefaultTranscriptionService(
   modelRepository,
   new MoVoiceBackendFactory(),
 );
-const gateway = new IpcRecordingGateway();
+const recordingIpc = new RecordingIpc();
 const settingsProvider = new RecordSeetingsProvider();
 const controller = new RecordingController(
-  new RecordingOrchestrator(gateway, settingsProvider, transcriptionService),
+  new RecordingOrchestrator(recordingIpc, settingsProvider, transcriptionService),
 );
 
 function prewarmSilently(): void {
