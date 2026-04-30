@@ -8,7 +8,6 @@ function openMoBrowser(): void {
   void ipc.desktop.OpenUrl({ url: MOBROWSER_URL });
 }
 
-/** Displays static application metadata and opens external links via IPC. */
 export function AboutApp(): React.JSX.Element {
   return (
     <div className="about-window">

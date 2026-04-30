@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import { PermissionStatus, type PermissionStatusProto, type PermissionType } from '../../gen/permissions';
 import {
-  REQUIRED_PERMISSION_TYPES,
+  PermissionSet,
   PERMISSION_POLL_INTERVAL_MS,
   SETTINGS_PERMISSION_POLL_TIMEOUT_MS,
-} from '../../capabilities/permissions/constants';
-import { hasMissingPermissions } from '../../capabilities/permissions/permissionSnapshot';
+} from '../../capabilities/permissions/PermissionSet';
 import { usePermissionPolling } from '../../capabilities/permissions/usePermissionPolling';
 import { PermissionsService } from '../services/PermissionsService';
 
@@ -43,7 +42,8 @@ export function usePermissionsController(): {
     timeoutMs: SETTINGS_PERMISSION_POLL_TIMEOUT_MS,
     poll: async (): Promise<boolean> => {
       const latestPermissions = await refreshPermissionsSnapshot();
-      return !hasMissingPermissions(latestPermissions);
+      const permissionSet = PermissionSet.fromProto(latestPermissions);
+      return !permissionSet.hasMissingPermissions();
     },
   });
 
@@ -74,9 +74,7 @@ export function usePermissionsController(): {
     }
   }
 
-  const visiblePermissions = permissions.filter((permission) => (
-    REQUIRED_PERMISSION_TYPES.some((requiredType) => requiredType === permission.type)
-  ));
+  const visiblePermissions = PermissionSet.fromProto(permissions).getRequiredPermissionEntries();
 
   return {
     loading,

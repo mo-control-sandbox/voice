@@ -1,6 +1,5 @@
-import { PermissionType } from '../../gen/permissions';
 import type { PermissionStatus } from '../../gen/permissions';
-import { getPermissionStatus } from '../../capabilities/permissions/permissionSnapshot';
+import { PermissionSet } from '../../capabilities/permissions/PermissionSet';
 import { PermissionsService } from '../../settings/services/PermissionsService';
 
 const permissionsService = new PermissionsService();
@@ -15,14 +14,9 @@ export interface RequiredPermissionsSnapshot {
  */
 export async function readRequiredPermissions(): Promise<RequiredPermissionsSnapshot> {
   const response = await permissionsService.refreshPermissions();
+  const permissionSet = PermissionSet.fromProto(response.permissions);
   return {
-    microphoneStatus: getPermissionStatus(
-      response.permissions,
-      PermissionType.PERMISSION_TYPE_MICROPHONE,
-    ),
-    accessibilityStatus: getPermissionStatus(
-      response.permissions,
-      PermissionType.PERMISSION_TYPE_ACCESSIBILITY,
-    ),
+    microphoneStatus: permissionSet.getMic(),
+    accessibilityStatus: permissionSet.getAccessibility(),
   };
 }

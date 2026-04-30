@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { PermissionStatus, PermissionType } from '../../gen/permissions';
 import { getRendererModelRepository } from '../../services/getRendererModelRepository';
-import { getPermissionStatus } from '../../capabilities/permissions/permissionSnapshot';
+import { PermissionSet } from '../../capabilities/permissions/PermissionSet';
 import { PermissionsService } from '../services/PermissionsService';
 
 const permissionsService = new PermissionsService();
@@ -33,14 +33,9 @@ export function useSetupRequirementsController(): SetupRequirementsState {
         permissionsService.getPermissions(),
       ]);
       const hasReadyModel = models.some((model) => model.isActive && model.isDownloaded);
-      const microphoneStatus = getPermissionStatus(
-        permissionsResponse.permissions,
-        PermissionType.PERMISSION_TYPE_MICROPHONE,
-      );
-      const accessibilityStatus = getPermissionStatus(
-        permissionsResponse.permissions,
-        PermissionType.PERMISSION_TYPE_ACCESSIBILITY,
-      );
+      const permissionSet = PermissionSet.fromProto(permissionsResponse.permissions);
+      const microphoneStatus = permissionSet.getMic();
+      const accessibilityStatus = permissionSet.getAccessibility();
       setState({
         loading: false,
         needsModel: !hasReadyModel,

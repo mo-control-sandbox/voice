@@ -2,10 +2,10 @@ import { useEffect, useRef, useState } from 'react';
 import { PermissionStatus, PermissionType } from '../../gen/permissions';
 import { getAudioInputDevices, type AudioInputDevice, subscribeToAudioInputChanges } from '../../capabilities/audio/audioInputDevices';
 import {
+  PermissionSet,
   PERMISSION_POLL_INTERVAL_MS,
   SETTINGS_PERMISSION_POLL_TIMEOUT_MS,
-} from '../../capabilities/permissions/constants';
-import { getPermissionStatus } from '../../capabilities/permissions/permissionSnapshot';
+} from '../../capabilities/permissions/PermissionSet';
 import { usePermissionPolling } from '../../capabilities/permissions/usePermissionPolling';
 import { PermissionsService } from '../services/PermissionsService';
 import { SettingsService } from '../services/SettingsService';
@@ -99,7 +99,7 @@ export function useGeneralController(): {
 
   async function refreshMicPermissionStatus(): Promise<PermissionStatus> {
     const response = await permissionsService.refreshPermissions();
-    const status = getPermissionStatus(response.permissions, PermissionType.PERMISSION_TYPE_MICROPHONE);
+    const status = PermissionSet.fromProto(response.permissions).getMic();
     setMicPermissionStatus(status);
     return status;
   }
@@ -147,7 +147,7 @@ export function useGeneralController(): {
         });
 
         const permissionsPromise = permissionsService.getPermissions().then((response) => (
-          getPermissionStatus(response.permissions, PermissionType.PERMISSION_TYPE_MICROPHONE)
+          PermissionSet.fromProto(response.permissions).getMic()
         ));
 
         const [savedDeviceId, micStatus] = await Promise.all([settingsPromise, permissionsPromise]);
