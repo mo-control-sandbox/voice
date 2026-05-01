@@ -2,6 +2,7 @@
  * Input payload for one batch transcription request.
  */
 export interface BatchRunInput {
+  modelId: string;
   samples: Float32Array;
   language: string | null;
   requestId: string;

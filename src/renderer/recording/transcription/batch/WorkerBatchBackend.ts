@@ -1,6 +1,6 @@
-import type { PcmAudio } from '../audio/PcmAudio';
-import type { BatchWorkerResult } from '../workers/BatchWorkerProtocol';
-import type { BatchBackend, TranscriptionResult } from './Backend';
+import type { PcmAudio } from '../../audio/PcmAudio';
+import type { BatchWorkerResult } from './BatchWorkerProtocol';
+import type { BatchBackend, TranscriptionResult } from '../Backend';
 
 /**
  * Constructor settings for a batch transcription backend that delegates to a worker.
@@ -92,7 +92,10 @@ export class WorkerBatchBackend implements BatchBackend {
 
       signal.addEventListener('abort', onAbort, { once: true });
       worker.addEventListener('message', onMessage);
-      worker.postMessage({ type: 'load', modelId: this.options.modelId });
+      worker.postMessage({
+        type: 'load',
+        modelId: this.options.modelId,
+      });
     });
   }
 
@@ -136,7 +139,12 @@ export class WorkerBatchBackend implements BatchBackend {
       worker.addEventListener('message', onMessage);
       worker.postMessage({
         type: 'run',
-        input: { samples, language, requestId },
+        input: {
+          modelId: this.options.modelId,
+          samples,
+          language,
+          requestId,
+        },
       });
     });
   }

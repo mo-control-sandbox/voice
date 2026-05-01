@@ -1,13 +1,12 @@
 import type { ModelDefinition } from '../../types/models';
 import type { Backend } from './Backend';
-import { CohereTranscribeBackend } from './CohereTranscribeBackend';
-import { VoxtralRealtimeBackend } from './VoxtralRealtimeBackend';
-import { WhisperBackend } from './WhisperBackend';
+import { TransformersBatchBackend } from './batch/TransformersBatchBackend';
+import { VoxtralBackend } from './voxtral/VoxtralBackend';
 
 /**
  * Creates and caches transcription backends for the lifetime of a recording window.
  *
- * Routes to WhisperBackend or VoxtralRealtimeBackend based on the model
+ * Routes to batch or realtime backends based on the model
  * definition's inferenceMode. Backends are cached per model and reused
  * across consecutive transcriptions, avoiding redundant worker spawns and
  * model reloads.
@@ -21,11 +20,9 @@ export class MoVoiceBackendFactory {
     if (this.cachedBackend === null || this.cachedModelId !== modelId) {
       this.cachedBackend?.dispose();
       if (model.inferenceMode === 'voxtral-realtime') {
-        this.cachedBackend = new VoxtralRealtimeBackend(modelId);
-      } else if (model.inferenceMode === 'cohere-transcribe') {
-        this.cachedBackend = new CohereTranscribeBackend(modelId);
+        this.cachedBackend = new VoxtralBackend(modelId);
       } else {
-        this.cachedBackend = new WhisperBackend(modelId);
+        this.cachedBackend = new TransformersBatchBackend(modelId);
       }
       this.cachedModelId = modelId;
     }

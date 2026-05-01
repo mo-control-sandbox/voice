@@ -5,6 +5,7 @@ import {
   VoxtralRealtimeProcessor,
   type ProgressInfo,
 } from '@huggingface/transformers';
+import { resolveTransformersBatchLoadOptions } from '../recording/transcription/TransformersBatchModelPolicyResolver';
 import type { ModelDefinition } from '../types/models';
 import type { ModelFileStore } from './ModelFileStore';
 
@@ -159,13 +160,7 @@ export class OPFSModelCache implements ModelFileStore {
     });
 
     const loadModel = async (): Promise<void> => {
-      if (definition.inferenceMode === 'whisper') {
-        const pipe = await pipeline('automatic-speech-recognition', repo, {
-          dtype: { encoder_model: 'q4', decoder_model_merged: 'q4' },
-          progress_callback: progressCallback,
-        });
-        await pipe.dispose();
-      } else if (definition.inferenceMode === 'voxtral-realtime') {
+      if (definition.inferenceMode === 'voxtral-realtime') {
         await Promise.all([
           (async (): Promise<void> => {
             const model = await VoxtralRealtimeForConditionalGeneration.from_pretrained(repo, {
@@ -178,9 +173,9 @@ export class OPFSModelCache implements ModelFileStore {
           VoxtralRealtimeProcessor.from_pretrained(repo),
         ]);
       } else {
+        const loadOptions = resolveTransformersBatchLoadOptions(repo);
         const pipe = await pipeline('automatic-speech-recognition', repo, {
-          dtype: 'q4',
-          device: 'webgpu',
+          ...loadOptions,
           progress_callback: progressCallback,
         });
         await pipe.dispose();
