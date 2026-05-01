@@ -8,7 +8,7 @@ export class VoxtralBackend extends WorkerStreamingBackend {
     super({
       backendName: 'VoxtralBackend',
       modelId,
-      workerUrl: new URL('./VoxtralWorker.ts', import.meta.url),
+      workerFactory: () => new Worker(new URL('./VoxtralWorker.ts', import.meta.url), { type: 'module' }),
     });
   }
 }

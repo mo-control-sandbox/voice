@@ -8,7 +8,7 @@ import type { BatchBackend, TranscriptionResult } from '../Backend';
 interface WorkerBatchBackendOptions {
   backendName: string;
   modelId: string;
-  workerUrl: URL;
+  workerFactory: () => Worker;
 }
 
 /**
@@ -62,7 +62,7 @@ export class WorkerBatchBackend implements BatchBackend {
    * Lazily creates and returns the worker instance.
    */
   private ensureWorker(): Worker {
-    this.worker ??= new Worker(this.options.workerUrl, { type: 'module' });
+    this.worker ??= this.options.workerFactory();
     return this.worker;
   }
 
@@ -86,6 +86,11 @@ export class WorkerBatchBackend implements BatchBackend {
           signal.removeEventListener('abort', onAbort);
           worker.removeEventListener('message', onMessage);
           this.workerModelLoaded = true;
+          resolve();
+        } else if (event.data.type === 'error' && event.data.requestId === '') {
+          signal.removeEventListener('abort', onAbort);
+          worker.removeEventListener('message', onMessage);
+          console.error(`[${this.options.backendName}] model load failed:`, event.data.error);
           resolve();
         }
       };

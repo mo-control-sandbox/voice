@@ -16,6 +16,7 @@ export class BatchWorkerRuntime<TPipeline> {
   private pipeline: TPipeline | null = null;
   private currentModelId: string | null = null;
   private isRunning = false;
+  private isLoading = false;
   private pendingLoad: string | null = null;
 
   constructor(private readonly config: BatchWorkerRuntimeConfig<TPipeline>) {}
@@ -25,7 +26,7 @@ export class BatchWorkerRuntime<TPipeline> {
    */
   handleMessage(msg: BatchWorkerIncomingMessage): void {
     if (msg.type === 'load') {
-      if (this.isRunning) {
+      if (this.isRunning || this.isLoading) {
         this.pendingLoad = msg.modelId;
       } else {
         void this.loadModel(msg.modelId);
@@ -55,20 +56,28 @@ export class BatchWorkerRuntime<TPipeline> {
       return;
     }
 
+    this.isLoading = true;
     console.log(`[${this.config.workerName}] loading model: ${modelId}`);
     try {
       this.pipeline = await this.config.loadPipeline(modelId);
       this.currentModelId = modelId;
-      console.log(`[${this.config.workerName}] model loaded successfully: ${modelId}`);
+      console.log(`[${this.config.workerName}] model loaded: ${modelId}`);
       self.postMessage({ type: 'loaded' } satisfies BatchWorkerResult);
     } catch (err) {
-      console.error(`[${this.config.workerName}] failed to load model: ${modelId}`, err);
+      console.error(`[${this.config.workerName}] failed to load model ${modelId}:`, err);
       // Post a dummy error so callers do not wait indefinitely.
       self.postMessage({
         type: 'error',
         requestId: '',
         error: err instanceof Error ? err.message : String(err),
       } satisfies BatchWorkerResult);
+    } finally {
+      this.isLoading = false;
+      if (this.pendingLoad !== null) {
+        const modelToLoad = this.pendingLoad;
+        this.pendingLoad = null;
+        await this.loadModel(modelToLoad);
+      }
     }
   }
 

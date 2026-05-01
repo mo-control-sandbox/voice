@@ -14,7 +14,7 @@ import type {
 interface WorkerStreamingBackendOptions {
   backendName: string;
   modelId: string;
-  workerUrl: URL;
+  workerFactory: () => Worker;
 }
 
 /**
@@ -55,7 +55,6 @@ class WorkerStreamingSession implements StreamingSession {
     private readonly requestId: string,
     private readonly signal: AbortSignal,
     loadModel: (worker: Worker, signal: AbortSignal) => Promise<void>,
-    private readonly backendName: string,
   ) {
     this.worker.addEventListener('message', this.onWorkerMessage);
     this.loadPromise = loadModel(this.worker, this.signal).then(() => {
@@ -116,7 +115,6 @@ class WorkerStreamingSession implements StreamingSession {
           resolve({ text: workerResult.text });
         } else if (workerResult.type === 'error' && workerResult.requestId === this.requestId) {
           clearFinalizeListeners();
-          console.error(`[${this.backendName}] worker error:`, workerResult.error);
           resolve(null);
         }
       };
@@ -154,7 +152,6 @@ export class WorkerStreamingBackend implements StreamingBackend {
       requestId,
       signal,
       this.loadModel.bind(this),
-      this.options.backendName,
     );
   }
 
@@ -181,7 +178,7 @@ export class WorkerStreamingBackend implements StreamingBackend {
    * Lazily creates and returns the worker instance.
    */
   private ensureWorker(): Worker {
-    this.worker ??= new Worker(this.options.workerUrl, { type: 'module' });
+    this.worker ??= this.options.workerFactory();
     return this.worker;
   }
 
@@ -205,6 +202,11 @@ export class WorkerStreamingBackend implements StreamingBackend {
           signal.removeEventListener('abort', onAbort);
           worker.removeEventListener('message', onMessage);
           this.workerModelLoaded = true;
+          resolve();
+        } else if (event.data.type === 'error' && event.data.requestId === '') {
+          signal.removeEventListener('abort', onAbort);
+          worker.removeEventListener('message', onMessage);
+          console.error(`[${this.options.backendName}] model load failed:`, event.data.error);
           resolve();
         }
       };

@@ -8,7 +8,7 @@ export class TransformersBatchBackend extends WorkerBatchBackend {
     super({
       backendName: 'TransformersBatchBackend',
       modelId,
-      workerUrl: new URL('./BatchTransformersWorker.ts', import.meta.url),
+      workerFactory: () => new Worker(new URL('./BatchTransformersWorker.ts', import.meta.url), { type: 'module' }),
     });
   }
 }
