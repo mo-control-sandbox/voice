@@ -6,7 +6,7 @@ import type {
   FirstChunkOutput,
 } from './TypeShim';
 import type { StreamingWorkerResult, StreamingTranscriber } from '../streaming/StreamingWorkerRuntime';
-import { StreamingAudioBuffer } from '../streaming/StreamingAudioBuffer';
+import type { StreamingAudioBuffer } from '../streaming/StreamingAudioBuffer';
 import type { VoxtralRuntimeHandle } from './VoxtralInMemoryModel';
 
 /**

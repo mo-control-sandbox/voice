@@ -20,7 +20,7 @@ export class RecordingOrchestrator {
       const response = await ipc.reverseIpcBridge.PollRecording({});
       return response.recording;
     },
-    getKey: (snapshot) => `${snapshot.phase}:${snapshot.sessionId}`,
+    getKey: (snapshot) => `${String(snapshot.phase)}:${snapshot.sessionId}`,
     logLabel: 'RecordingSignalChannel',
   });
 
