@@ -1,7 +1,7 @@
 import { ipc } from '../../gen/ipc';
 import type { CancelRecordingRequest, StopRecordingRequest, SubmitTranscriptionRequest } from '../../gen/recording';
 import { RecordingPhase, type RecordingState as RecordingSignalState } from '../../gen/reverse_ipc_bridge';
-import type { RecordingState, RecordingViewState } from './RecordingState';
+import type { RecordingViewState } from './RecordingState';
 import type { TranscriptionService } from './TranscriptionService';
 import { PolledChannel } from '../../infra/ipc/PolledChannel';
 import { SettingsService } from '../../settings/services/SettingsService';
@@ -32,7 +32,7 @@ export class RecordingOrchestrator {
   /**
    * Last observed lifecycle state from recording signal snapshots.
    */
-  private lastState: RecordingState = 'idle';
+  private lastState: RecordingPhase = RecordingPhase.RECORDING_PHASE_IDLE;
 
   /**
    * Current user-facing error message, when one is being displayed.
@@ -96,7 +96,7 @@ export class RecordingOrchestrator {
   private async handleRecordingChanged(next: RecordingSignalState): Promise<void> {
     const prevSessionId = this.lastSessionId;
     const prevState = this.lastState;
-    const nextState = this.toRecordingState(next.phase);
+    const nextState = next.phase;
 
     const sessionChanged = next.sessionId !== '' && next.sessionId !== prevSessionId;
     const stateChanged = nextState !== prevState;
@@ -105,7 +105,7 @@ export class RecordingOrchestrator {
     this.lastState = nextState;
     this.notifyState();
 
-    if (sessionChanged || (stateChanged && nextState === 'recording')) {
+    if (sessionChanged || (stateChanged && nextState === RecordingPhase.RECORDING_PHASE_RECORDING)) {
       const settings = await this.settingsService.getSettings();
       const sessionId = next.sessionId;
       const onAudioChunk = next.saveAudio
@@ -138,7 +138,7 @@ export class RecordingOrchestrator {
       return;
     }
 
-    if (stateChanged && nextState === 'processing') {
+    if (stateChanged && nextState === RecordingPhase.RECORDING_PHASE_PROCESSING) {
       const processingPromise = this.transcriptionService.stopAndProcess({
         sessionId: next.sessionId,
       });
@@ -153,7 +153,7 @@ export class RecordingOrchestrator {
       return;
     }
 
-    if (stateChanged && nextState === 'idle') {
+    if (stateChanged && nextState === RecordingPhase.RECORDING_PHASE_IDLE) {
       const hadAudio = this.transcriptionService.isAudioReady;
       await this.transcriptionService.cleanup();
       const hadError = this.errorMessage !== null;
@@ -199,15 +199,6 @@ export class RecordingOrchestrator {
       clearTimeout(this.errorDismissTimer);
       this.errorDismissTimer = null;
     }
-  }
-
-  /**
-   * Maps proto recording phase to renderer lifecycle state.
-   */
-  private toRecordingState(phase: RecordingPhase): RecordingState {
-    if (phase === RecordingPhase.RECORDING_PHASE_RECORDING) return 'recording';
-    if (phase === RecordingPhase.RECORDING_PHASE_PROCESSING) return 'processing';
-    return 'idle';
   }
 
   /**

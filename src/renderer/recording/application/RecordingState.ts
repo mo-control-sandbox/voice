@@ -1,12 +1,9 @@
-/**
- * Stable recording lifecycle states reported by the main process.
- */
-export type RecordingState = 'idle' | 'recording' | 'processing';
+import type { RecordingPhase as ProtoRecordingPhase } from '../../gen/reverse_ipc_bridge';
 
 /**
  * Recording phase exposed to the view layer.
  */
-export type RecordingPhase = RecordingState | 'error';
+export type RecordingPhase = ProtoRecordingPhase | 'error';
 
 /**
  * Renderer-facing state required to render recording UI feedback.

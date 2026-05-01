@@ -1,4 +1,5 @@
 import { getRendererModelRepository } from '../services/getRendererModelRepository';
+import { RecordingPhase } from '../gen/reverse_ipc_bridge';
 import { MoVoiceBackendFactory } from '../recording/services/MoVoiceBackendFactory';
 import { RecordingController } from '../recording/RecordingController';
 import { TranscriptionService } from '../recording/application/TranscriptionService';
@@ -26,12 +27,17 @@ function prewarmSilently(): void {
 
 // Re-prewarm when a recording session ends so model changes made during a
 // session are picked up immediately, and the worker is ready for the next one.
-let lastRecordingPhase = '';
-function onRecordingStateChanged(state: { phase: string }): void {
-  if (state.phase === 'idle' && lastRecordingPhase !== 'idle') {
+let lastRecordingPhase = RecordingPhase.RECORDING_PHASE_UNSPECIFIED;
+function onRecordingStateChanged(state: { phase: RecordingPhase | 'error' }): void {
+  if (
+    state.phase === RecordingPhase.RECORDING_PHASE_IDLE
+    && lastRecordingPhase !== RecordingPhase.RECORDING_PHASE_IDLE
+  ) {
     prewarmSilently();
   }
-  lastRecordingPhase = state.phase;
+  if (state.phase !== 'error') {
+    lastRecordingPhase = state.phase;
+  }
 }
 
 /*
