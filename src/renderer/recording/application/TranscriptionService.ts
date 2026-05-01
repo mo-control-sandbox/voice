@@ -2,7 +2,7 @@ import { AudioPipeline } from '../audio/AudioPipeline';
 import { PcmAudio } from '../audio/PcmAudio';
 import type { RendererModelRepository } from '../../services/RendererModelRepository';
 import type { SubmitTranscriptionRequest } from '../../gen/recording';
-import type { MoVoiceBackendFactory } from '../transcription/MoVoiceBackendFactory';
+import type { BackendFactory } from '../transcription/BackendFactory';
 import type { Backend, StreamingSession } from '../transcription/Backend';
 
 /**
@@ -128,7 +128,7 @@ export class TranscriptionService {
 
   constructor(
     private readonly modelRepository: RendererModelRepository,
-    private readonly backendFactory: MoVoiceBackendFactory,
+    private readonly backendFactory: BackendFactory,
   ) {}
 
   /**

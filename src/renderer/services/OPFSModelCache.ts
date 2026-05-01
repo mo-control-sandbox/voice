@@ -160,7 +160,7 @@ export class OPFSModelCache implements ModelFileStore {
     });
 
     const loadModel = async (): Promise<void> => {
-      if (definition.inferenceMode === 'voxtral-realtime') {
+      if (definition.inferenceMode === 'realtime') {
         await Promise.all([
           (async (): Promise<void> => {
             const model = await VoxtralRealtimeForConditionalGeneration.from_pretrained(repo, {

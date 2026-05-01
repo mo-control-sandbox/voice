@@ -11,7 +11,7 @@ import { VoxtralBackend } from './voxtral/VoxtralBackend';
  * across consecutive transcriptions, avoiding redundant worker spawns and
  * model reloads.
  */
-export class MoVoiceBackendFactory {
+export class BackendFactory {
   private cachedBackend: Backend | null = null;
   private cachedModelId = '';
 
@@ -19,7 +19,7 @@ export class MoVoiceBackendFactory {
     const modelId = model.huggingFaceRepo;
     if (this.cachedBackend === null || this.cachedModelId !== modelId) {
       this.cachedBackend?.dispose();
-      if (model.inferenceMode === 'voxtral-realtime') {
+      if (model.inferenceMode === 'realtime') {
         this.cachedBackend = new VoxtralBackend(modelId);
       } else {
         this.cachedBackend = new TransformersBatchBackend(modelId);

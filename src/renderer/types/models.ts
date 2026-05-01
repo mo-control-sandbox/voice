@@ -2,7 +2,7 @@
  * Determines which worker and loading strategy a model uses.
  * Adding a new value here signals a new code path in BackendFactory and its worker.
  */
-export type InferenceMode = 'batch-transformers' | 'voxtral-realtime';
+export type InferenceMode = 'batch' | 'realtime';
 
 /** A model from the bundled catalog. */
 export interface ModelDefinition {

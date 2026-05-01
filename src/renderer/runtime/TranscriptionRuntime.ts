@@ -1,6 +1,6 @@
 import { getRendererModelRepository } from '../services/getRendererModelRepository';
 import { RecordingPhase } from '../gen/reverse_ipc_bridge';
-import { MoVoiceBackendFactory } from '../recording/transcription/MoVoiceBackendFactory';
+import { BackendFactory } from '../recording/transcription/BackendFactory';
 import { RecordingController } from '../recording/RecordingController';
 import { TranscriptionService } from '../recording/application/TranscriptionService';
 import { RecordingOrchestrator } from '../recording/application/RecordingOrchestrator';
@@ -13,7 +13,7 @@ import { RecordingOrchestrator } from '../recording/application/RecordingOrchest
 const modelRepository = getRendererModelRepository();
 const transcriptionService = new TranscriptionService(
   modelRepository,
-  new MoVoiceBackendFactory(),
+  new BackendFactory(),
 );
 const controller = new RecordingController(
   new RecordingOrchestrator(transcriptionService),
