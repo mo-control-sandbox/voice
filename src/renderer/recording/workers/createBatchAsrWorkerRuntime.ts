@@ -5,7 +5,6 @@ import type { BatchRunInput, BatchWorkerIncomingMessage, BatchWorkerResult } fro
  */
 export interface WorkerInferenceResult {
   text: string;
-  detectedLanguage: string;
 }
 
 /**
@@ -88,7 +87,6 @@ export function createBatchAsrWorkerRuntime<TPipeline>(
         type: 'result',
         requestId: input.requestId,
         text: output.text.trim(),
-        detectedLanguage: output.detectedLanguage,
       } satisfies BatchWorkerResult);
     } catch (err) {
       console.error(`[${config.workerName}] inference error: requestId=${input.requestId}`, err);

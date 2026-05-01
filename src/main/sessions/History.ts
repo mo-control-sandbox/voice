@@ -16,7 +16,6 @@ export interface TranscriptionSession {
   readonly audioDurationSeconds: number;
   readonly wordCount: number;
   readonly transcriptionText: string | null;
-  readonly detectedLanguage: string;
 }
 
 /**
@@ -158,7 +157,6 @@ class HistoryService implements HistoryServiceInterface {
       audioDurationSeconds: s.audioDurationSeconds,
       wordCount: s.wordCount,
       transcriptionText: s.transcriptionText ?? '',
-      detectedLanguage: s.detectedLanguage,
     }));
     return Promise.resolve({ sessions });
   }

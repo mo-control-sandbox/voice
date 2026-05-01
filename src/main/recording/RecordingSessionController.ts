@@ -183,7 +183,6 @@ export class RecordingSessionController {
       audioDurationSeconds: payload.audioDurationSeconds,
       wordCount,
       transcriptionText: session.saveTranscripts ? payload.text : null,
-      detectedLanguage: payload.detectedLanguage,
     };
 
     await this.historyStore.addSession(record);

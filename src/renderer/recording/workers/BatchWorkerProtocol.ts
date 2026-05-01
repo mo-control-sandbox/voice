@@ -19,6 +19,5 @@ export type BatchWorkerIncomingMessage =
  */
 export type BatchWorkerResult =
   | { type: 'loaded' }
-  | { type: 'result'; requestId: string; text: string; detectedLanguage: string }
+  | { type: 'result'; requestId: string; text: string }
   | { type: 'error'; requestId: string; error: string };
-

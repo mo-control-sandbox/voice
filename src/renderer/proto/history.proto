@@ -38,10 +38,6 @@ message SessionRecordProto {
    * Saved transcription text, or empty when transcript persistence was disabled.
    */
   string transcription_text = 7;
-  /**
-   * Language detected by the transcription engine.
-   */
-  string detected_language = 9;
 }
 
 /**

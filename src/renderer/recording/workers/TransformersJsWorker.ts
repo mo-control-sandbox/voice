@@ -21,7 +21,6 @@ createBatchAsrWorkerRuntime<AutomaticSpeechRecognitionPipeline>({
     const raw = await asr(input.samples, options) as AutomaticSpeechRecognitionOutput | AutomaticSpeechRecognitionOutput[];
     return {
       text: extractText(raw),
-      detectedLanguage: input.language ?? '',
     };
   },
 });

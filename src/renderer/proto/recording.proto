@@ -29,10 +29,6 @@ message SubmitTranscriptionRequest {
    */
   string text = 2;
   /**
-   * Language detected for the transcribed text.
-   */
-  string detected_language = 3;
-  /**
    * Audio duration used for transcription metrics.
    */
   float audio_duration_seconds = 4;

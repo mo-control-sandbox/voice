@@ -187,13 +187,13 @@ export class TranscriptionService {
       }
 
       if (backend.mode === 'streaming') {
-        const session = backend.beginSession(this.resolvedLanguage, abortController.signal);
+        const session = backend.start(abortController.signal);
         this.streamingSession = session;
         pipeline.onChunk((chunk) => {
-          session.pushChunk(chunk);
+          session.pushAudioChunk(chunk);
           this.bufferAudioChunk(chunk);
         });
-        session.onPartialResult((text) => {
+        session.onTranscribed((text) => {
           request.onPartialResult(text);
         });
       } else {
@@ -243,7 +243,7 @@ export class TranscriptionService {
       // Push a silent tail so the decoder sees a clean end-of-speech boundary.
       const streamingSampleRate = 16000;
       const silenceTail = new Float32Array(Math.round(streamingSampleRate * SILENCE_PADDING_S));
-      session.pushChunk(silenceTail);
+      session.pushAudioChunk(silenceTail);
 
       const [transcriptionResult] = await Promise.all([
         session.finalize(),
@@ -295,7 +295,6 @@ export class TranscriptionService {
       submission: {
         sessionId: request.sessionId,
         text: result.text,
-        detectedLanguage: result.detectedLanguage,
         audioDurationSeconds,
         transcriptionEngineLabel: engineLabel,
         streamed: session !== null,

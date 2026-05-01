@@ -123,7 +123,7 @@ export class WorkerBatchBackend implements BatchBackend {
         if (msg.type === 'result' && msg.requestId === requestId) {
           signal.removeEventListener('abort', onAbort);
           worker.removeEventListener('message', onMessage);
-          resolve({ text: msg.text, detectedLanguage: msg.detectedLanguage });
+          resolve({ text: msg.text });
         } else if (msg.type === 'error' && msg.requestId === requestId) {
           signal.removeEventListener('abort', onAbort);
           worker.removeEventListener('message', onMessage);

@@ -1,26 +1,34 @@
 import type { PcmAudio } from '../audio/PcmAudio';
 
-/** Result of a successful transcription. */
+/** 
+ * Result of a successful transcription. 
+ */
 export interface TranscriptionResult {
   readonly text: string;
-  readonly detectedLanguage: string;
 }
 
 /**
- * Handle for one in-progress streaming transcription session.
- *
- * Chunks must be 16 kHz mono Float32 -- the format produced by AudioPipeline
- * when started at 16 kHz. finalize() signals end-of-audio and resolves with
- * the complete transcript, or null if the session was aborted.
- *
- * onPartialResult registers a callback that fires with each new piece of text
- * as the model decodes it, before the session is finalized. Text is incremental:
- * each call receives only the new words since the previous call.
+ * Handle for one in-progress streaming backend session.
  */
 export interface StreamingSession {
-  pushChunk(samples: Float32Array): void;
-  onPartialResult(cb: (text: string) => void): void;
+  /**
+   * Appends one 16 kHz mono PCM chunk to the session input stream.
+   */
+  pushAudioChunk(samples: Float32Array): void;
+
+  /**
+   * Registers a callback that receives incremental decoded text while chunks are being appended.
+   */
+  onTranscribed(cb: (text: string) => void): void;
+
+  /**
+   * Seals the appended input stream and resolves with the final transcript result.
+   */
   finalize(): Promise<TranscriptionResult | null>;
+
+  /**
+   * Aborts the active session and releases all resources immediately.
+   */
   cancel(): void;
 }
 
@@ -29,29 +37,60 @@ export interface StreamingSession {
  * can begin, such as Whisper encoder-decoder architectures.
  */
 export interface BatchBackend {
+  /**
+   * Discriminator used by TypeScript to narrow Backend unions at compile time.
+   */
   readonly mode: 'batch';
+
+  /**
+   * Runs inference on a complete PCM buffer and resolves with the final transcript.
+   */
   transcribe(
     audio: PcmAudio,
     language: string | null,
-    signal: AbortSignal,
+    abortSignal: AbortSignal,
   ): Promise<TranscriptionResult | null>;
-  /** Eagerly loads the model in the inference worker so the first recording starts without delay. */
+
+  /**
+   * Loads backend runtime state ahead of the first transcription request.
+   */
   prewarm(): Promise<void>;
+
+  /**
+   * Releases backend resources and invalidates any cached runtime state.
+   */
   dispose(): void;
 }
 
 /**
  * Backend for models capable of overlapping inference with audio capture.
+ * 
  * Opens a session at the start of recording and accepts audio chunks
  * incrementally as they arrive from the microphone.
  */
 export interface StreamingBackend {
+  /**
+   * Discriminator used by TypeScript to narrow Backend unions at compile time.
+   */
   readonly mode: 'streaming';
-  beginSession(language: string | null, signal: AbortSignal): StreamingSession;
-  /** Eagerly loads the model in the inference worker so the first recording starts without delay. */
+
+  /**
+   * Starts a streaming session that accepts incremental audio chunks and emits decoded text.
+   */
+  start(signal: AbortSignal): StreamingSession;
+
+  /**
+   * Loads backend runtime state ahead of the first streaming session.
+   */
   prewarm(): Promise<void>;
+
+  /**
+   * Releases backend resources and invalidates any cached runtime state.
+   */
   dispose(): void;
 }
 
-/** Union of all transcription backend types, narrowed by mode. */
+/**
+ * The common type for batch and streaming transcription backends.
+ */
 export type Backend = BatchBackend | StreamingBackend;
