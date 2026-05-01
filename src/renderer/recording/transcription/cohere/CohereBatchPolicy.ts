@@ -24,3 +24,15 @@ export function buildCohereBatchInferenceOptions(input: BatchRunInput): Record<s
     max_new_tokens: Math.ceil(durationSeconds * 10),
   };
 }
+
+/**
+ * Builds full decode options for one Cohere request.
+ */
+export function buildCohereBatchDecodeOptions(input: BatchRunInput): Record<string, unknown> {
+  const options: Record<string, unknown> = {};
+  if (input.language !== null) {
+    options.language = input.language;
+  }
+  Object.assign(options, buildCohereBatchInferenceOptions(input));
+  return options;
+}

@@ -5,7 +5,11 @@ import {
   VoxtralRealtimeProcessor,
   type ProgressInfo,
 } from '@huggingface/transformers';
-import { resolveTransformersBatchLoadOptions } from '../recording/transcription/TransformersBatchModelPolicyResolver';
+import {
+  COHERE_BATCH_LOAD_OPTIONS,
+  isCohereBatchModel,
+} from '../recording/transcription/cohere/CohereBatchPolicy';
+import { WHISPER_BATCH_LOAD_OPTIONS } from '../recording/transcription/whisper/WhisperBatchPolicy';
 import type { ModelDefinition } from '../types/models';
 import type { ModelFileStore } from './ModelFileStore';
 
@@ -173,7 +177,9 @@ export class OPFSModelCache implements ModelFileStore {
           VoxtralRealtimeProcessor.from_pretrained(repo),
         ]);
       } else {
-        const loadOptions = resolveTransformersBatchLoadOptions(repo);
+        const loadOptions = isCohereBatchModel(repo)
+          ? COHERE_BATCH_LOAD_OPTIONS
+          : WHISPER_BATCH_LOAD_OPTIONS;
         const pipe = await pipeline('automatic-speech-recognition', repo, {
           ...loadOptions,
           progress_callback: progressCallback,

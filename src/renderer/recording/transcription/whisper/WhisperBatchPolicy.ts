@@ -14,3 +14,15 @@ export const WHISPER_BATCH_LOAD_OPTIONS = {
 export function buildWhisperBatchInferenceOptions(_input: BatchRunInput): Record<string, unknown> {
   return {};
 }
+
+/**
+ * Builds full decode options for one Whisper request.
+ */
+export function buildWhisperBatchDecodeOptions(input: BatchRunInput): Record<string, unknown> {
+  const options: Record<string, unknown> = {};
+  if (input.language !== null) {
+    options.language = input.language;
+  }
+  Object.assign(options, buildWhisperBatchInferenceOptions(input));
+  return options;
+}
