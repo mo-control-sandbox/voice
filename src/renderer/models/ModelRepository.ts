@@ -1,7 +1,7 @@
 import type { ModelDefinition, ModelEntry } from '../types/models';
-import type { RendererModelCatalog } from './RendererModelCatalog';
-import type { ModelFileStore } from './ModelFileStore';
-import type { ModelStateStore } from './ModelStateStore';
+import type { RendererModelCatalog } from './ModelDefinitionCatalog';
+import type { OPFSModelCache } from './OPFSModelCache';
+import { ModelStateStore } from './ModelStateStore';
 
 /**
  * Composes the catalog, file store, and state store into a unified facade for
@@ -16,7 +16,7 @@ export class RendererModelRepository {
 
   constructor(
     private readonly catalog: RendererModelCatalog,
-    private readonly fileStore: ModelFileStore,
+    private readonly fileStore: OPFSModelCache,
     private readonly stateStore: ModelStateStore,
   ) {}
 

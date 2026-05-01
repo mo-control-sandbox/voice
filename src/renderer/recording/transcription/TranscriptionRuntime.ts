@@ -1,4 +1,4 @@
-import { getRendererModelRepository } from '../../services/getRendererModelRepository';
+import { getRendererModelRepository } from '../../models/application/getRendererModelRepository';
 import { RecordingPhase } from '../../gen/reverse_ipc_bridge';
 import { RecordingController } from '../RecordingController';
 import { TranscriptionService } from '../application/TranscriptionService';

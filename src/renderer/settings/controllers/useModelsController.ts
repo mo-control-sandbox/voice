@@ -1,17 +1,13 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { ModelEntry } from '../../types/models';
-import { getRendererModelRepository } from '../../services/getRendererModelRepository';
-import { reportModelReadiness } from '../../services/ModelReadinessReporter';
-import { notifyModelActivated } from '../../services/notifyModelActivated';
-import { PollingLoop } from '../../infra/ipc/PollingLoop';
+import { reportModelReadiness } from '../../models/application/ModelReadinessReporter';
+import { getRendererModelRepository } from '../../models/application/getRendererModelRepository';
+import { notifyModelActivated } from '../../models/application/notifyModelActivated';
+import { useModelDownloadPolling } from '../../models/application/useModelDownloadPolling';
 
 const POLL_INTERVAL_MS = 500;
 
 const repository = getRendererModelRepository();
-
-function hasActiveDownload(models: readonly ModelEntry[]): boolean {
-  return models.some((model) => model.downloadProgress !== null);
-}
 
 /**
  * Owns model management use-cases for the Models settings page.
@@ -25,7 +21,6 @@ export function useModelsController(): {
 } {
   const [models, setModels] = useState<ModelEntry[]>([]);
   const [downloadErrors, setDownloadErrors] = useState<ReadonlyMap<string, string>>(new Map());
-  const pollingRef = useRef<PollingLoop | null>(null);
 
   const refreshModels = useCallback(async (): Promise<void> => {
     const latestModels = await repository.getModels();
@@ -37,27 +32,7 @@ export function useModelsController(): {
     void refreshModels();
   }, [refreshModels]);
 
-  useEffect(() => {
-    pollingRef.current ??= new PollingLoop({
-      intervalMs: POLL_INTERVAL_MS,
-      tick: async () => {
-        await refreshModels();
-        return false;
-      },
-    });
-    if (hasActiveDownload(models)) {
-      pollingRef.current.start();
-    } else {
-      pollingRef.current.stop();
-    }
-
-    return () => {
-      if (pollingRef.current !== null) {
-        pollingRef.current.stop();
-        pollingRef.current = null;
-      }
-    };
-  }, [models, refreshModels]);
+  useModelDownloadPolling(models, refreshModels, POLL_INTERVAL_MS);
 
   async function handleDownload(id: string): Promise<void> {
     setDownloadErrors((prev) => {

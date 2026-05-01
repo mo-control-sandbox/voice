@@ -1,6 +1,6 @@
 import { AudioPipeline } from '../audio/AudioPipeline';
 import { PcmAudio } from '../audio/PcmAudio';
-import type { RendererModelRepository } from '../../services/RendererModelRepository';
+import type { RendererModelRepository } from '../../models/ModelRepository';
 import type { SubmitTranscriptionRequest } from '../../gen/recording';
 import type { BackendFactory } from '../transcription/BackendFactory';
 import type { Backend, StreamingSession } from '../transcription/Backend';

@@ -1,7 +1,7 @@
-import { OPFSModelCache } from './OPFSModelCache';
-import { RendererModelCatalog } from './RendererModelCatalog';
-import { RendererModelRepository } from './RendererModelRepository';
-import { RendererModelStateStore } from './RendererModelStateStore';
+import { OPFSModelCache } from '../OPFSModelCache';
+import { RendererModelCatalog } from '../ModelDefinitionCatalog';
+import { RendererModelRepository } from '../ModelRepository';
+import { ModelStateStore } from '../ModelStateStore';
 
 let repositorySingleton: RendererModelRepository | null = null;
 
@@ -14,7 +14,7 @@ export function getRendererModelRepository(): RendererModelRepository {
     repositorySingleton = new RendererModelRepository(
       catalog,
       new OPFSModelCache(catalog.getDefinitions()),
-      new RendererModelStateStore(),
+      new ModelStateStore(),
     );
   }
 

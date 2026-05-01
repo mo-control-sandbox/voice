@@ -4,7 +4,7 @@ import {
   type AutomaticSpeechRecognitionPipeline,
   type AutomaticSpeechRecognitionOutput,
 } from '@huggingface/transformers';
-import { OPFSModelCache } from '../../../services/OPFSModelCache';
+import { OPFSModelCache } from '../../../models/OPFSModelCache';
 import {
   buildCohereBatchDecodeOptions,
   COHERE_BATCH_LOAD_OPTIONS,

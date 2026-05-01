@@ -1,5 +1,5 @@
 import { env } from '@huggingface/transformers';
-import { OPFSModelCache } from '../../../services/OPFSModelCache';
+import { OPFSModelCache } from '../../../models/OPFSModelCache';
 import {
   StreamingInferenceCoordinator,
   type StreamingWorkerCommand,

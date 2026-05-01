@@ -11,7 +11,6 @@ import {
 } from '../recording/transcription/cohere/CohereBatchPolicy';
 import { WHISPER_BATCH_LOAD_OPTIONS } from '../recording/transcription/whisper/WhisperBatchPolicy';
 import type { ModelDefinition } from '../types/models';
-import type { ModelFileStore } from './ModelFileStore';
 
 const OPFS_DIR = 'hf-models';
 const MARKER_FILENAME = '.cache-complete';
@@ -19,7 +18,7 @@ const MARKER_FILENAME = '.cache-complete';
 /**
  * Model storage backed by the Origin Private File System.
  *
- * Serves two roles: it implements ModelFileStore for the explicit download
+ * Serves two roles: it owns explicit model downloads for settings flows
  * phase (Settings UI), and it satisfies the Transformers.js custom cache
  * interface so inference workers can read stored files without re-fetching.
  * Files are stored under hf-models/{org}/{model}/{filename}, mirroring the
@@ -29,7 +28,7 @@ const MARKER_FILENAME = '.cache-complete';
  * Workers that only need cache read-through may construct this with no args.
  * App code that drives downloads must pass the model catalog.
  */
-export class OPFSModelCache implements ModelFileStore {
+export class OPFSModelCache {
   private readonly modelToDefinition: ReadonlyMap<string, ModelDefinition>;
 
   constructor(models: readonly ModelDefinition[] = []) {
@@ -102,7 +101,7 @@ export class OPFSModelCache implements ModelFileStore {
     }
   }
 
-  // ── ModelFileStore ────────────────────────────────────────────────────────────
+  // ── Model download storage ────────────────────────────────────────────────────
 
   /**
    * Returns true when the per-model completion marker is present in OPFS.

@@ -1,4 +1,4 @@
-import type { ModelStateStore } from './ModelStateStore';
+
 import { SettingsService } from '../settings/services/SettingsService';
 
 const LEGACY_KEY_ACTIVE_MODEL_ID = 'movoice:activeModelId';
@@ -11,7 +11,7 @@ const DEFAULT_LANGUAGE = 'auto';
  * ModelStateStore implementation that persists the user's active model selection
  * and preferred transcription language across sessions using main-process prefs.
  */
-export class RendererModelStateStore implements ModelStateStore {
+export class ModelStateStore {
   private readonly settingsService = new SettingsService();
   private migrationPromise: Promise<void> | null = null;
 

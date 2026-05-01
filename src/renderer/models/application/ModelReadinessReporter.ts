@@ -1,5 +1,5 @@
-import { ipc } from '../gen/ipc';
-import type { ModelEntry } from '../types/models';
+import { ipc } from '../../gen/ipc';
+import type { ModelEntry } from '../../types/models';
 
 /**
  * Reports whether any downloaded and active model is available to the main
