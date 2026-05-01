@@ -132,10 +132,14 @@ export class RecordingOrchestrator {
 
       if (startResult.status === 'failed') {
         this.handleAudioStartFailure(next.sessionId, startResult.errorMessage);
-      } else if (startResult.status === 'started') {
+        return;
+      }
+      if (startResult.status === 'started') {
         this.notifyState();
       }
-      return;
+      // Fall through: if the phase jumped directly to PROCESSING (renderer
+      // missed the RECORDING phase due to polling interval), the block below
+      // must still run so stopAndProcess is not skipped.
     }
 
     if (stateChanged && nextState === RecordingPhase.RECORDING_PHASE_PROCESSING) {
