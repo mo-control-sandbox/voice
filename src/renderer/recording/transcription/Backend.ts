@@ -28,7 +28,7 @@ export interface StreamingSession {
  * Backend for models that require a complete audio buffer before inference
  * can begin, such as Whisper encoder-decoder architectures.
  */
-export interface BatchTranscriptionBackend {
+export interface BatchBackend {
   readonly mode: 'batch';
   transcribe(
     audio: PcmAudio,
@@ -45,7 +45,7 @@ export interface BatchTranscriptionBackend {
  * Opens a session at the start of recording and accepts audio chunks
  * incrementally as they arrive from the microphone.
  */
-export interface StreamingTranscriptionBackend {
+export interface StreamingBackend {
   readonly mode: 'streaming';
   beginSession(language: string | null, signal: AbortSignal): StreamingSession;
   /** Eagerly loads the model in the inference worker so the first recording starts without delay. */
@@ -54,4 +54,4 @@ export interface StreamingTranscriptionBackend {
 }
 
 /** Union of all transcription backend types, narrowed by mode. */
-export type TranscriptionBackend = BatchTranscriptionBackend | StreamingTranscriptionBackend;
+export type Backend = BatchBackend | StreamingBackend;

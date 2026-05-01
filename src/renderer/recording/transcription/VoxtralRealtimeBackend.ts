@@ -1,9 +1,9 @@
 import type { VoxtralWorkerResult } from '../workers/VoxtralWorker';
 import type {
+  StreamingBackend,
   StreamingSession,
-  StreamingTranscriptionBackend,
   TranscriptionResult,
-} from './TranscriptionBackend';
+} from './Backend';
 
 /**
  * Streaming transcription backend backed by a VoxtralWorker.
@@ -13,7 +13,7 @@ import type {
  * model to overlap inference with capture. finalize() signals end-of-audio and
  * resolves with the complete transcript once the worker drains its buffer.
  */
-export class VoxtralRealtimeBackend implements StreamingTranscriptionBackend {
+export class VoxtralRealtimeBackend implements StreamingBackend {
   readonly mode = 'streaming' as const;
   private worker: Worker | null = null;
   private workerModelLoaded = false;

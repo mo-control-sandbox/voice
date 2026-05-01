@@ -2,8 +2,8 @@ import { AudioPipeline } from '../audio/AudioPipeline';
 import { PcmAudio } from '../audio/PcmAudio';
 import type { RendererModelRepository } from '../../services/RendererModelRepository';
 import type { SubmitTranscriptionRequest } from '../../gen/recording';
-import type { MoVoiceBackendFactory } from '../services/MoVoiceBackendFactory';
-import type { StreamingSession, TranscriptionBackend } from '../services/TranscriptionBackend';
+import type { MoVoiceBackendFactory } from '../transcription/MoVoiceBackendFactory';
+import type { Backend, StreamingSession } from '../transcription/Backend';
 
 /**
  * Input data needed to start microphone capture for a session.
@@ -88,7 +88,7 @@ export class TranscriptionService {
   /**
    * Active transcription backend chosen from current model settings.
    */
-  private activeBackend: TranscriptionBackend | null = null;
+  private activeBackend: Backend | null = null;
 
   /**
    * Active streaming session handle for realtime backends.

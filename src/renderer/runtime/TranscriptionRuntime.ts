@@ -1,6 +1,6 @@
 import { getRendererModelRepository } from '../services/getRendererModelRepository';
 import { RecordingPhase } from '../gen/reverse_ipc_bridge';
-import { MoVoiceBackendFactory } from '../recording/services/MoVoiceBackendFactory';
+import { MoVoiceBackendFactory } from '../recording/transcription/MoVoiceBackendFactory';
 import { RecordingController } from '../recording/RecordingController';
 import { TranscriptionService } from '../recording/application/TranscriptionService';
 import { RecordingOrchestrator } from '../recording/application/RecordingOrchestrator';

@@ -1,5 +1,5 @@
 import type { ModelDefinition } from '../../types/models';
-import type { TranscriptionBackend } from './TranscriptionBackend';
+import type { Backend } from './Backend';
 import { CohereTranscribeBackend } from './CohereTranscribeBackend';
 import { VoxtralRealtimeBackend } from './VoxtralRealtimeBackend';
 import { WhisperBackend } from './WhisperBackend';
@@ -13,10 +13,10 @@ import { WhisperBackend } from './WhisperBackend';
  * model reloads.
  */
 export class MoVoiceBackendFactory {
-  private cachedBackend: TranscriptionBackend | null = null;
+  private cachedBackend: Backend | null = null;
   private cachedModelId = '';
 
-  createBackend(model: ModelDefinition): TranscriptionBackend {
+  createBackend(model: ModelDefinition): Backend {
     const modelId = model.huggingFaceRepo;
     if (this.cachedBackend === null || this.cachedModelId !== modelId) {
       this.cachedBackend?.dispose();

@@ -1,11 +1,11 @@
 import type { PcmAudio } from '../audio/PcmAudio';
 import type { BatchWorkerResult } from '../workers/BatchWorkerProtocol';
-import type { BatchTranscriptionBackend, TranscriptionResult } from './TranscriptionBackend';
+import type { BatchBackend, TranscriptionResult } from './Backend';
 
 /**
  * Constructor settings for a batch transcription backend that delegates to a worker.
  */
-interface WorkerBatchTranscriptionBackendOptions {
+interface WorkerBatchBackendOptions {
   backendName: string;
   modelId: string;
   workerUrl: URL;
@@ -14,13 +14,13 @@ interface WorkerBatchTranscriptionBackendOptions {
 /**
  * Shared transport for batch transcription backends backed by web workers.
  */
-export class WorkerBatchTranscriptionBackend implements BatchTranscriptionBackend {
+export class WorkerBatchBackend implements BatchBackend {
   readonly mode = 'batch' as const;
   private worker: Worker | null = null;
   private workerModelLoaded = false;
   private nextRequestId = 0;
 
-  constructor(private readonly options: WorkerBatchTranscriptionBackendOptions) {}
+  constructor(private readonly options: WorkerBatchBackendOptions) {}
 
   /**
    * Loads the active model in the worker and returns one completed transcript.
@@ -141,4 +141,3 @@ export class WorkerBatchTranscriptionBackend implements BatchTranscriptionBacken
     });
   }
 }
-

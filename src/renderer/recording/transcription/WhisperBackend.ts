@@ -1,9 +1,9 @@
-import { WorkerBatchTranscriptionBackend } from './WorkerBatchTranscriptionBackend';
+import { WorkerBatchBackend } from './WorkerBatchBackend';
 
 /**
  * Batch transcription backend for Whisper models.
  */
-export class WhisperBackend extends WorkerBatchTranscriptionBackend {
+export class WhisperBackend extends WorkerBatchBackend {
   constructor(modelId: string) {
     super({
       backendName: 'WhisperBackend',
