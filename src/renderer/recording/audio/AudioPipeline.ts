@@ -30,7 +30,7 @@ export class AudioPipeline {
     const contextOptions = sampleRate !== undefined ? { sampleRate } : undefined;
     this.audioContext = new AudioContext(contextOptions);
     await this.audioContext.audioWorklet.addModule(
-      new URL('./AudioWorkletProcessor.js', import.meta.url),
+      new URL('./PcmCollectorProcessor.js', import.meta.url),
     );
 
     const source = this.audioContext.createMediaStreamSource(this.stream);
