@@ -110,11 +110,6 @@ export function SessionDetail({
           <dt className="session-detail__meta-label">Engine</dt>
           <dd className="session-detail__meta-value">{session.transcriptionEngineLabel}</dd>
 
-          <dt className="session-detail__meta-label">Language</dt>
-          <dd className="session-detail__meta-value">
-            {session.detectedLanguage !== '' ? session.detectedLanguage : '—'}
-          </dd>
-
           <dt className="session-detail__meta-label">Audio duration</dt>
           <dd className="session-detail__meta-value">{formatMinutesAndSeconds(session.audioDurationSeconds)}</dd>
 

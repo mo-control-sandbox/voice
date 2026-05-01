@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { AboutApp } from './about/AboutApp';
-import { startTranscriptionRuntime } from './runtime/TranscriptionRuntime';
+import { startTranscriptionRuntime } from './recording/transcription/TranscriptionRuntime';
 import { HistoryApp } from './history/HistoryApp';
 import './index.css';
 import { initTheme } from './theme';

@@ -1,7 +1,7 @@
 import { ipc } from '../../gen/ipc';
 import type { CancelRecordingRequest, StopRecordingRequest, SubmitTranscriptionRequest } from '../../gen/recording';
 import { RecordingPhase, type RecordingState as RecordingSignalState } from '../../gen/reverse_ipc_bridge';
-import type { RecordingViewState } from './RecordingState';
+import type { RecordingViewState } from '../RecordingController';
 import type { TranscriptionService } from './TranscriptionService';
 import { PolledChannel } from '../../infra/ipc/PolledChannel';
 import { SettingsService } from '../../settings/services/SettingsService';
@@ -10,7 +10,7 @@ const AUDIO_START_FAILURE_DISMISS_MS = 2000;
 const RECORDING_POLL_INTERVAL_MS = 1000 / 30;
 
 /**
- * Coordinates recording lifecycle transitions between signal snapshots and services.
+ * Orchestrates one recording session lifecycle in the renderer.
  */
 export class RecordingOrchestrator {
   private readonly settingsService = new SettingsService();

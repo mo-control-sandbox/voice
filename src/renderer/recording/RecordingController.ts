@@ -1,7 +1,14 @@
 import type { RecordingOrchestrator } from './application/RecordingOrchestrator';
-import type { RecordingViewState } from './application/RecordingState';
+import type { RecordingPhase as ProtoRecordingPhase } from '../gen/reverse_ipc_bridge';
 
-export type { RecordingViewState };
+/**
+ * Renderer-facing state required to render recording UI feedback.
+ */
+export interface RecordingViewState {
+  readonly phase: ProtoRecordingPhase | 'error';
+  readonly isAudioReady: boolean;
+  readonly errorMessage: string | null;
+}
 
 /**
  * Facade that adapts recording orchestration to the renderer view lifecycle.

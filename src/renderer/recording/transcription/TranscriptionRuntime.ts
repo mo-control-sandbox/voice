@@ -1,9 +1,9 @@
-import { getRendererModelRepository } from '../services/getRendererModelRepository';
-import { RecordingPhase } from '../gen/reverse_ipc_bridge';
-import { BackendFactory } from '../recording/transcription/BackendFactory';
-import { RecordingController } from '../recording/RecordingController';
-import { TranscriptionService } from '../recording/application/TranscriptionService';
-import { RecordingOrchestrator } from '../recording/application/RecordingOrchestrator';
+import { getRendererModelRepository } from '../../services/getRendererModelRepository';
+import { RecordingPhase } from '../../gen/reverse_ipc_bridge';
+import { RecordingController } from '../RecordingController';
+import { TranscriptionService } from '../application/TranscriptionService';
+import { RecordingOrchestrator } from '../application/RecordingOrchestrator';
+import { BackendFactory } from './BackendFactory';
 
 /*
  * Singletons that persist for the lifetime of the transcription worker window. Keeping
