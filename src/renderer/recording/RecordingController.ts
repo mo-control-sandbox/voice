@@ -1,7 +1,7 @@
 import type { RecordingOrchestrator } from './application/RecordingOrchestrator';
-import type { RecordingPhase, RecordingViewState } from './application/RecordingState';
+import type { RecordingViewState } from './application/RecordingState';
 
-export type { RecordingPhase, RecordingViewState };
+export type { RecordingViewState };
 
 /**
  * Facade that adapts recording orchestration to the renderer view lifecycle.
