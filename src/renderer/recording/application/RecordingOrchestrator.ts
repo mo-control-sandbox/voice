@@ -108,9 +108,6 @@ export class RecordingOrchestrator {
     if (sessionChanged || (stateChanged && nextState === RecordingPhase.RECORDING_PHASE_RECORDING)) {
       const settings = await this.settingsService.getSettings();
       const sessionId = next.sessionId;
-      const onAudioChunk = next.saveAudio
-        ? (pcm: Uint8Array) => { void this.appendAudioChunk(sessionId, pcm); }
-        : (_pcm: Uint8Array) => undefined;
 
       const startResult = await this.transcriptionService.startCapture({
         sessionId,
@@ -127,7 +124,7 @@ export class RecordingOrchestrator {
         onBatchMaxDurationReached: () => {
           void this.stopRecording({ sessionId });
         },
-        onAudioChunk,
+        onAudioChunk: (pcm: Uint8Array) => { void this.appendAudioChunk(sessionId, pcm); },
       });
 
       if (startResult.status === 'failed') {

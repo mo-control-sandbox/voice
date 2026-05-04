@@ -14,8 +14,6 @@ message RecordingState {
   RecordingPhase phase       = 1;
   string session_id = 2;
   int64 started_at = 3;
-  bool save_audio = 4;
-  bool save_transcripts = 5;
 }
 
 message PollRecordingResponse {
