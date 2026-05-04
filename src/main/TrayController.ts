@@ -5,7 +5,7 @@ import type { SettingsWindow } from './settings/SettingsWindow';
 import type { HistoryWindow } from './sessions/HistoryWindow';
 import type { AboutWindow } from './AboutWindow';
 import type { ReadinessCoordinator } from './readiness/ReadinessCoordinator';
-import { WelcomeWindow } from './welcome/WelcomeWindow';
+import type { WelcomeWindow } from './welcome/WelcomeWindow';
 
 /**
  * Manages the menu-bar tray icon for MoVoice.
