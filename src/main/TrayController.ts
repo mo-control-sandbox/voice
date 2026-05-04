@@ -5,6 +5,7 @@ import type { SettingsWindow } from './settings/SettingsWindow';
 import type { HistoryWindow } from './sessions/HistoryWindow';
 import type { AboutWindow } from './AboutWindow';
 import type { ReadinessCoordinator } from './readiness/ReadinessCoordinator';
+import { WelcomeWindow } from './welcome/WelcomeWindow';
 
 /**
  * Manages the menu-bar tray icon for MoVoice.
@@ -20,6 +21,7 @@ export class TrayController {
     private readonly settingsWindow: SettingsWindow,
     private readonly historyWindow: HistoryWindow,
     private readonly aboutWindow: AboutWindow,
+    private readonly welcomeWindow: WelcomeWindow,
   ) {
     const imagePath = `${app.getPath('appResources')}/imageTemplate.png`;
     this.tray = new Tray({ imagePath, tooltip: 'MoVoice' });
@@ -72,9 +74,12 @@ export class TrayController {
     return new MenuItem({
       id: 'continueSetup',
       label: 'Continue Setup',
-      enabled: hasCompletedOnboarding,
       action: () => {
-        if (hasCompletedOnboarding) this.settingsWindow.show();
+        if (hasCompletedOnboarding) {
+          this.settingsWindow.show();
+        } else {
+          this.welcomeWindow.show();
+        }
       },
     });
   }

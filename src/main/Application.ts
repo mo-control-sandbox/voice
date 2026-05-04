@@ -55,6 +55,7 @@ export class Application {
     this.settingsWindow,
     this.historyWindow,
     this.aboutWindow,
+    this.welcomeWindow
   );
 
   /**
@@ -75,6 +76,7 @@ export class Application {
 
     this.trayController.refresh();
 
+    this.dockManager.initialize();
     const { shortcutKey } = this.settings.get();
     this.shortcutManager.register(shortcutKey, () => {
       this.recordingController.handleShortcutTrigger();
@@ -102,7 +104,7 @@ export class Application {
       this.clipboard.pasteText(text);
     });
     this.recordingController.onPartiallyTranscribed((text) => {
-      this.clipboard.queueStreamingText(text);
+      this.clipboard.pasteText(text);
     });
     this.recordingController.onSessionAborted(() => {
       this.clipboard.cancelPending();
