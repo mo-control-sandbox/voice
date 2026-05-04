@@ -75,7 +75,6 @@ export class Application {
 
     this.trayController.refresh();
 
-    this.dockManager.initialize();
     const { shortcutKey } = this.settings.get();
     this.shortcutManager.register(shortcutKey, () => {
       this.recordingController.handleShortcutTrigger();

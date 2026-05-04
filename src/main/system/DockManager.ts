@@ -5,9 +5,6 @@ import type { BrowserWindow } from '@mobrowser/api';
  * Shows the dock icon when at least one window of the application is visible.
  */
 export class DockManager {
-  initialize(): void {
-    this.syncDockVisibility();
-  }
 
   /**
    * Registers a window with DockManager so Dock visibility stays aligned with
@@ -17,8 +14,6 @@ export class DockManager {
     if (window.isVisible) {
       throw new Error('DockManager.track() must be called before the window is shown.');
     }
-
-    this.syncDockVisibility();
 
     window.on('shown', () => {
       this.syncDockVisibility();
