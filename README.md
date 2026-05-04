@@ -20,13 +20,6 @@
     </a>
 </p>
 
-## Screenshots
-
-<img src=".github/assets/board.webp" width="23%"></img> 
-<img src=".github/assets/editing.webp" width="23%"></img> 
-<img src=".github/assets/published.webp" width="23%"></img> 
-<img src=".github/assets/settings.webp" width="23%"></img> 
-
 ## Features
 
 - Press a shortcut to record; press again to stop and paste text into the focused window.
