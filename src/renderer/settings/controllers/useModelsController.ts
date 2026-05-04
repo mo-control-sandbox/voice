@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { ModelEntry } from '../../types/models';
-import { reportModelReadiness } from '../../models/application/ModelReadinessReporter';
 import { getRendererModelRepository } from '../../models/application/getRendererModelRepository';
 import { notifyModelActivated } from '../../models/application/notifyModelActivated';
 import { useModelDownloadPolling } from '../../models/application/useModelDownloadPolling';
@@ -25,7 +24,6 @@ export function useModelsController(): {
   const refreshModels = useCallback(async (): Promise<void> => {
     const latestModels = await repository.getModels();
     setModels(latestModels);
-    void reportModelReadiness(latestModels);
   }, []);
 
   useEffect(() => {

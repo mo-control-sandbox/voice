@@ -145,8 +145,4 @@ service SettingsService {
    * Marks onboarding as completed.
    */
   rpc MarkOnboardingComplete(google.protobuf.Empty) returns (google.protobuf.Empty);
-  /**
-   * Persists model readiness status used by readiness checks.
-   */
-  rpc SetModelReady(SetBooleanSettingRequest) returns (google.protobuf.Empty);
 }

@@ -125,22 +125,12 @@ export class SettingsStore {
   }
 
   /**
-   * Returns whether the renderer has reported a downloaded, active model.
+   * Returns whether an active model selection exists.
    */
   isModelReady(): boolean {
-    return prefs.getBoolean('modelReady', false);
+    return this.get().activeModelId !== '';
   }
 
-  /**
-   * Stores the latest model readiness state reported by the renderer.
-   */
-  setModelReady(value: boolean): boolean {
-    const previous = this.isModelReady();
-    if (previous === value) return false;
-    prefs.setBoolean('modelReady', value);
-    prefs.persist();
-    return true;
-  }
 }
 
 /**
@@ -197,10 +187,7 @@ class SettingsService implements SettingsServiceInterface {
 
   SetActiveModelId(request: SetActiveModelIdRequest): Promise<Empty> {
     this.settings.setActiveModelId(request.activeModelId);
-    if (request.activeModelId === '') {
-      const changed = this.settings.setModelReady(false);
-      if (changed) this.onModelReadyChanged?.();
-    }
+    this.onModelReadyChanged?.();
     return Promise.resolve({});
   }
 
@@ -211,12 +198,6 @@ class SettingsService implements SettingsServiceInterface {
 
   MarkOnboardingComplete(_request: Empty): Promise<Empty> {
     this.settings.setOnboardingCompleted();
-    return Promise.resolve({});
-  }
-
-  SetModelReady(request: SetBooleanSettingRequest): Promise<Empty> {
-    const changed = this.settings.setModelReady(request.value);
-    if (changed) this.onModelReadyChanged?.();
     return Promise.resolve({});
   }
 }
