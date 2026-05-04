@@ -55,17 +55,3 @@ npm run build
 
 If you need to sign and notarize the application, see the [.github/workflows/build.yml](.github/workflows/build.yml) 
 for a ready-to-use script that works on macOS and Windows.
-
-## Speech Recognition
-
-moVoice transcribes audio either with a local Whisper model or the built-in macOS speech engine.
-
-**Built-in macOS recognition** requires no setup and works out of the box. Select it in **Settings → Models** to use it without downloading anything.
-
-**Local Whisper models** run entirely on-device with no internet connection. To use one:
-
-1. Open **Settings → Models**
-2. Choose a model and click **Download**
-3. Once downloaded, the model becomes active automatically
-
-Several models are available, trading off size, speed, and accuracy. The active model is clearly marked in the list.
