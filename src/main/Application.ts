@@ -102,7 +102,7 @@ export class Application {
       this.clipboard.pasteText(text);
     });
     this.recordingController.onPartiallyTranscribed((text) => {
-      this.clipboard.pasteText(text);
+      this.clipboard.queueStreamingText(text);
     });
     this.recordingController.onSessionAborted(() => {
       this.clipboard.cancelPending();
