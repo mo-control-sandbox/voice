@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ipc } from '../../gen/ipc';
 import { SettingsService } from '../../settings/services/SettingsService';
 
@@ -25,10 +25,10 @@ export function useShortcutReadiness(params: {
     });
   }, [isFinalStep, onboardingMarked]);
 
-  async function loadShortcutKey(): Promise<void> {
+  const loadShortcutKey = useCallback(async (): Promise<void> => {
     const settings = await settingsService.getSettings();
     setShortcutKey(settings.shortcutKey);
-  }
+  }, []);
 
   return {
     shortcutKey,

@@ -63,15 +63,15 @@ export function useMicrophoneSelection(params: {
     return undefined;
   }, [isMicrophoneGranted, isStepActive, loadAudioDevices]);
 
-  async function loadSelectedAudioDeviceId(): Promise<void> {
+  const loadSelectedAudioDeviceId = useCallback(async (): Promise<void> => {
     const settings = await settingsService.getSettings();
     setSelectedAudioDeviceId(settings.audioInputDeviceId);
-  }
+  }, []);
 
-  async function handleAudioDeviceChange(deviceId: string): Promise<void> {
+  const handleAudioDeviceChange = useCallback(async (deviceId: string): Promise<void> => {
     setSelectedAudioDeviceId(deviceId);
     await settingsService.setAudioInputDevice(deviceId);
-  }
+  }, []);
 
   return {
     audioDevices,

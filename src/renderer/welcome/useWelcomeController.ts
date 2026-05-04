@@ -118,11 +118,9 @@ export function useWelcomeController(): {
       setSettingsLoaded(true);
     });
   }, [
-    accessibilityPermission,
-    microphonePermission,
-    microphoneSelection,
-    modelSelection,
-    shortcutReadiness,
+    microphoneSelection.loadSelectedAudioDeviceId,
+    modelSelection.refreshModels,
+    shortcutReadiness.loadShortcutKey,
   ]);
 
   useEffect(() => {
@@ -142,7 +140,7 @@ export function useWelcomeController(): {
     return () => {
       cancelled = true;
     };
-  }, [accessibilityPermission, microphonePermission, step]);
+  }, [accessibilityPermission.setAccessibilityStatus, microphonePermission.setMicrophoneStatus, step]);
 
   useEffect(() => {
     if (step === 'welcome-model' && modelSelection.hasReadyActiveModel && modelSelection.downloadingModelId === null) {
