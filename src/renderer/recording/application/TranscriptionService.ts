@@ -1,12 +1,9 @@
 import { AudioPipeline } from '../audio/AudioPipeline';
 import { PcmAudio } from '../audio/PcmAudio';
-import { rendererLogger } from '../../infra/logging/RendererLogger';
 import type { RendererModelRepository } from '../../models/ModelRepository';
 import type { SubmitTranscriptionRequest } from '../../gen/recording';
 import type { BackendFactory } from '../transcription/BackendFactory';
 import type { Backend, StreamingSession } from '../transcription/Backend';
-
-const log = rendererLogger.forComponent('TranscriptionService');
 
 /**
  * Input data needed to start microphone capture for a session.
@@ -152,7 +149,7 @@ export class TranscriptionService {
     this.prewarmQueued = true;
 
     if (this.isSessionActive()) {
-      log.info('prewarm deferred: session is active');
+      console.info('[TranscriptionService] prewarm deferred: session is active');
       return;
     }
 
@@ -202,7 +199,7 @@ export class TranscriptionService {
     this.audioBatch = [];
     this.audioBatchSamples = 0;
 
-    log.info(`capture started: sessionId=${request.sessionId} backendMode=${backend.mode} deviceId=${request.audioInputDeviceId}`);
+    console.info(`[TranscriptionService] capture started: sessionId=${request.sessionId} backendMode=${backend.mode} deviceId=${request.audioInputDeviceId}`);
     try {
       const pipelineSampleRate = backend.mode === 'streaming' ? 16000 : undefined;
       await pipeline.start(request.audioInputDeviceId, pipelineSampleRate);
@@ -232,7 +229,7 @@ export class TranscriptionService {
       this.recordingStartMs = Date.now();
       return { status: 'started' };
     } catch (err) {
-      log.error(`failed to start audio capture: sessionId=${request.sessionId} error=${err instanceof Error ? err.message : String(err)}`);
+      console.error(`[TranscriptionService] failed to start audio capture: sessionId=${request.sessionId} error=${err instanceof Error ? err.message : String(err)}`);
       this.pipeline = null;
       this.activeBackend = null;
       this.inferenceAbort = null;
@@ -247,7 +244,7 @@ export class TranscriptionService {
    * Finalizes active recording and resolves completed transcription payload.
    */
   async stopAndProcess(request: StopAndProcessRequest): Promise<StopAndProcessResult> {
-    log.info(`stopAndProcess: sessionId=${request.sessionId}`);
+    console.info(`[TranscriptionService] stopAndProcess: sessionId=${request.sessionId}`);
     this.clearBatchMaxDurationTimer();
     const pipeline = this.pipeline;
     const session = this.streamingSession;
@@ -312,12 +309,12 @@ export class TranscriptionService {
     this.audioBatchSamples = 0;
 
     if (result === null) {
-      log.info(`stopAndProcess cancelled: sessionId=${request.sessionId}`);
+      console.info(`[TranscriptionService] stopAndProcess cancelled: sessionId=${request.sessionId}`);
       return { status: 'cancelled' };
     }
 
     const engineLabel = (await this.modelRepository.getActiveModel()).definition.label;
-    log.info(`stopAndProcess completed: sessionId=${request.sessionId} chars=${String(result.text.length)} audioDurationSeconds=${audioDurationSeconds.toFixed(2)} engine=${engineLabel} streamed=${String(session !== null)}`);
+    console.info(`[TranscriptionService] stopAndProcess completed: sessionId=${request.sessionId} chars=${String(result.text.length)} audioDurationSeconds=${audioDurationSeconds.toFixed(2)} engine=${engineLabel} streamed=${String(session !== null)}`);
 
     return {
       status: 'completed',
@@ -429,21 +426,21 @@ export class TranscriptionService {
 
       if (this.isSessionActive()) {
         this.prewarmQueued = true;
-        log.info('prewarm deferred: session became active');
+        console.info('[TranscriptionService] prewarm deferred: session became active');
         return;
       }
 
       const activeModel = await this.modelRepository.getActiveModel();
       if (!activeModel.isDownloaded) {
-        log.info('prewarm skipped: no downloaded model active');
+        console.info('[TranscriptionService] prewarm skipped: no downloaded model active');
         continue;
       }
 
-      log.info(`prewarm started: modelId=${activeModel.definition.id} repo=${activeModel.definition.huggingFaceRepo}`);
+      console.info(`[TranscriptionService] prewarm started: modelId=${activeModel.definition.id} repo=${activeModel.definition.huggingFaceRepo}`);
       const warmStart = performance.now();
       await this.backendFactory.prewarm(activeModel.definition);
       const durationMs = Math.round(performance.now() - warmStart);
-      log.info(`prewarm completed: modelId=${activeModel.definition.id} duration=${String(durationMs)}ms`);
+      console.info(`[TranscriptionService] prewarm completed: modelId=${activeModel.definition.id} duration=${String(durationMs)}ms`);
     }
   }
 }
