@@ -61,10 +61,10 @@ export class Permissions {
  * Connects window permission requests to the shared application permission policy.
  */
 export function attachPermissionHandler(window: BrowserWindow): void {
-  window.browser.handle('requestPermissions', (params: RequestPermissionsParams) => (
+  window.browser.handle('requestPermissions', (params: RequestPermissionsParams) => Promise.resolve(
     params.permissionType === 'microphone' || params.permissionType === 'AudioCapture'
       ? 'grant'
-      : 'deny'
+      : 'deny',
   ));
 }
 
