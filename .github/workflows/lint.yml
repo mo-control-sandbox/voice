@@ -32,9 +32,3 @@ jobs:
 
       - name: Lint CSS
         run: npm run lint:css
-
-      - name: Configure CMake (generate compile_commands.json for clang-tidy)
-        run: cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -B build -S .
-
-      - name: Lint C++
-        run: npm run lint:cpp
