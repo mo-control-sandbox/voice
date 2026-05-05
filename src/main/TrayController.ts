@@ -94,7 +94,7 @@ export class TrayController {
       new MenuItem({
         id: 'openSettings',
         label: 'Settings',
-        action: () => { this.settingsWindow.show(); },
+        action: () => { this.settingsWindow.showSection('general'); },
       }),
       new MenuItem({
         id: 'openAbout',
