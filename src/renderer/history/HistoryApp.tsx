@@ -17,7 +17,6 @@ interface HistoryAppProps {
 export function HistoryApp({ embedded = false }: HistoryAppProps = {}): React.JSX.Element {
   const [sessions, setSessions] = useState<SessionRecordProto[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [audioData, setAudioData] = useState<Uint8Array | null>(null);
 
   async function fetchSessions(): Promise<void> {
     const response = await historyService.getSessions();
@@ -31,17 +30,6 @@ export function HistoryApp({ embedded = false }: HistoryAppProps = {}): React.JS
       await fetchSessions();
     });
   }, []);
-
-  useEffect(() => {
-    if (selectedId === null) {
-      setAudioData(null);
-      return;
-    }
-    setAudioData(null);
-    void historyService.getAudioData(selectedId).then((response) => {
-      setAudioData(new Uint8Array(response.audioData));
-    });
-  }, [selectedId]);
 
   function handleDelete(id: string): void {
     void historyService.deleteSession(id).then(() => {
@@ -69,7 +57,6 @@ export function HistoryApp({ embedded = false }: HistoryAppProps = {}): React.JS
         {selectedSession !== null ? (
           <SessionDetail
             session={selectedSession}
-            audioData={audioData}
             onDelete={handleDelete}
             onOpenInFinder={(id) => { historyService.revealSessionFolder(id); }}
           />

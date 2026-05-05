@@ -86,7 +86,7 @@ function SettingsShell(): React.JSX.Element {
             <Route path="/history" element={<HistoryApp embedded />} />
             <Route
               path="/general"
-              element={<GeneralPage onOpenPermissions={() => { navigate(getSettingsPagePath('permissions')); }} />}
+              element={<GeneralPage onOpenPermissions={() => { void navigate(getSettingsPagePath('permissions')); }} />}
             />
             <Route path="/models" element={<ModelsPage needsModel={requirements.needsModel} />} />
             <Route

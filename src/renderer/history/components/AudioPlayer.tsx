@@ -1,56 +1,89 @@
 import { useEffect, useRef, useState } from 'react';
 import { Play, Pause } from 'lucide-react';
 import { formatPlayerClock } from '../dateTime';
+import { HistoryService } from '../HistoryService';
+import { HistoryAudioBlobLoader } from '../audio/HistoryAudioBlobLoader';
 import './AudioPlayer.css';
 
 interface AudioPlayerProps {
-  /*
-   * Raw WAV bytes for the session audio.
-   * null  = still loading from IPC.
-   * empty = audio was not saved for this session.
+  /**
+   * Session identifier whose persisted audio should be loaded.
    */
-  readonly audioData: Uint8Array | null;
+  readonly sessionId: string;
 }
+
+const historyService = new HistoryService();
 
 /**
  * Custom audio player with play/pause, scrubber, and time display.
- *
- * Creates a blob URL from the supplied audio bytes and revokes it on unmount.
- * The scrubber uses an invisible range input over a visual fill bar.
  */
-export function AudioPlayer({ audioData }: AudioPlayerProps): React.JSX.Element {
-  const audioRef   = useRef<HTMLAudioElement>(null);
+export function AudioPlayer({ sessionId }: AudioPlayerProps): React.JSX.Element {
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const loaderRef = useRef<HistoryAudioBlobLoader | null>(null);
   const blobUrlRef = useRef<string | null>(null);
-  const [blobUrl, setBlobUrl]       = useState<string | null>(null);
-  const [isPlaying, setIsPlaying]     = useState(false);
+  const [blobUrl, setBlobUrl] = useState<string | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration]       = useState(0);
+  const [duration, setDuration] = useState(0);
   const [isUnplayable, setIsUnplayable] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasSavedAudio, setHasSavedAudio] = useState(true);
 
   useEffect(() => {
-    if (audioData === null || audioData.length === 0) {
-      setBlobUrl(null);
-      setIsPlaying(false);
-      setCurrentTime(0);
-      setDuration(0);
-      setIsUnplayable(false);
-      return;
-    }
-    setIsUnplayable(false);
-    // Copy into a plain ArrayBuffer so Blob constructor gets the concrete type it requires.
-    const view = new Uint8Array(audioData.byteLength);
-    view.set(audioData);
-    const blob = new Blob([view], { type: 'audio/wav' });
-    const url  = URL.createObjectURL(blob);
-    blobUrlRef.current = url;
-    setBlobUrl(url);
+    loaderRef.current ??= new HistoryAudioBlobLoader(historyService);
     return () => {
-      if (blobUrlRef.current !== null) {
-        URL.revokeObjectURL(blobUrlRef.current);
-        blobUrlRef.current = null;
-      }
+      loaderRef.current?.dispose();
+      loaderRef.current = null;
     };
-  }, [audioData]);
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const previousUrl = blobUrlRef.current;
+    if (previousUrl !== null) {
+      URL.revokeObjectURL(previousUrl);
+      blobUrlRef.current = null;
+    }
+    setBlobUrl(null);
+    setIsPlaying(false);
+    setCurrentTime(0);
+    setDuration(0);
+    setIsUnplayable(false);
+    setHasSavedAudio(true);
+    setIsLoading(true);
+
+    const loader = loaderRef.current;
+    if (loader === null) {
+      setIsLoading(false);
+      setHasSavedAudio(false);
+      return () => {
+        controller.abort();
+      };
+    }
+
+    void loader.loadSessionAudioBlobUrl(sessionId, controller.signal).then((url) => {
+      if (controller.signal.aborted) return;
+      if (url === null) {
+        setHasSavedAudio(false);
+        setIsLoading(false);
+        return;
+      }
+      blobUrlRef.current = url;
+      setBlobUrl(url);
+      setIsLoading(false);
+    });
+
+    return () => {
+      controller.abort();
+    };
+  }, [sessionId]);
+
+  useEffect(() => () => {
+    if (blobUrlRef.current !== null) {
+      URL.revokeObjectURL(blobUrlRef.current);
+      blobUrlRef.current = null;
+    }
+  }, []);
 
   function togglePlayback(): void {
     const audio = audioRef.current;
@@ -70,14 +103,12 @@ export function AudioPlayer({ audioData }: AudioPlayerProps): React.JSX.Element 
     setCurrentTime(time);
   }
 
-  const isNotSaved    = audioData !== null && audioData.length === 0;
-  const isUnavailable = isNotSaved || isUnplayable;
-  const isDisabled    = blobUrl === null || isUnplayable;
-  const progress      = duration > 0 ? (currentTime / duration) * 100 : 0;
+  const isUnavailable = !isLoading && (!hasSavedAudio || isUnplayable);
+  const isDisabled = blobUrl === null || isUnplayable || isLoading;
+  const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   return (
     <div className="audio-player">
-      {/* Hidden audio element -- drives all playback state. */}
       {blobUrl !== null && (
         <audio
           ref={audioRef}
@@ -87,8 +118,12 @@ export function AudioPlayer({ audioData }: AudioPlayerProps): React.JSX.Element 
           onEnded={() => { setIsPlaying(false); setCurrentTime(0); }}
           onTimeUpdate={() => { setCurrentTime(audioRef.current?.currentTime ?? 0); }}
           onLoadedMetadata={() => {
-            const d = audioRef.current?.duration ?? 0;
-            if (Number.isFinite(d)) { setDuration(d); } else { setIsUnplayable(true); }
+            const loadedDuration = audioRef.current?.duration ?? 0;
+            if (Number.isFinite(loadedDuration)) {
+              setDuration(loadedDuration);
+            } else {
+              setIsUnplayable(true);
+            }
           }}
           onError={() => { setIsUnplayable(true); }}
         />
@@ -103,13 +138,15 @@ export function AudioPlayer({ audioData }: AudioPlayerProps): React.JSX.Element 
       >
         {isPlaying
           ? <Pause className="audio-player__play-icon" aria-hidden="true" />
-          : <Play  className="audio-player__play-icon" aria-hidden="true" />
+          : <Play className="audio-player__play-icon" aria-hidden="true" />
         }
       </button>
 
       <span className="audio-player__time">{formatPlayerClock(currentTime)}</span>
 
-      {isUnavailable
+      {isLoading
+        ? <span className="audio-player__unavailable">Loading audio...</span>
+        : isUnavailable
         ? <span className="audio-player__unavailable">{isUnplayable ? 'Audio unavailable' : 'Audio not saved'}</span>
         : (
           <div className="audio-player__scrubber">

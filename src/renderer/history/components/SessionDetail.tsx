@@ -7,7 +7,6 @@ import './SessionDetail.css';
 
 interface SessionDetailProps {
   readonly session: SessionRecordProto;
-  readonly audioData: Uint8Array | null;
   readonly onDelete: (id: string) => void;
   readonly onOpenInFinder: (id: string) => void;
 }
@@ -21,7 +20,6 @@ interface SessionDetailProps {
  */
 export function SessionDetail({
   session,
-  audioData,
   onDelete,
   onOpenInFinder,
 }: SessionDetailProps): React.JSX.Element {
@@ -97,7 +95,7 @@ export function SessionDetail({
       {/* Audio player */}
       <section className="session-detail__section">
         <span className="session-detail__section-label">Audio</span>
-        <AudioPlayer audioData={audioData} />
+        <AudioPlayer sessionId={session.id} />
       </section>
 
       {/* Metadata */}

@@ -3,7 +3,7 @@ import * as path from 'node:path';
 import { app, desktop, ipc } from '@mobrowser/api';
 import { Mutex } from 'async-mutex';
 import { HistoryService as createHistoryService, type HistoryService as HistoryServiceInterface } from '../gen/ipc_service';
-import type { DeleteSessionRequest, GetSessionsRequest, SessionIdRequest } from '../gen/history';
+import type { AudioChunkRequest, DeleteSessionRequest, GetSessionsRequest, SessionIdRequest } from '../gen/history';
 import type { SessionStorage } from '../sessions/SessionStorage';
 
 /**
@@ -169,6 +169,25 @@ class HistoryService implements HistoryServiceInterface {
   async GetAudioData(request: SessionIdRequest) {
     const bytes = await this.sessionStorage.readAudioBytes(request.id);
     return { audioData: Buffer.from(bytes ?? new Uint8Array(0)) };
+  }
+
+  /**
+   * Returns audio availability and total byte size for one stored session.
+   */
+  async GetAudioInfo(request: SessionIdRequest) {
+    const info = await this.sessionStorage.getAudioInfo(request.id);
+    return {
+      hasAudio: info.hasAudio,
+      totalBytes: info.totalBytes,
+    };
+  }
+
+  /**
+   * Returns one byte-range chunk from stored audio for one session.
+   */
+  async GetAudioChunk(request: AudioChunkRequest) {
+    const chunk = await this.sessionStorage.readAudioChunk(request.id, request.offset, request.length);
+    return { audioData: Buffer.from(chunk ?? new Uint8Array(0)) };
   }
 
   RevealSessionFolder(request: SessionIdRequest) {

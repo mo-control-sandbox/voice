@@ -1,5 +1,5 @@
 import { ipc } from '../gen/ipc';
-import type { SessionListResponse, AudioDataResponse } from '../gen/history';
+import type { AudioDataResponse, AudioInfoResponse, SessionListResponse } from '../gen/history';
 import { PolledChannel } from '../infra/ipc/PolledChannel';
 
 const HISTORY_POLL_INTERVAL_MS = 1000;
@@ -33,6 +33,20 @@ export class HistoryService {
    */
   async getAudioData(id: string): Promise<AudioDataResponse> {
     return ipc.history.GetAudioData({ id });
+  }
+
+  /**
+   * Returns audio availability and total byte size for one session.
+   */
+  async getAudioInfo(id: string): Promise<AudioInfoResponse> {
+    return ipc.history.GetAudioInfo({ id });
+  }
+
+  /**
+   * Returns one byte-range chunk for one session audio file.
+   */
+  async getAudioChunk(id: string, offset: number, length: number): Promise<AudioDataResponse> {
+    return ipc.history.GetAudioChunk({ id, offset, length });
   }
 
   /** Permanently deletes a session and its associated files. */

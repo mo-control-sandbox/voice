@@ -67,6 +67,43 @@ export class SessionStorage {
   }
 
   /**
+   * Returns audio metadata for the given session when an audio file exists.
+   */
+  async getAudioInfo(id: SessionId): Promise<{ hasAudio: boolean; totalBytes: number }> {
+    const audioPath = this.getAudioPath(id);
+    try {
+      const stat = await fs.promises.stat(audioPath);
+      if (!stat.isFile()) {
+        return { hasAudio: false, totalBytes: 0 };
+      }
+      return { hasAudio: true, totalBytes: stat.size };
+    } catch {
+      return { hasAudio: false, totalBytes: 0 };
+    }
+  }
+
+  /**
+   * Returns one byte-range chunk for the session audio file.
+   */
+  async readAudioChunk(id: SessionId, offset: number, length: number): Promise<Uint8Array | null> {
+    const audioPath = this.getAudioPath(id);
+    let fileHandle: fs.promises.FileHandle | null = null;
+    try {
+      fileHandle = await fs.promises.open(audioPath, 'r');
+      const out = new Uint8Array(length);
+      const readResult = await fileHandle.read(out, 0, length, offset);
+      if (readResult.bytesRead === 0) {
+        return new Uint8Array(0);
+      }
+      return out.subarray(0, readResult.bytesRead);
+    } catch {
+      return null;
+    } finally {
+      await fileHandle?.close();
+    }
+  }
+
+  /**
    * Checks whether the given path exists on disk.
    */
   fileExists(filePath: string): boolean {
