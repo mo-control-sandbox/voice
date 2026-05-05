@@ -10,9 +10,8 @@
     "mobrowser": "mobrowser",
     "lint:ts": "eslint 'src/**/*.{ts,tsx}' --max-warnings 0",
     "lint:css": "stylelint 'src/**/*.css' --max-warnings 0",
-    "lint:cpp": "node tools/lint-cpp.js",
     "typecheck": "tsc --noEmit",
-    "lint": "npm run lint:ts && npm run lint:css && npm run lint:cpp"
+    "lint": "npm run lint:ts && npm run lint:css"
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.2.8",

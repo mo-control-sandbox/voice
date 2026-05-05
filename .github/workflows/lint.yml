@@ -54,5 +54,19 @@ jobs:
       - name: Configure CMake (generate compile_commands.json for clang-tidy)
         run: cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -B build -S .
 
+      - name: Setup LLVM
+        uses: KyleMayes/install-llvm-action@v2
+        with:
+          version: "20"
+
       - name: Lint C++
-        run: npm run lint:cpp
+        shell: bash
+        run: |
+          set -euo pipefail
+          clang_tidy_version="$(clang-tidy --version)"
+          if [[ "$clang_tidy_version" == *"version 20."* ]]; then
+            # LLVM 20 clang-tidy crashes on Objective-C headers with this check: https://github.com/llvm/llvm-project/issues/129861
+            run-clang-tidy -checks=-cppcoreguidelines-avoid-const-or-ref-data-members -p build
+          else
+            run-clang-tidy -p build
+          fi
