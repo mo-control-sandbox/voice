@@ -9,8 +9,6 @@ import { TrayController } from './TrayController';
 import { RecordingWorkerWindow } from './recording/RecordingWorkerWindow';
 import { OverlayWindow } from './recording/OverlayWindow';
 import { SettingsWindow } from './settings/SettingsWindow';
-import { HistoryWindow } from './sessions/HistoryWindow';
-import { AboutWindow } from './AboutWindow';
 import { WelcomeWindow } from './welcome/WelcomeWindow';
 import { ReadinessCoordinator } from './readiness/ReadinessCoordinator';
 import { Permissions, registerPermissionsIpc } from './system/Permissions';
@@ -43,8 +41,6 @@ export class Application {
   private readonly overlayWindow = new OverlayWindow();
   private readonly dockManager = new DockManager();
   private readonly settingsWindow = new SettingsWindow(this.dockManager);
-  private readonly historyWindow = new HistoryWindow(this.dockManager);
-  private readonly aboutWindow = new AboutWindow(this.dockManager);
   private readonly welcomeWindow = new WelcomeWindow(this.dockManager);
   private readonly shortcutManager = new ShortcutManager();
   private readonly clipboard = new Clipboard();
@@ -53,8 +49,6 @@ export class Application {
     this.settings,
     this.readiness,
     this.settingsWindow,
-    this.historyWindow,
-    this.aboutWindow,
     this.welcomeWindow
   );
 

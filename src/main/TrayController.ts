@@ -2,8 +2,6 @@ import { app, Tray, Menu, MenuItem } from '@mobrowser/api';
 import type { RecordingSessionController } from './recording/RecordingSessionController';
 import type { SettingsStore } from './settings/SettingsStore';
 import type { SettingsWindow } from './settings/SettingsWindow';
-import type { HistoryWindow } from './sessions/HistoryWindow';
-import type { AboutWindow } from './AboutWindow';
 import type { ReadinessCoordinator } from './readiness/ReadinessCoordinator';
 import type { WelcomeWindow } from './welcome/WelcomeWindow';
 
@@ -19,8 +17,6 @@ export class TrayController {
     private readonly settings: SettingsStore,
     private readonly readiness: ReadinessCoordinator,
     private readonly settingsWindow: SettingsWindow,
-    private readonly historyWindow: HistoryWindow,
-    private readonly aboutWindow: AboutWindow,
     private readonly welcomeWindow: WelcomeWindow,
   ) {
     const imagePath = `${app.getPath('appResources')}/imageTemplate.png`;
@@ -92,7 +88,7 @@ export class TrayController {
       new MenuItem({
         id: 'openHistory',
         label: 'History',
-        action: () => { this.historyWindow.show(); },
+        action: () => { this.settingsWindow.show(); },
       }),
       'separator',
       new MenuItem({
@@ -103,7 +99,7 @@ export class TrayController {
       new MenuItem({
         id: 'openAbout',
         label: 'About MoVoice',
-        action: () => { this.aboutWindow.show(); },
+        action: () => { this.settingsWindow.show(); },
       }),
     ];
   }
