@@ -11,8 +11,9 @@ export class SingletonWindow {
   /**
    * Ensures a single window instance exists and brings it to the foreground.
    */
-  show(): void {
+  show(onShow?: (window: BrowserWindow) => void): void {
     const window = this.getOrCreateWindow();
+    onShow?.(window);
     if (window.isVisible) {
       window.focus();
       return;

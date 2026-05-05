@@ -4,6 +4,8 @@ import type { DockManager } from '../system/DockManager';
 import { rendererWindowUrl } from '../RendererWindowUrl';
 import { SingletonWindow } from '../windowing/SingletonWindow';
 
+export type SettingsSectionId = 'dashboard' | 'history' | 'general' | 'models' | 'permissions' | 'about';
+
 /**
  * Manages the Settings dialog as a singleton window.
  */
@@ -33,5 +35,15 @@ export class SettingsWindow {
    */
   show(): void {
     this.windowController.show();
+  }
+
+  /**
+   * Opens the Settings window and navigates to a specific top-level section.
+   */
+  showSection(section: SettingsSectionId): void {
+    const targetUrl = rendererWindowUrl('settings', `/${section}`);
+    this.windowController.show((window) => {
+      window.browser.loadUrl(targetUrl);
+    });
   }
 }

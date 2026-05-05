@@ -88,7 +88,7 @@ export class TrayController {
       new MenuItem({
         id: 'openHistory',
         label: 'History',
-        action: () => { this.settingsWindow.show(); },
+        action: () => { this.settingsWindow.showSection('history'); },
       }),
       'separator',
       new MenuItem({
@@ -99,7 +99,7 @@ export class TrayController {
       new MenuItem({
         id: 'openAbout',
         label: 'About MoVoice',
-        action: () => { this.settingsWindow.show(); },
+        action: () => { this.settingsWindow.showSection('about'); },
       }),
     ];
   }

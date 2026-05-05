@@ -1,12 +1,23 @@
 import { CircleHelp, History, LayoutDashboard, Sliders, BrainCircuit, ShieldCheck } from 'lucide-react';
-import { useEffect } from 'react';
+import {
+  HashRouter,
+  Navigate,
+  NavLink,
+  Route,
+  Routes,
+  useLocation,
+  useNavigate,
+} from 'react-router-dom';
 import { AboutApp } from '../about/AboutApp';
 import { HistoryApp } from '../history/HistoryApp';
 import { DashboardPage } from './pages/DashboardPage';
 import { GeneralPage } from './pages/GeneralPage';
 import { ModelsPage } from './pages/ModelsPage';
 import { PermissionsPage } from './pages/PermissionsPage';
-import { type SettingsPageId, useSettingsNavigationController } from './controllers/useSettingsNavigationController';
+import {
+  getSettingsPagePath,
+  type SettingsPageId,
+} from './controllers/useSettingsNavigationController';
 import { useSetupRequirementsController } from './controllers/useSetupRequirementsController';
 import './App.css';
 
@@ -23,48 +34,31 @@ const NAV_ITEMS = [
  * Root component for the Settings window. Owns page-level navigation.
  */
 export function SettingsApp(): React.JSX.Element {
+  return (
+    <HashRouter>
+      <SettingsShell />
+    </HashRouter>
+  );
+}
+
+function SettingsShell(): React.JSX.Element {
   const requirements = useSetupRequirementsController();
-  const { activePage, setActivePage, setInitialPageFromRequirements } = useSettingsNavigationController();
-
-  useEffect(() => {
-    setInitialPageFromRequirements(requirements);
-  }, [requirements, setInitialPageFromRequirements]);
-
-  function renderActivePage(page: SettingsPageId | null): React.JSX.Element {
-    switch (page) {
-      case 'dashboard':
-        return <DashboardPage />;
-      case 'history':
-        return <HistoryApp embedded />;
-      case 'general':
-        return <GeneralPage onOpenPermissions={() => { setActivePage('permissions'); }} />;
-      case 'models':
-        return <ModelsPage needsModel={requirements.needsModel} />;
-      case 'permissions':
-        return (
-          <PermissionsPage
-            needsMicrophonePermission={requirements.needsMicrophonePermission}
-            needsAccessibilityPermission={requirements.needsAccessibilityPermission}
-          />
-        );
-      case 'about':
-        return <AboutApp embedded />;
-      case null:
-        return <div className="settings-content__loading">Loading settings...</div>;
-    }
-  }
+  const navigate = useNavigate();
+  const location = useLocation();
+  const initialPage = getInitialPage(requirements);
+  const initialPath = getSettingsPagePath(initialPage);
 
   return (
     <div className="settings-app">
       <aside className="settings-sidebar">
         <nav className="settings-sidebar__nav">
-          {NAV_ITEMS.map(({ id, label, Icon }) => (
-            <button
+          {NAV_ITEMS.map(({ id, label, Icon }) => {
+            const path = getSettingsPagePath(id);
+            return (
+            <NavLink
               key={id}
-              type="button"
               className="settings-nav-item"
-              aria-current={activePage === id ? 'page' : undefined}
-              onClick={() => { setActivePage(id); }}
+              to={path}
             >
               <Icon className="settings-nav-item__icon" aria-hidden="true" />
               <span className="settings-nav-item__label">{label}</span>
@@ -76,13 +70,48 @@ export function SettingsApp(): React.JSX.Element {
                   <span className="settings-nav-item__marker" aria-label="Action required" />
                 )
               )}
-            </button>
-          ))}
+            </NavLink>
+            );
+          })}
         </nav>
       </aside>
       <main className="settings-content">
-        {renderActivePage(activePage)}
+        {requirements.loading && location.pathname === '/' ? (
+          <div className="settings-content__loading">Loading settings...</div>
+        ) : (
+          <Routes>
+            <Route path="/" element={<Navigate to={initialPath} replace />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/history" element={<HistoryApp embedded />} />
+            <Route
+              path="/general"
+              element={<GeneralPage onOpenPermissions={() => { navigate(getSettingsPagePath('permissions')); }} />}
+            />
+            <Route path="/models" element={<ModelsPage needsModel={requirements.needsModel} />} />
+            <Route
+              path="/permissions"
+              element={(
+                <PermissionsPage
+                  needsMicrophonePermission={requirements.needsMicrophonePermission}
+                  needsAccessibilityPermission={requirements.needsAccessibilityPermission}
+                />
+              )}
+            />
+            <Route path="/about" element={<AboutApp embedded />} />
+            <Route path="*" element={<Navigate to={initialPath} replace />} />
+          </Routes>
+        )}
       </main>
     </div>
   );
+}
+
+function getInitialPage(requirements: ReturnType<typeof useSetupRequirementsController>): SettingsPageId {
+  if (requirements.needsModel) {
+    return 'models';
+  }
+  if (requirements.needsMicrophonePermission || requirements.needsAccessibilityPermission) {
+    return 'permissions';
+  }
+  return 'dashboard';
 }
