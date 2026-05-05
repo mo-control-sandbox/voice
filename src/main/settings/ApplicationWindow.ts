@@ -7,16 +7,16 @@ import { SingletonWindow } from '../windowing/SingletonWindow';
 export type SettingsSectionId = 'dashboard' | 'history' | 'general' | 'models' | 'permissions' | 'about';
 
 /**
- * Manages the Settings dialog as a singleton window.
+ * Manages the main application window.
  */
-export class SettingsWindow {
+export class ApplicationWindow {
   private readonly windowController: SingletonWindow;
 
   constructor(private readonly dockManager: DockManager) {
     this.windowController = new SingletonWindow(() => {
       const size = { width: 960, height: 700 };
       const window = new BrowserWindow({
-        url: rendererWindowUrl('settings'),
+        url: rendererWindowUrl('app'),
         size,
         minimumSize: size,
         title: 'MoVoice',
@@ -31,17 +31,17 @@ export class SettingsWindow {
   }
 
   /**
-   * Opens the Settings window, or focuses it if already visible.
+   * Opens the application window, or focuses it if already visible.
    */
   show(): void {
     this.windowController.show();
   }
 
   /**
-   * Opens the Settings window and navigates to a specific top-level section.
+   * Opens the application window and navigates to a specific top-level section.
    */
   showSection(section: SettingsSectionId): void {
-    const targetUrl = rendererWindowUrl('settings', `/${section}`);
+    const targetUrl = rendererWindowUrl('app', `/${section}`);
     this.windowController.show((window) => {
       window.browser.loadUrl(targetUrl);
     });

@@ -31,9 +31,9 @@ const NAV_ITEMS = [
 ] as const;
 
 /**
- * Root component for the Settings window. Owns page-level navigation.
+ * Root component for the application window shell. Owns page-level navigation.
  */
-export function SettingsApp(): React.JSX.Element {
+export function App(): React.JSX.Element {
   return (
     <HashRouter>
       <SettingsShell />

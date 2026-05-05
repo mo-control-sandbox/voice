@@ -1,6 +1,6 @@
 import { app } from '@mobrowser/api';
 
-export type RendererWindowKind = 'about' | 'background' | 'history' | 'settings' | 'welcome';
+export type RendererWindowKind = 'about' | 'app' | 'background' | 'welcome';
 
 const RENDERER_WINDOW_PARAM = 'window';
 

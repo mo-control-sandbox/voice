@@ -8,7 +8,7 @@ import { RecordingSessionController } from './recording/RecordingSessionControll
 import { TrayController } from './TrayController';
 import { RecordingWorkerWindow } from './recording/RecordingWorkerWindow';
 import { OverlayWindow } from './recording/OverlayWindow';
-import { SettingsWindow } from './settings/SettingsWindow';
+import { ApplicationWindow } from './settings/ApplicationWindow';
 import { WelcomeWindow } from './welcome/WelcomeWindow';
 import { ReadinessCoordinator } from './readiness/ReadinessCoordinator';
 import { Permissions, registerPermissionsIpc } from './system/Permissions';
@@ -40,7 +40,7 @@ export class Application {
   private readonly recordingWorkerWindow = new RecordingWorkerWindow();
   private readonly overlayWindow = new OverlayWindow();
   private readonly dockManager = new DockManager();
-  private readonly settingsWindow = new SettingsWindow(this.dockManager);
+  private readonly applicationWindow = new ApplicationWindow(this.dockManager);
   private readonly welcomeWindow = new WelcomeWindow(this.dockManager);
   private readonly shortcutManager = new ShortcutManager();
   private readonly clipboard = new Clipboard();
@@ -48,7 +48,7 @@ export class Application {
     this.recordingController,
     this.settings,
     this.readiness,
-    this.settingsWindow,
+    this.applicationWindow,
     this.welcomeWindow
   );
 
@@ -111,6 +111,6 @@ export class Application {
       this.welcomeWindow.show();
       return;
     }
-    this.settingsWindow.show();
+    this.applicationWindow.show();
   }
 }

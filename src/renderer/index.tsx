@@ -2,13 +2,12 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { AboutApp } from './about/AboutApp';
 import { startTranscriptionRuntime } from './recording/transcription/TranscriptionRuntime';
-import { HistoryApp } from './history/HistoryApp';
 import './index.css';
 import { initTheme } from './theme';
-import { SettingsApp } from './settings/App';
+import { App } from './settings/App';
 import { WelcomeApp } from './welcome/WelcomeApp';
 
-type RendererWindowKind = 'about' | 'background' | 'history' | 'settings' | 'welcome';
+type RendererWindowKind = 'about' | 'app' | 'background' | 'welcome';
 
 const RENDERER_WINDOW_PARAM = 'window';
 
@@ -16,22 +15,20 @@ type UiRendererWindowKind = Exclude<RendererWindowKind, 'background'>;
 
 const APP_BY_WINDOW: Record<UiRendererWindowKind, () => React.JSX.Element> = {
   about: AboutApp,
-  history: HistoryApp,
-  settings: SettingsApp,
+  app: App,
   welcome: WelcomeApp,
 };
 
 const TITLE_BY_WINDOW: Record<RendererWindowKind, string> = {
   about: 'About MoVoice',
+  app: 'MoVoice',
   background: 'MoVoice Background',
-  history: 'History',
-  settings: 'Settings',
   welcome: 'Welcome to MoVoice',
 };
 
 function parseRendererWindowKind(searchParams: URLSearchParams): RendererWindowKind | null {
   const value = searchParams.get(RENDERER_WINDOW_PARAM);
-  if (value === 'about' || value === 'background' || value === 'history' || value === 'settings' || value === 'welcome') {
+  if (value === 'about' || value === 'app' || value === 'background' || value === 'welcome') {
     return value;
   }
   return null;
@@ -53,8 +50,8 @@ rootElement.dataset.rendererWindowRoot = rendererWindowKind ?? 'unknown';
 if (rendererWindowKind === 'background') {
   startTranscriptionRuntime();
 } else {
-  const App = rendererWindowKind === null ? null : APP_BY_WINDOW[rendererWindowKind];
-  const appElement = App === null ? <></> : React.createElement(App);
+  const SelectedApp = rendererWindowKind === null ? null : APP_BY_WINDOW[rendererWindowKind];
+  const appElement = SelectedApp === null ? <></> : React.createElement(SelectedApp);
 
   ReactDOM.createRoot(rootElement).render(
     <React.StrictMode>

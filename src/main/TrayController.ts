@@ -1,7 +1,7 @@
 import { app, Tray, Menu, MenuItem } from '@mobrowser/api';
 import type { RecordingSessionController } from './recording/RecordingSessionController';
 import type { SettingsStore } from './settings/SettingsStore';
-import type { SettingsWindow } from './settings/SettingsWindow';
+import type { ApplicationWindow } from './settings/ApplicationWindow';
 import type { ReadinessCoordinator } from './readiness/ReadinessCoordinator';
 import type { WelcomeWindow } from './welcome/WelcomeWindow';
 
@@ -16,7 +16,7 @@ export class TrayController {
     private readonly controller: RecordingSessionController,
     private readonly settings: SettingsStore,
     private readonly readiness: ReadinessCoordinator,
-    private readonly settingsWindow: SettingsWindow,
+    private readonly applicationWindow: ApplicationWindow,
     private readonly welcomeWindow: WelcomeWindow,
   ) {
     const imagePath = `${app.getPath('appResources')}/imageTemplate.png`;
@@ -72,7 +72,7 @@ export class TrayController {
       label: 'Continue Setup',
       action: () => {
         if (hasCompletedOnboarding) {
-          this.settingsWindow.show();
+          this.applicationWindow.show();
         } else {
           this.welcomeWindow.show();
         }
@@ -88,18 +88,18 @@ export class TrayController {
       new MenuItem({
         id: 'openHistory',
         label: 'History',
-        action: () => { this.settingsWindow.showSection('history'); },
+        action: () => { this.applicationWindow.showSection('history'); },
       }),
       'separator',
       new MenuItem({
         id: 'openSettings',
         label: 'Settings',
-        action: () => { this.settingsWindow.showSection('general'); },
+        action: () => { this.applicationWindow.showSection('general'); },
       }),
       new MenuItem({
         id: 'openAbout',
         label: 'About MoVoice',
-        action: () => { this.settingsWindow.showSection('about'); },
+        action: () => { this.applicationWindow.showSection('about'); },
       }),
     ];
   }
