@@ -66,7 +66,7 @@ jobs:
           clang_tidy_version="$(clang-tidy --version)"
           if [[ "$clang_tidy_version" == *"version 20."* ]]; then
             # LLVM 20 clang-tidy crashes on Objective-C headers with this check: https://github.com/llvm/llvm-project/issues/129861
-            run-clang-tidy -checks=-cppcoreguidelines-avoid-const-or-ref-data-members -p build
+            run-clang-tidy -checks=-cppcoreguidelines-avoid-const-or-ref-data-members -source-filter='^.*/src/native/.*' -p build
           else
-            run-clang-tidy -p build
+            run-clang-tidy -source-filter='^.*/src/native/.*' -p build
           fi
