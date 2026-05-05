@@ -98,6 +98,11 @@ export function useWelcomeController(): {
   const shortcutReadiness = useShortcutReadiness({
     isFinalStep: step === 'final-shortcut',
   });
+  const { refreshModels } = modelSelection;
+  const { loadSelectedAudioDeviceId } = microphoneSelection;
+  const { loadShortcutKey } = shortcutReadiness;
+  const { setMicrophoneStatus } = microphonePermission;
+  const { setAccessibilityStatus } = accessibilityPermission;
 
   const canContinue = useMemo((): boolean => {
     if (step === 'welcome-model') return modelSelection.hasReadyActiveModel;
@@ -111,16 +116,16 @@ export function useWelcomeController(): {
 
   useEffect(() => {
     void Promise.all([
-      modelSelection.refreshModels(),
-      microphoneSelection.loadSelectedAudioDeviceId(),
-      shortcutReadiness.loadShortcutKey(),
+      refreshModels(),
+      loadSelectedAudioDeviceId(),
+      loadShortcutKey(),
     ]).finally(() => {
       setSettingsLoaded(true);
     });
   }, [
-    microphoneSelection.loadSelectedAudioDeviceId,
-    modelSelection.refreshModels,
-    shortcutReadiness.loadShortcutKey,
+    loadSelectedAudioDeviceId,
+    loadShortcutKey,
+    refreshModels,
   ]);
 
   useEffect(() => {
@@ -132,15 +137,15 @@ export function useWelcomeController(): {
     const syncPermissionStatuses = async (): Promise<void> => {
       const { microphoneStatus, accessibilityStatus } = await readRequiredPermissions();
       if (cancelled) return;
-      microphonePermission.setMicrophoneStatus(microphoneStatus);
-      accessibilityPermission.setAccessibilityStatus(accessibilityStatus);
+      setMicrophoneStatus(microphoneStatus);
+      setAccessibilityStatus(accessibilityStatus);
     };
 
     void syncPermissionStatuses();
     return () => {
       cancelled = true;
     };
-  }, [accessibilityPermission.setAccessibilityStatus, microphonePermission.setMicrophoneStatus, step]);
+  }, [setAccessibilityStatus, setMicrophoneStatus, step]);
 
   useEffect(() => {
     if (step === 'welcome-model' && modelSelection.hasReadyActiveModel && modelSelection.downloadingModelId === null) {
@@ -187,7 +192,7 @@ export function useWelcomeController(): {
   async function handleRequestMicrophonePermission(): Promise<void> {
     await microphonePermission.handleRequestMicrophonePermission();
     const { accessibilityStatus } = await readRequiredPermissions();
-    accessibilityPermission.setAccessibilityStatus(accessibilityStatus);
+    setAccessibilityStatus(accessibilityStatus);
   }
 
   return {
