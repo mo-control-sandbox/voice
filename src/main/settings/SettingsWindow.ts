@@ -17,7 +17,7 @@ export class SettingsWindow {
         url: rendererWindowUrl('settings'),
         size,
         minimumSize: size,
-        title: 'Settings',
+        title: 'MoVoice',
         resizable: false
       });
       attachPermissionHandler(window);

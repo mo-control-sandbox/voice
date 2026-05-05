@@ -23,23 +23,6 @@
   border-right: 1px solid var(--sidebar-border);
 }
 
-/* ─── Sidebar header ─────────────────────────────────────────────────────── */
-
-.settings-sidebar__header {
-  padding-bottom: calc(var(--spacing) * 3);
-  margin-bottom: calc(var(--spacing) * 2);
-  border-bottom: 1px solid var(--sidebar-border);
-}
-
-.settings-sidebar__app-name {
-  font-size: 0.875rem;
-  font-weight: 700;
-  line-height: 1.429;
-  color: var(--sidebar-foreground);
-  letter-spacing: -0.01em;
-  display: block;
-}
-
 .settings-sidebar__nav {
   display: flex;
   flex-direction: column;

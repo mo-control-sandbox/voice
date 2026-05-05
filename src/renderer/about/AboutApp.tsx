@@ -4,13 +4,17 @@ import { ipc } from '../gen/ipc';
 
 const MOBROWSER_URL = 'https://teamdev.com/mobrowser';
 
+interface AboutAppProps {
+  readonly embedded?: boolean;
+}
+
 function openMoBrowser(): void {
   void ipc.desktop.OpenUrl({ url: MOBROWSER_URL });
 }
 
-export function AboutApp(): React.JSX.Element {
+export function AboutApp({ embedded = false }: AboutAppProps = {}): React.JSX.Element {
   return (
-    <div className="about-window">
+    <div className={`about-window ${embedded ? 'about-window--embedded' : ''}`}>
       <div className="about-window__card">
         <button className="about-window__icon-button" onClick={openMoBrowser}>
           <img

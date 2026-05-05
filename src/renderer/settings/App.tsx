@@ -1,5 +1,7 @@
-import { LayoutDashboard, Sliders, BrainCircuit, ShieldCheck } from 'lucide-react';
+import { CircleHelp, History, LayoutDashboard, Sliders, BrainCircuit, ShieldCheck } from 'lucide-react';
 import { useEffect } from 'react';
+import { AboutApp } from '../about/AboutApp';
+import { HistoryApp } from '../history/HistoryApp';
 import { DashboardPage } from './pages/DashboardPage';
 import { GeneralPage } from './pages/GeneralPage';
 import { ModelsPage } from './pages/ModelsPage';
@@ -10,9 +12,11 @@ import './App.css';
 
 const NAV_ITEMS = [
   { id: 'dashboard' as const, label: 'Dashboard', Icon: LayoutDashboard },
+  { id: 'history' as const, label: 'History', Icon: History },
   { id: 'general' as const, label: 'General', Icon: Sliders },
   { id: 'models' as const, label: 'Models', Icon: BrainCircuit },
   { id: 'permissions' as const, label: 'Permissions', Icon: ShieldCheck },
+  { id: 'about' as const, label: 'About', Icon: CircleHelp },
 ] as const;
 
 /**
@@ -30,6 +34,8 @@ export function SettingsApp(): React.JSX.Element {
     switch (page) {
       case 'dashboard':
         return <DashboardPage />;
+      case 'history':
+        return <HistoryApp embedded />;
       case 'general':
         return <GeneralPage onOpenPermissions={() => { setActivePage('permissions'); }} />;
       case 'models':
@@ -41,6 +47,8 @@ export function SettingsApp(): React.JSX.Element {
             needsAccessibilityPermission={requirements.needsAccessibilityPermission}
           />
         );
+      case 'about':
+        return <AboutApp embedded />;
       case null:
         return <div className="settings-content__loading">Loading settings...</div>;
     }
@@ -49,9 +57,6 @@ export function SettingsApp(): React.JSX.Element {
   return (
     <div className="settings-app">
       <aside className="settings-sidebar">
-        <div className="settings-sidebar__header">
-          <span className="settings-sidebar__app-name">MoVoice</span>
-        </div>
         <nav className="settings-sidebar__nav">
           {NAV_ITEMS.map(({ id, label, Icon }) => (
             <button

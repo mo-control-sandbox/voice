@@ -9,6 +9,10 @@
   color: var(--foreground);
 }
 
+.about-window--embedded {
+  height: 100%;
+}
+
 .about-window__card {
   display: flex;
   flex-direction: column;

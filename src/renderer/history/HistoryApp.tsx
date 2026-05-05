@@ -7,10 +7,14 @@ import './HistoryApp.css';
 
 const historyService = new HistoryService();
 
+interface HistoryAppProps {
+  readonly embedded?: boolean;
+}
+
 /**
  * Root component for the History window.
  */
-export function HistoryApp(): React.JSX.Element {
+export function HistoryApp({ embedded = false }: HistoryAppProps = {}): React.JSX.Element {
   const [sessions, setSessions] = useState<SessionRecordProto[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [audioData, setAudioData] = useState<Uint8Array | null>(null);
@@ -49,7 +53,7 @@ export function HistoryApp(): React.JSX.Element {
   const selectedSession = sessions.find((s) => s.id === selectedId) ?? null;
 
   return (
-    <div className="history-app">
+    <div className={`history-app ${embedded ? 'history-app--embedded' : ''}`}>
       <div className="history-app__list-pane">
         <div className="history-app__list-pane-inner">
           <SessionList

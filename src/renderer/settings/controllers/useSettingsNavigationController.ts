@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import type { SetupRequirementsState } from './useSetupRequirementsController';
 
-export type SettingsPageId = 'dashboard' | 'general' | 'models' | 'permissions';
+export type SettingsPageId = 'dashboard' | 'history' | 'general' | 'models' | 'permissions' | 'about';
 
 /**
  * Owns initial settings page selection based on required permission state.

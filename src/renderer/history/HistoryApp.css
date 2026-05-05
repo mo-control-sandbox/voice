@@ -11,6 +11,10 @@
   color: var(--foreground);
 }
 
+.history-app--embedded {
+  height: 100%;
+}
+
 /* ─── Left pane — session list ──────────────────────────────────────────── */
 
 .history-app__list-pane {
