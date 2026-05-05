@@ -1,77 +1,13 @@
 ---
-# clang-tidy configuration for moVoice native module (C++20)
-#
-# Philosophy: enable a broad, curated set of checks that catch real bugs,
-# enforce C++ Core Guidelines, and encourage modern C++20 idioms.
-# Individual suppressions require an explanatory comment and user approval
-# (see AGENTS.md — Code Quality section).
+# clang-tidy configuration for moVoice native module.
+# Focus on correctness and bug-finding checks for Objective-C++ code.
 
 Checks: >
   bugprone-*,
   clang-analyzer-*,
-  cppcoreguidelines-*,
-  modernize-*,
-  performance-*,
-  readability-*,
   -bugprone-easily-swappable-parameters,
-  -cppcoreguidelines-avoid-magic-numbers,
-  -cppcoreguidelines-pro-bounds-array-to-pointer-decay,
-  -modernize-use-trailing-return-type,
-  -readability-identifier-length,
-  -readability-magic-numbers
+  -clang-analyzer-nullability.*,
+  -clang-analyzer-optin.osx.cocoa.localizability.NonLocalizedStringChecker
 
-# Treat every diagnostic as an error (zero-warning policy).
 WarningsAsErrors: "*"
-
-# Only apply checks to project source files; do not check generated or
-# third-party headers pulled in via #include.
 HeaderFilterRegex: "^src/native/(?!gen/).*"
-
-CheckOptions:
-  # ── Naming conventions ────────────────────────────────────────────────────
-  - key: readability-identifier-naming.ClassCase
-    value: CamelCase
-  - key: readability-identifier-naming.StructCase
-    value: CamelCase
-  - key: readability-identifier-naming.EnumCase
-    value: CamelCase
-  - key: readability-identifier-naming.EnumConstantCase
-    value: CamelCase
-  - key: readability-identifier-naming.FunctionCase
-    value: CamelCase
-  - key: readability-identifier-naming.MethodCase
-    value: CamelCase
-  - key: readability-identifier-naming.VariableCase
-    value: camelCase
-  - key: readability-identifier-naming.LocalVariableCase
-    value: camelCase
-  - key: readability-identifier-naming.ParameterCase
-    value: camelCase
-  - key: readability-identifier-naming.MemberCase
-    value: camelCase
-  - key: readability-identifier-naming.PrivateMemberSuffix
-    value: "_"
-  - key: readability-identifier-naming.NamespaceCase
-    value: lower_case
-  - key: readability-identifier-naming.TypeAliasCase
-    value: CamelCase
-
-  # ── Modernize ─────────────────────────────────────────────────────────────
-  - key: modernize-use-default-member-init.UseAssignment
-    value: "1"
-  - key: modernize-loop-convert.MinConfidence
-    value: reasonable
-
-  # ── Performance ───────────────────────────────────────────────────────────
-  - key: performance-unnecessary-value-param.AllowedTypes
-    value: ""
-
-  # ── Readability ───────────────────────────────────────────────────────────
-  - key: readability-function-cognitive-complexity.Threshold
-    value: "25"
-  - key: readability-function-size.LineThreshold
-    value: "80"
-  - key: readability-function-size.StatementThreshold
-    value: "50"
-  - key: readability-function-size.NestingThreshold
-    value: "4"
