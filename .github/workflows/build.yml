@@ -63,7 +63,7 @@ jobs:
         run: npm run build
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: MoVoice-macos
           path: build/dist/mac-arm64/pack/*.dmg
