@@ -104,6 +104,10 @@
   padding: calc(var(--spacing) * 6) calc(var(--spacing) * 8);  /* 24px 32px */
 }
 
+.settings-content--flush {
+  padding: 0;
+}
+
 .settings-content__loading {
   font-size: 0.875rem;
   color: var(--muted-foreground);

@@ -47,6 +47,7 @@ function SettingsShell(): React.JSX.Element {
   const location = useLocation();
   const initialPage = getInitialPage(requirements);
   const initialPath = getSettingsPagePath(initialPage);
+  const isHistoryRoute = location.pathname === '/history';
 
   return (
     <div className="settings-app">
@@ -75,7 +76,7 @@ function SettingsShell(): React.JSX.Element {
           })}
         </nav>
       </aside>
-      <main className="settings-content">
+      <main className={`settings-content ${isHistoryRoute ? 'settings-content--flush' : ''}`}>
         {requirements.loading && location.pathname === '/' ? (
           <div className="settings-content__loading">Loading settings...</div>
         ) : (
