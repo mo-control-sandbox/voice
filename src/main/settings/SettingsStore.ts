@@ -20,6 +20,7 @@ const DEFAULTS: SettingsProto = {
   audioInputDeviceId: '',
   activeModelId: '',
   primaryLanguage: 'auto',
+  showWindowOnAppLaunch: true,
 };
 
 /**
@@ -40,6 +41,7 @@ export class SettingsStore {
       audioInputDeviceId: prefs.getString('audioInputDeviceId', DEFAULTS.audioInputDeviceId),
       activeModelId: prefs.getString('activeModelId', DEFAULTS.activeModelId),
       primaryLanguage: prefs.getString('primaryLanguage', DEFAULTS.primaryLanguage),
+      showWindowOnAppLaunch: prefs.getBoolean('showWindowOnAppLaunch', DEFAULTS.showWindowOnAppLaunch),
     };
   }
 
@@ -56,6 +58,14 @@ export class SettingsStore {
    */
   setSaveAudio(value: boolean): void {
     prefs.setBoolean('saveAudio', value);
+    prefs.persist();
+  }
+
+  /**
+   * Updates the show-window-on-launch setting and persists to disk.
+   */
+  setShowWindowOnAppLaunch(value: boolean): void {
+    prefs.setBoolean('showWindowOnAppLaunch', value);
     prefs.persist();
   }
 
@@ -193,6 +203,11 @@ class SettingsService implements SettingsServiceInterface {
 
   SetPrimaryLanguage(request: SetPrimaryLanguageRequest): Promise<Empty> {
     this.settings.setPrimaryLanguage(request.primaryLanguage);
+    return Promise.resolve({});
+  }
+
+  SetShowWindowOnAppLaunch(request: SetBooleanSettingRequest): Promise<Empty> {
+    this.settings.setShowWindowOnAppLaunch(request.value);
     return Promise.resolve({});
   }
 

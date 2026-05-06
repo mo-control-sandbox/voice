@@ -54,6 +54,7 @@ export interface GeneralControllerState {
   readonly shortcutKey: string;
   readonly saveTranscripts: boolean;
   readonly saveAudio: boolean;
+  readonly showWindowOnAppLaunch: boolean;
   readonly isCapturing: boolean;
   readonly isShortcutLoading: boolean;
   readonly isMicLoading: boolean;
@@ -72,6 +73,7 @@ export interface GeneralControllerActions {
   readonly handleDeviceChange: (deviceId: string) => Promise<void>;
   readonly handleSaveTranscripts: (value: boolean) => Promise<void>;
   readonly handleSaveAudio: (value: boolean) => Promise<void>;
+  readonly handleShowWindowOnAppLaunch: (value: boolean) => Promise<void>;
   readonly handleMicPermissionAction: () => Promise<void>;
 }
 
@@ -91,6 +93,7 @@ export function useGeneralController(): {
   const [isCapturing, setIsCapturing] = useState(false);
   const [saveTranscripts, setSaveTranscripts] = useState(true);
   const [saveAudio, setSaveAudio] = useState(true);
+  const [showWindowOnAppLaunch, setShowWindowOnAppLaunch] = useState(false);
   const [isShortcutLoading, setIsShortcutLoading] = useState(true);
   const [isMicLoading, setIsMicLoading] = useState(true);
   const [isMicPermissionActionLoading, setIsMicPermissionActionLoading] = useState(false);
@@ -140,6 +143,7 @@ export function useGeneralController(): {
           setShortcutKey(settings.shortcutKey);
           setSaveTranscripts(settings.saveTranscripts);
           setSaveAudio(settings.saveAudio);
+          setShowWindowOnAppLaunch(settings.showWindowOnAppLaunch);
           setIsShortcutLoading(false);
           return settings.audioInputDeviceId;
         });
@@ -234,6 +238,11 @@ export function useGeneralController(): {
     await settingsService.setSaveAudio(value);
   }
 
+  async function handleShowWindowOnAppLaunch(value: boolean): Promise<void> {
+    setShowWindowOnAppLaunch(value);
+    await settingsService.setShowWindowOnAppLaunch(value);
+  }
+
   async function handleMicPermissionAction(): Promise<void> {
     setIsMicPermissionActionLoading(true);
     try {
@@ -260,6 +269,7 @@ export function useGeneralController(): {
       shortcutKey,
       saveTranscripts,
       saveAudio,
+      showWindowOnAppLaunch,
       isCapturing,
       isShortcutLoading,
       isMicLoading,
@@ -274,6 +284,7 @@ export function useGeneralController(): {
       handleDeviceChange,
       handleSaveTranscripts,
       handleSaveAudio,
+      handleShowWindowOnAppLaunch,
       handleMicPermissionAction,
     },
   };

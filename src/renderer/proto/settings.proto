@@ -35,6 +35,10 @@ message SettingsProto {
    * Preferred language code for transcription.
    */
   string primary_language = 7;
+  /**
+   * Controls whether the main window should be shown when the app launches.
+   */
+  bool show_window_on_app_launch = 8;
 }
 
 /**
@@ -141,6 +145,10 @@ service SettingsService {
    * Persists preferred transcription language.
    */
   rpc SetPrimaryLanguage(SetPrimaryLanguageRequest) returns (google.protobuf.Empty);
+  /**
+   * Persists launch-window visibility preference.
+   */
+  rpc SetShowWindowOnAppLaunch(SetBooleanSettingRequest) returns (google.protobuf.Empty);
   /**
    * Marks onboarding as completed.
    */

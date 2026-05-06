@@ -31,6 +31,11 @@ export class SettingsService {
     await ipc.settings.SetSaveAudio({ value });
   }
 
+  /** Persists launch-window visibility preference. */
+  async setShowWindowOnAppLaunch(value: boolean): Promise<void> {
+    await ipc.settings.SetShowWindowOnAppLaunch({ value });
+  }
+
   /** Persists the selected audio input device. */
   async setAudioInputDevice(deviceId: string): Promise<void> {
     await ipc.settings.SetAudioInputDevice({ deviceId });

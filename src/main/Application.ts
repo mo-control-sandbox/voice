@@ -89,6 +89,7 @@ export class Application {
     registerHistoryIpc(this.historyStore, this.sessionStorage);
 
     await this.readiness.recompute();
+    this.showInitialWindowIfNeeded();
 
     this.recordingController.onStateChange((status) => {
       this.overlayWindow.update(status);
@@ -106,6 +107,21 @@ export class Application {
     this.settings.onShortcutKeyChanged(() => { this.trayController.refresh(); });
   }
 
+  /**
+   * Shows the appropriate startup window based on onboarding and launch preferences.
+   */
+  private showInitialWindowIfNeeded(): void {
+    if (!this.settings.hasCompletedOnboarding()) return;
+
+    const { showWindowOnAppLaunch } = this.settings.get();
+    if (showWindowOnAppLaunch) {
+      this.applicationWindow.show();
+    }
+  }
+
+  /**
+   * Opens onboarding when incomplete, otherwise opens the main application window.
+   */
   private openSetupWindow(): void {
     if (!this.settings.hasCompletedOnboarding()) {
       this.welcomeWindow.show();

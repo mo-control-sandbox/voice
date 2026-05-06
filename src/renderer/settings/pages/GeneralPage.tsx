@@ -18,6 +18,7 @@ export function GeneralPage({ onOpenPermissions }: GeneralPageProps): React.JSX.
       shortcutKey,
       saveTranscripts,
       saveAudio,
+      showWindowOnAppLaunch,
       isCapturing,
       isShortcutLoading,
       isMicLoading,
@@ -32,6 +33,7 @@ export function GeneralPage({ onOpenPermissions }: GeneralPageProps): React.JSX.
       handleDeviceChange,
       handleSaveTranscripts,
       handleSaveAudio,
+      handleShowWindowOnAppLaunch,
       handleMicPermissionAction,
     },
   } = useGeneralController();
@@ -76,6 +78,22 @@ export function GeneralPage({ onOpenPermissions }: GeneralPageProps): React.JSX.
             checked={saveAudio}
             onChange={(value) => {
               void handleSaveAudio(value);
+            }}
+          />
+        </div>
+      </section>
+
+      <section className="general-section">
+        <span className="general-section__label">Behavior</span>
+        <div className="toggle-row">
+          <label htmlFor="show-window-on-app-launch" className="toggle-row__label">
+            Show this window on app launch
+          </label>
+          <Switch
+            id="show-window-on-app-launch"
+            checked={showWindowOnAppLaunch}
+            onChange={(value) => {
+              void handleShowWindowOnAppLaunch(value);
             }}
           />
         </div>
