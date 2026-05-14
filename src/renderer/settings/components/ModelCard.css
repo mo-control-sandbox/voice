@@ -3,10 +3,9 @@
 .model-card {
   display: flex;
   flex-direction: column;
-  gap: calc(var(--spacing) * 3);       /* 12px between rows */
-  padding: calc(var(--spacing) * 4);   /* 16px */
+  gap: calc(var(--spacing) * 3);
+  padding: var(--card-padding);
   border-radius: var(--radius-lg);
-  border: 1px solid var(--border);
   background-color: var(--card);
 
   /* Left accent via box-shadow — no layout shift */
@@ -15,12 +14,12 @@
 }
 
 .model-card[data-model-state="active"] {
-  box-shadow: inset 3px 0 0 var(--primary);
+  border: 1px solid var(--primary);
 }
 
 .model-card[data-model-state="downloading"],
 .model-card[data-model-state="preparing"] {
-  box-shadow: inset 3px 0 0 var(--info);
+  border: 1px solid var(--primary);
 }
 
 .model-card[data-model-state="error"] {
@@ -39,7 +38,7 @@
 .model-card__meta {
   display: flex;
   flex-direction: column;
-  gap: calc(var(--spacing) * 1);
+  gap: calc(var(--spacing) * .5);
   min-width: 0;
 }
 
@@ -51,19 +50,20 @@
 }
 
 .model-card__name {
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 600;
-  line-height: 1.429;
+  line-height: 1.5;
 }
 
 .model-card__badge {
   display: inline-flex;
   align-items: center;
-  padding: 0 calc(var(--spacing) * 1.5);
-  height: 18px;
+  padding: 0 calc(var(--spacing) * 2.5);
+  height: 20px;
   border-radius: var(--radius-full);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 500;
+  letter-spacing: .03em;
   line-height: 1;
   white-space: nowrap;
 }
@@ -76,7 +76,7 @@
 .model-card__badge[data-badge="multilingual"] {
   background-color: var(--secondary);
   color: var(--secondary-foreground);
-  border: 1px solid var(--border);
+  border: 1px solid var(--input);
 }
 
 .model-card__badge[data-badge="en-only"] {
@@ -113,8 +113,7 @@
 
 .score-pips__label {
   font-size: 0.75rem;
-  color: var(--muted-foreground);
-  width: 52px;
+  color: var(--foreground);
   flex-shrink: 0;
 }
 
@@ -127,11 +126,17 @@
   width: 6px;
   height: 6px;
   border-radius: var(--radius-full);
-  background-color: var(--muted);
+  background-color: var(--muted-foreground);
+  opacity: .4;
 }
 
 .score-pips__dot[data-filled="true"] {
   background-color: var(--foreground);
+  opacity: 1;
+}
+
+.model-card[data-model-state="active"] .score-pips__dot[data-filled="true"] {
+  background-color: var(--primary);
 }
 
 /* ─── Download progress ──────────────────────────────────────────────────── */

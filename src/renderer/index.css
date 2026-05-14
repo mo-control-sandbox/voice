@@ -88,27 +88,27 @@
 :root {
   /* Surface & text */
   --background:        oklch(100% 0 0deg);
-  --foreground:        oklch(26.9% 0 0deg);
-  --card:              oklch(97.2% 0 0deg);
-  --card-foreground:   oklch(26.9% 0 0deg);
+  --foreground:        oklch(25% 0 0deg);
+  --card:              oklch(97.1% 0 0deg);
+  --card-foreground:   oklch(25% 0 0deg);
   --popover:           oklch(100% 0 0deg);
-  --popover-foreground: oklch(26.9% 0 0deg);
+  --popover-foreground: oklch(25% 0 0deg);
 
   /* Interactive */
   --primary:              oklch(54.6% 0.245 262.9deg);
   --primary-foreground:   oklch(98.5% 0 0deg);
   --secondary:            oklch(97% 0 0deg);
   --secondary-foreground: oklch(20.5% 0 0deg);
-  --accent:               oklch(97% 0 0deg);
+  --accent:               oklch(94% 0 0deg);
   --accent-foreground:    oklch(20.5% 0 0deg);
   --destructive:          oklch(57.7% 0.245 27.3deg);
   --destructive-foreground: oklch(98.5% 0 0deg);
 
   /* Chrome */
   --muted:            oklch(97% 0 0deg);
-  --muted-foreground: oklch(55.6% 0 0deg);
+  --muted-foreground: oklch(50% 0 0deg);
   --border:           oklch(92.2% 0 0deg);
-  --input:            oklch(91% 0 0deg);
+  --input:            oklch(82% 0 0deg);
   --ring:             oklch(70% 0.245 262.9deg);
 
   /* Sidebar */

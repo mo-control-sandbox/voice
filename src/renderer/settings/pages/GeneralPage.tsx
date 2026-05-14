@@ -165,44 +165,46 @@ export function GeneralPage({ onOpenPermissions }: GeneralPageProps): React.JSX.
         {isShortcutLoading ? (
           <div className="general-skeleton" />
         ) : (
-          <div className="shortcut-section">
-            <div className="shortcut-presets">
-              {PREDEFINED_SHORTCUTS.map((shortcut) => (
+          <div className="general-section__card">
+            <div className="shortcut-section">
+              <div className="shortcut-presets">
+                {PREDEFINED_SHORTCUTS.map((shortcut) => (
+                  <button
+                    key={shortcut.value}
+                    type="button"
+                    className="shortcut-preset"
+                    data-active={shortcutKey === shortcut.value ? 'true' : undefined}
+                    onClick={() => {
+                      void saveShortcut(shortcut.value);
+                    }}
+                  >
+                    {shortcut.label}
+                  </button>
+                ))}
+              </div>
+              <div className="shortcut-capture-row">
                 <button
-                  key={shortcut.value}
+                  ref={captureRef}
                   type="button"
-                  className="shortcut-preset"
-                  data-active={shortcutKey === shortcut.value ? 'true' : undefined}
+                  className="shortcut-capture"
+                  data-state={isCapturing ? 'capturing' : undefined}
                   onClick={() => {
-                    void saveShortcut(shortcut.value);
+                    setIsCapturing(true);
+                    captureRef.current?.focus();
                   }}
                 >
-                  {shortcut.label}
+                  {isCapturing ? 'Press a key... (Esc to cancel)' : 'Custom...'}
                 </button>
-              ))}
-            </div>
-            <div className="shortcut-capture-row">
-              <button
-                ref={captureRef}
-                type="button"
-                className="shortcut-capture"
-                data-state={isCapturing ? 'capturing' : undefined}
-                onClick={() => {
-                  setIsCapturing(true);
-                  captureRef.current?.focus();
-                }}
-              >
-                {isCapturing ? 'Press a key... (Esc to cancel)' : 'Custom...'}
-              </button>
-              {customLabel !== null && (
-                <span className="shortcut-custom-value">{customLabel}</span>
+                {customLabel !== null && (
+                  <span className="shortcut-custom-value">{customLabel}</span>
+                )}
+              </div>
+              {shortcutKey !== '' && (
+                <span className="shortcut-summary">
+                  Active shortcut: <span className="shortcut-summary__value">{shortcutKey}</span>
+                </span>
               )}
             </div>
-            {shortcutKey !== '' && (
-              <span className="shortcut-summary">
-                Active shortcut: <span className="shortcut-summary__value">{shortcutKey}</span>
-              </span>
-            )}
           </div>
         )}
       </section>
