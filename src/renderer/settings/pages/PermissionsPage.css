@@ -4,19 +4,18 @@
   display: flex;
   flex-direction: column;
   gap: calc(var(--spacing) * 6);
-  max-width: 720px;
 }
 
 .permissions-page__header {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
   gap: calc(var(--spacing) * 4);
 }
 
 .permissions-page__title-block {
   display: flex;
   flex-direction: column;
+  flex: 1;
+  min-width: 0;
   gap: calc(var(--spacing) * .5);
 }
 
