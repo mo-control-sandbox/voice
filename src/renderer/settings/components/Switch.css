@@ -14,7 +14,7 @@
 }
 
 .switch[aria-checked="true"] {
-  background-color: var(--sidebar-primary);
+  background-color: var(--primary);
 }
 
 .switch:focus-visible {

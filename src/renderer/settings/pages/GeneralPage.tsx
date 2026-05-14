@@ -57,45 +57,49 @@ export function GeneralPage({ onOpenPermissions }: GeneralPageProps): React.JSX.
 
       <section className="general-section">
         <span className="general-section__label">Privacy</span>
-        <div className="toggle-row">
-          <label htmlFor="save-transcripts" className="toggle-row__label">
-            Save transcripts
-          </label>
-          <Switch
-            id="save-transcripts"
-            checked={saveTranscripts}
-            onChange={(value) => {
-              void handleSaveTranscripts(value);
-            }}
-          />
-        </div>
-        <div className="toggle-row">
-          <label htmlFor="save-audio" className="toggle-row__label">
-            Save audio
-          </label>
-          <Switch
-            id="save-audio"
-            checked={saveAudio}
-            onChange={(value) => {
-              void handleSaveAudio(value);
-            }}
-          />
+        <div className="general-section__card">
+          <div className="toggle-row">
+            <label htmlFor="save-transcripts" className="toggle-row__label">
+              Save transcripts
+            </label>
+            <Switch
+              id="save-transcripts"
+              checked={saveTranscripts}
+              onChange={(value) => {
+                void handleSaveTranscripts(value);
+              }}
+            />
+          </div>
+          <div className="toggle-row">
+            <label htmlFor="save-audio" className="toggle-row__label">
+              Save audio
+            </label>
+            <Switch
+              id="save-audio"
+              checked={saveAudio}
+              onChange={(value) => {
+                void handleSaveAudio(value);
+              }}
+            />
+          </div>
         </div>
       </section>
 
       <section className="general-section">
         <span className="general-section__label">Behavior</span>
-        <div className="toggle-row">
-          <label htmlFor="show-window-on-app-launch" className="toggle-row__label">
-            Show this window on app launch
-          </label>
-          <Switch
-            id="show-window-on-app-launch"
-            checked={showWindowOnAppLaunch}
-            onChange={(value) => {
-              void handleShowWindowOnAppLaunch(value);
-            }}
-          />
+        <div className="general-section__card">
+          <div className="toggle-row">
+            <label htmlFor="show-window-on-app-launch" className="toggle-row__label">
+              Show this window on app launch
+            </label>
+            <Switch
+              id="show-window-on-app-launch"
+              checked={showWindowOnAppLaunch}
+              onChange={(value) => {
+                void handleShowWindowOnAppLaunch(value);
+              }}
+            />
+          </div>
         </div>
       </section>
 
@@ -135,21 +139,23 @@ export function GeneralPage({ onOpenPermissions }: GeneralPageProps): React.JSX.
             </button>
           </div>
         ) : (
-          <div className="general-field">
-            <label htmlFor="mic-select" className="toggle-row__label">Microphone</label>
-            <select
-              id="mic-select"
-              className="device-select"
-              value={selectedDeviceId}
-              onChange={(event) => {
-                void handleDeviceChange(event.target.value);
-              }}
-            >
-              <option value="">System default</option>
-              {devices.map((device) => (
-                <option key={device.deviceId} value={device.deviceId}>{device.label}</option>
-              ))}
-            </select>
+          <div className="general-section__card">
+            <div className="general-field">
+              <label htmlFor="mic-select" className="toggle-row__label">Microphone</label>
+              <select
+                id="mic-select"
+                className="device-select"
+                value={selectedDeviceId}
+                onChange={(event) => {
+                  void handleDeviceChange(event.target.value);
+                }}
+              >
+                <option value="">System default</option>
+                {devices.map((device) => (
+                  <option key={device.deviceId} value={device.deviceId}>{device.label}</option>
+                ))}
+              </select>
+            </div>
           </div>
         )}
       </section>

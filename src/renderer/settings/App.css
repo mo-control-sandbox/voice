@@ -31,6 +31,7 @@
   padding: calc(var(--spacing) * 10) calc(var(--spacing) * 3) calc(var(--spacing) * 3);
   background: var(--sidebar);
   border-left: 1px solid var(--sidebar-border);
+  border-right: 1px solid var(--sidebar-border-right);
   border-radius: var(--radius-2xl);
   backdrop-filter: blur(36px) saturate(1.5);
   box-shadow: var(--shadow-2xl);

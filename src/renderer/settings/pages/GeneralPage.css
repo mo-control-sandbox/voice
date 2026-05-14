@@ -3,15 +3,15 @@
 .general-page {
   display: flex;
   flex-direction: column;
-  gap: calc(var(--spacing) * 8);       /* 32px between sections */
   max-width: 720px;
 }
 
 .general-page__heading {
-  font-size: 1.5rem;                   /* text-2xl */
-  font-weight: 600;
+  font-size: 1rem;
+  font-weight: 700;
   line-height: 1.333;
-  letter-spacing: -0.025em;
+  margin-top: calc(var(--spacing) * 2);
+  margin-bottom: calc(var(--spacing) * 6);
 }
 
 /* ─── Section ────────────────────────────────────────────────────────────── */
@@ -19,24 +19,36 @@
 .general-section {
   display: flex;
   flex-direction: column;
-  gap: calc(var(--spacing) * 4);       /* 16px */
+  gap: calc(var(--spacing) * 2);
+}
+
+.general-section:not(:last-child) {
+  margin-bottom: calc(var(--spacing) * 8);
 }
 
 .general-section__label {
-  font-size: 0.75rem;                  /* text-xs */
+  font-size: 0.8125rem;
   font-weight: 600;
   line-height: 1.333;
-  letter-spacing: 0.05em;             /* tracking-wider — required for all-caps per system.md §3.6 */
-  text-transform: uppercase;
-  color: var(--muted-foreground);
+  color: var(--foreground);
+}
+
+.general-section__card {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--card);
+  border-radius: var(--radius-lg);
+  margin-inline: calc(var(--card-padding) * -1);
 }
 
 /* ─── Form field ─────────────────────────────────────────────────────────── */
 
 .general-field {
   display: flex;
-  flex-direction: column;
-  gap: calc(var(--spacing) * 2);       /* 8px label-to-input gap */
+  justify-content: space-between;
+  align-items: center;
+  gap: calc(var(--spacing) * 2);
+  padding: var(--card-padding);
 }
 
 .general-field__hint {
@@ -51,17 +63,17 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: calc(var(--spacing) * 1.5);
-  padding: calc(var(--spacing) * 4);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border);
+  padding: var(--card-padding);
   background-color: var(--card);
+  border-radius: var(--radius-lg);
+  margin-inline: calc(var(--card-padding) * -1);
 }
 
 .general-permission-card__title {
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 600;
-  line-height: 1.429;
+  line-height: 1.5;
+  margin-bottom: calc(var(--spacing) * .5);
 }
 
 .general-permission-card__description {
@@ -77,6 +89,7 @@
   color: var(--info);
   font-size: 0.75rem;
   font-weight: 600;
+  margin-top: calc(var(--spacing) * 2);
 }
 
 .general-permission-card__link:hover {
@@ -91,14 +104,15 @@
 /* ─── Loading skeleton ───────────────────────────────────────────────────── */
 
 .general-skeleton {
-  height: 36px;                         /* matches select height */
-  border-radius: var(--radius-md);
+  height: 40px;                         /* matches select height */
+  border-radius: var(--radius-lg);
   background: linear-gradient(
     90deg,
     var(--muted) 25%,
     var(--border) 50%,
     var(--muted) 75%
   );
+  margin-inline: calc(var(--card-padding) * -1);
   background-size: 200% 100%;
   animation: skeleton-shimmer 1200ms linear infinite;
 }
@@ -112,13 +126,14 @@
 
 .device-select {
   width: 100%;
-  padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3); /* 8px 12px */
+  max-width: 300px;
+  padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 3);
   border-radius: var(--radius-md);
   border: 1px solid var(--input);
   background-color: var(--background);
   color: var(--foreground);
-  font-size: 0.875rem;
-  line-height: 1.429;
+  font-size: 0.8125rem;
+  line-height: 1.5;
   appearance: none;
 
   /* Custom chevron via background SVG */
@@ -140,11 +155,16 @@
   align-items: center;
   justify-content: space-between;
   gap: calc(var(--spacing) * 4);
+  padding: var(--card-padding);
+}
+
+.toggle-row:not(:first-child) {
+  border-top: 1px solid var(--border);
 }
 
 .toggle-row__label {
-  font-size: 0.875rem;
-  line-height: 1.429;
+  font-size: 0.8125rem;
+  line-height: 1.5;
 }
 
 .toggle-row__hint {

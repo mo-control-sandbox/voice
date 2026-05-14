@@ -88,11 +88,11 @@
 :root {
   /* Surface & text */
   --background:        oklch(100% 0 0deg);
-  --foreground:        oklch(14.5% 0 0deg);
-  --card:              oklch(100% 0 0deg);
-  --card-foreground:   oklch(14.5% 0 0deg);
+  --foreground:        oklch(26.9% 0 0deg);
+  --card:              oklch(97.2% 0 0deg);
+  --card-foreground:   oklch(26.9% 0 0deg);
   --popover:           oklch(100% 0 0deg);
-  --popover-foreground: oklch(14.5% 0 0deg);
+  --popover-foreground: oklch(26.9% 0 0deg);
 
   /* Interactive */
   --primary:              oklch(54.6% 0.245 262.9deg);
@@ -108,7 +108,7 @@
   --muted:            oklch(97% 0 0deg);
   --muted-foreground: oklch(55.6% 0 0deg);
   --border:           oklch(92.2% 0 0deg);
-  --input:            oklch(92.2% 0 0deg);
+  --input:            oklch(91% 0 0deg);
   --ring:             oklch(70% 0.245 262.9deg);
 
   /* Sidebar */
@@ -119,6 +119,7 @@
   --sidebar-accent:             oklch(96% 0 0deg);
   --sidebar-accent-foreground:  oklch(20.5% 0 0deg);
   --sidebar-border:             oklch(92.2% 0 0deg);
+  --sidebar-border-right:       oklch(100% 0 0deg);
 
   /* Status */
   --success:            oklch(59.6% 0.145 163.2deg);
@@ -183,6 +184,8 @@
   /* Focus */
   --focus-outline: 2px solid var(--ring);
   --focus-outline-offset: 0;
+
+  --card-padding: calc(var(--spacing) * 3);
 }
 
 /* ─── Semantic tokens — Dark mode ───────────────────────────────────────────── */
