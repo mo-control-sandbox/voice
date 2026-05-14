@@ -66,8 +66,8 @@
 }
 
 .permissions-page__refresh:focus-visible {
-  outline: 3px solid var(--ring);
-  outline-offset: 2px;
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-outline-offset);
 }
 
 .permissions-page__refresh:disabled {

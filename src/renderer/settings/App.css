@@ -29,7 +29,7 @@
   width: 200px;
   gap: calc(var(--spacing) * 1);
   padding: calc(var(--spacing) * 10) calc(var(--spacing) * 3) calc(var(--spacing) * 3);
-  background-color: var(--sidebar);
+  background: var(--sidebar);
   border-left: 1px solid var(--sidebar-border);
   border-radius: var(--radius-2xl);
   backdrop-filter: blur(36px) saturate(1.5);
@@ -49,10 +49,10 @@
   display: flex;
   align-items: center;
   text-decoration: none;
-  gap: calc(var(--spacing) * 2);       /* 8px icon-to-label */
-  padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3); /* 8px 12px */
+  gap: calc(var(--spacing) * 2);
+  padding: calc(var(--spacing) * 1.8) calc(var(--spacing) * 3.5);
   border-radius: var(--radius-md);
-  font-size: 0.875rem;                 /* text-sm */
+  font-size: 0.8125rem;                 /* text-sm */
   font-weight: 500;
   line-height: 1.429;
   color: var(--sidebar-foreground);
@@ -70,8 +70,8 @@
 }
 
 .settings-nav-item:focus-visible {
-  outline: 3px solid var(--sidebar-ring);
-  outline-offset: 2px;
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-outline-offset);
 }
 
 

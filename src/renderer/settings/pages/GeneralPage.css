@@ -84,8 +84,8 @@
 }
 
 .general-permission-card__link:focus-visible {
-  outline: 3px solid var(--ring);
-  outline-offset: 2px;
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-outline-offset);
 }
 
 /* ─── Loading skeleton ───────────────────────────────────────────────────── */
@@ -129,8 +129,8 @@
 }
 
 .device-select:focus-visible {
-  outline: 3px solid var(--ring);
-  outline-offset: 2px;
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-outline-offset);
 }
 
 /* ─── Toggle row (Switch + label) ────────────────────────────────────────── */
@@ -191,8 +191,8 @@
 }
 
 .shortcut-preset:focus-visible {
-  outline: 3px solid var(--ring);
-  outline-offset: 2px;
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-outline-offset);
 }
 
 .shortcut-preset[data-active="true"] {
@@ -225,8 +225,8 @@
 }
 
 .shortcut-capture:focus-visible {
-  outline: 3px solid var(--ring);
-  outline-offset: 2px;
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-outline-offset);
 }
 
 .shortcut-capture[data-state="capturing"] {

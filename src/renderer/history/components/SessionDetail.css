@@ -66,8 +66,8 @@
 }
 
 .session-detail__copy-btn:focus-visible {
-  outline: 3px solid var(--ring);
-  outline-offset: 2px;
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-outline-offset);
 }
 
 .session-detail__copy-btn:disabled {
@@ -130,8 +130,8 @@
 }
 
 .session-detail__btn:focus-visible {
-  outline: 3px solid var(--ring);
-  outline-offset: 2px;
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-outline-offset);
 }
 
 .session-detail__btn:disabled {

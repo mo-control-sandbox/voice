@@ -33,8 +33,8 @@
 }
 
 .audio-player__play:focus-visible {
-  outline: 3px solid var(--ring);
-  outline-offset: 2px;
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-outline-offset);
 }
 
 .audio-player__play:active {
@@ -103,8 +103,8 @@
 }
 
 .audio-player__range:focus-visible + .audio-player__track {
-  outline: 3px solid var(--ring);
-  outline-offset: 2px;
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-outline-offset);
 }
 
 /* ─── Not-saved label (replaces the scrubber) ────────────────────────────── */

@@ -67,8 +67,8 @@
 }
 
 .about-window__icon-button:focus-visible {
-  outline: 2px solid var(--ring);
-  outline-offset: 2px;
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-outline-offset);
 }
 
 .about-window__powered-by-label {
@@ -87,6 +87,6 @@
 }
 
 .about-window__powered-by:focus-visible {
-  outline: 2px solid var(--ring);
-  outline-offset: 2px;
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-outline-offset);
 }

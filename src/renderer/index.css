@@ -47,7 +47,6 @@
   --color-sidebar-accent:             var(--sidebar-accent);
   --color-sidebar-accent-foreground:  var(--sidebar-accent-foreground);
   --color-sidebar-border:             var(--sidebar-border);
-  --color-sidebar-ring:               var(--sidebar-ring);
 
   /* Colors — status */
   --color-success:             var(--success);
@@ -96,7 +95,7 @@
   --popover-foreground: oklch(14.5% 0 0deg);
 
   /* Interactive */
-  --primary:              oklch(20.5% 0 0deg);
+  --primary:              oklch(54.6% 0.245 262.9deg);
   --primary-foreground:   oklch(98.5% 0 0deg);
   --secondary:            oklch(97% 0 0deg);
   --secondary-foreground: oklch(20.5% 0 0deg);
@@ -110,17 +109,16 @@
   --muted-foreground: oklch(55.6% 0 0deg);
   --border:           oklch(92.2% 0 0deg);
   --input:            oklch(92.2% 0 0deg);
-  --ring:             oklch(70.8% 0 0deg);
+  --ring:             oklch(70% 0.245 262.9deg);
 
   /* Sidebar */
-  --sidebar:                    oklch(98.5% 0 0deg);
+  --sidebar:                    linear-gradient(135deg, #faf9f9 0%, #fafaf9 100%);
   --sidebar-foreground:         oklch(14.5% 0 0deg);
-  --sidebar-primary:            oklch(20.5% 0 0deg);
-  --sidebar-primary-foreground: oklch(98.5% 0 0deg);
-  --sidebar-accent:             oklch(97% 0 0deg);
+  --sidebar-primary:            oklch(95% 0 0deg);
+  --sidebar-primary-foreground: oklch(57.8% 0.25 259deg);
+  --sidebar-accent:             oklch(96% 0 0deg);
   --sidebar-accent-foreground:  oklch(20.5% 0 0deg);
   --sidebar-border:             oklch(92.2% 0 0deg);
-  --sidebar-ring:               oklch(70.8% 0 0deg);
 
   /* Status */
   --success:            oklch(59.6% 0.145 163.2deg);
@@ -181,6 +179,10 @@
   --shadow-lg:  0 10px 15px -3px rgb(0 0 0 / 10%), 0 4px 6px -4px rgb(0 0 0 / 10%);
   --shadow-xl:  0 20px 25px -5px rgb(0 0 0 / 10%), 0 8px 10px -6px rgb(0 0 0 / 10%);
   --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 25%);
+
+  /* Focus */
+  --focus-outline: 2px solid var(--ring);
+  --focus-outline-offset: 0;
 }
 
 /* ─── Semantic tokens — Dark mode ───────────────────────────────────────────── */
@@ -218,7 +220,6 @@
   --sidebar-accent:             oklch(26.9% 0 0deg);
   --sidebar-accent-foreground:  oklch(98.5% 0 0deg);
   --sidebar-border:             oklch(100% 0 0deg / 10%);
-  --sidebar-ring:               oklch(55.6% 0 0deg);
 
   /* Status */
   --success:            oklch(69.6% 0.170 162.5deg);

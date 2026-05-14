@@ -15,8 +15,8 @@
 }
 
 .session-item:focus-visible {
-  outline: 3px solid var(--ring);
-  outline-offset: -3px;                /* Inset so it doesn't bleed outside the pane */
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-outline-offset);
 }
 
 .session-item[aria-selected="true"] {
