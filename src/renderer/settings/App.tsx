@@ -51,6 +51,7 @@ function SettingsShell(): React.JSX.Element {
 
   return (
     <div className="settings-app">
+      <div className="draggable"></div>
       <aside className="settings-sidebar">
         <nav className="settings-sidebar__nav">
           {NAV_ITEMS.map(({ id, label, Icon }) => {
@@ -58,7 +59,7 @@ function SettingsShell(): React.JSX.Element {
             return (
             <NavLink
               key={id}
-              className="settings-nav-item"
+              className="settings-nav-item no-drag"
               to={path}
             >
               <Icon className="settings-nav-item__icon" aria-hidden="true" />

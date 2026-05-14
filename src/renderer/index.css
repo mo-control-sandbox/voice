@@ -327,6 +327,10 @@
     text-decoration: underline;
   }
 
+  .no-drag {
+    -webkit-app-region: no-drag;
+  }
+
   /* Tabular figures for data contexts — applied via utility class, not globally */
 
   /* Reduced motion — disable all transitions/animations */
