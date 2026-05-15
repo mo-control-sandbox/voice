@@ -192,21 +192,21 @@
 .dark {
   /* Surface & text */
   --background:        oklch(14.5% 0 0deg);
-  --foreground:        oklch(98.5% 0 0deg);
+  --foreground:        oklch(90% 0 0deg);
   --card:              oklch(20.5% 0 0deg);
-  --card-foreground:   oklch(98.5% 0 0deg);
+  --card-foreground:   oklch(90% 0 0deg);
   --popover:           oklch(20.5% 0 0deg);
-  --popover-foreground: oklch(98.5% 0 0deg);
+  --popover-foreground: oklch(90% 0 0deg);
 
   /* Interactive */
   --primary:              oklch(67% 0.19 262deg);
-  --primary-foreground:   oklch(98.5% 0 0deg);
+  --primary-foreground:   oklch(90% 0 0deg);
   --secondary:            oklch(26.9% 0 0deg);
-  --secondary-foreground: oklch(98.5% 0 0deg);
+  --secondary-foreground: oklch(90% 0 0deg);
   --accent:               oklch(26.9% 0 0deg);
-  --accent-foreground:    oklch(98.5% 0 0deg);
+  --accent-foreground:    oklch(90% 0 0deg);
   --destructive:          oklch(63.8% 0.257 27.4deg);
-  --destructive-foreground: oklch(98.5% 0 0deg);
+  --destructive-foreground: oklch(90% 0 0deg);
 
   /* Chrome */
   --muted:            oklch(26.9% 0 0deg);
@@ -219,9 +219,9 @@
   --sidebar:                    oklch(20.5% 0 0deg);
   --sidebar-foreground:         oklch(72% 0 0deg);
   --sidebar-primary:            oklch(31% 0 0deg);
-  --sidebar-primary-foreground: oklch(98.5% 0 0deg);
+  --sidebar-primary-foreground: oklch(90% 0 0deg);
   --sidebar-accent:             oklch(26.9% 0 0deg);
-  --sidebar-accent-foreground:  oklch(98.5% 0 0deg);
+  --sidebar-accent-foreground:  oklch(90% 0 0deg);
   --sidebar-border:             oklch(100% 0 0deg / 10%);
   --sidebar-border-right:       oklch(100% 0 0deg / 10%);
 
@@ -231,11 +231,11 @@
   --warning:            oklch(82% 0.160 75.0deg);
   --warning-foreground: oklch(14.5% 0 0deg);
   --info:               var(--primary);
-  --info-foreground:    oklch(98.5% 0 0deg);
+  --info-foreground:    oklch(90% 0 0deg);
 
   /* MoVoice — recording state */
   --recording:            oklch(72% 0.185 18.0deg);
-  --recording-foreground: oklch(98.5% 0 0deg);
+  --recording-foreground: oklch(90% 0 0deg);
 
   /* Data visualisation — same in both modes */
   --chart-1: oklch(80.9% 0.105 251.8deg);
