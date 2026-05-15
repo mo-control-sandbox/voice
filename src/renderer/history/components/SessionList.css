@@ -15,8 +15,8 @@
   content: "";
   position: absolute;
   top: 0;
-  left: calc(var(--spacing) * 3);
-  right: calc(var(--spacing) * 3);
+  left: calc(var(--spacing) * 4);
+  right: calc(var(--spacing) * 4);
   height: 1px;
   background: var(--border);
   opacity: 1;

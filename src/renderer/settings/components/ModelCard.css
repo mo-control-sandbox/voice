@@ -3,7 +3,6 @@
 .model-card {
   display: flex;
   flex-direction: column;
-  gap: calc(var(--spacing) * 3);
   padding: var(--card-padding);
   border-radius: var(--radius-lg);
   background-color: var(--card);
@@ -14,7 +13,12 @@
 }
 
 .model-card[data-model-state="active"] {
+  background-image: linear-gradient(135deg, color-mix(in oklch, var(--primary) 6%, white), white);
   border: 1px solid var(--primary);
+}
+
+.dark .model-card[data-model-state="active"] {
+  background-image: linear-gradient(135deg, color-mix(in oklch, var(--primary) 6%, var(--card)), var(--card));
 }
 
 .model-card[data-model-state="downloading"],
@@ -38,7 +42,7 @@
 .model-card__meta {
   display: flex;
   flex-direction: column;
-  gap: calc(var(--spacing) * .5);
+  gap: calc(var(--spacing) * 1);
   min-width: 0;
 }
 
@@ -103,7 +107,8 @@
 
 .model-card__scores {
   display: flex;
-  gap: calc(var(--spacing) * 4);       /* 16px between speed and accuracy */
+  gap: calc(var(--spacing) * 4);
+  margin-block: calc(var(--spacing) * 4) calc(var(--spacing) * 2);
 }
 
 .score-pips {
@@ -253,15 +258,11 @@
 
 /* Destructive ghost: Delete */
 .model-card__btn[data-btn="destructive"] {
-  background-color: oklch(from var(--destructive) l c h / 25%);;
+  background-color: oklch(from var(--destructive) l c h / 20%);
   color: var(--destructive);
 }
 
 .model-card__btn[data-btn="destructive"]:hover:not(:disabled) {
-  background-color: color-mix(
-          in oklch,
-          var(--destructive) 25%,
-          var(--foreground) 10%
-  );;
+  background-color: color-mix(in oklch, var(--destructive) 20%, var(--foreground) 10%);;
   color: var(--destructive);
 }

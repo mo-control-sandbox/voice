@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { Check, Copy, FolderOpen } from 'lucide-react';
-import type { SessionRecordProto } from '../../gen/history';
+import { Check, Copy } from 'lucide-react';
+import type { SessionRecordProto } from '@/gen/history.ts';
 import { formatHistoryLongDateTime, formatMinutesAndSeconds } from '../dateTime';
 import { AudioPlayer } from './AudioPlayer';
 import './SessionDetail.css';
@@ -121,19 +121,18 @@ export function SessionDetail({
         <button
           type="button"
           className="session-detail__btn"
-          data-btn="secondary"
-          onClick={() => { onOpenInFinder(session.id); }}
-        >
-          <FolderOpen className="session-detail__btn-icon" aria-hidden="true" />
-          Open in Finder
-        </button>
-        <button
-          type="button"
-          className="session-detail__btn"
           data-btn="destructive"
           onClick={() => { setConfirming(true); }}
         >
-          Delete
+          Delete...
+        </button>
+        <button
+            type="button"
+            className="session-detail__btn"
+            data-btn="secondary"
+            onClick={() => { onOpenInFinder(session.id); }}
+        >
+          Open in Finder...
         </button>
       </div>
 

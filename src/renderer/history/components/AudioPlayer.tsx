@@ -108,7 +108,7 @@ export function AudioPlayer({ sessionId }: AudioPlayerProps): React.JSX.Element 
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   return (
-    <div className="audio-player">
+    <div className={`audio-player${isDisabled ? ' disabled' : ''}`}>
       {blobUrl !== null && (
         <audio
           ref={audioRef}
@@ -137,8 +137,8 @@ export function AudioPlayer({ sessionId }: AudioPlayerProps): React.JSX.Element 
         disabled={isDisabled}
       >
         {isPlaying
-          ? <Pause className="audio-player__play-icon" aria-hidden="true" />
-          : <Play className="audio-player__play-icon" aria-hidden="true" />
+          ? <Pause className="audio-player__play-icon" fill="currentColor" stroke="none" aria-hidden="true" />
+          : <Play className="audio-player__play-icon" fill="currentColor" stroke="none" aria-hidden="true" />
         }
       </button>
 

@@ -112,7 +112,7 @@
   --ring:             oklch(70% 0.245 262.9deg);
 
   /* Sidebar */
-  --sidebar:                    linear-gradient(135deg, #faf9f9 0%, #fafaf9 100%);
+  --sidebar:                    linear-gradient(135deg, #f5f6f6 0%, #f9f9fa 50%, #f5f6f6 100%);
   --sidebar-foreground:         oklch(14.5% 0 0deg);
   --sidebar-primary:            oklch(95% 0 0deg);
   --sidebar-primary-foreground: oklch(57.8% 0.25 259deg);
@@ -183,7 +183,7 @@
 
   /* Focus */
   --focus-outline: 2px solid var(--ring);
-  --focus-outline-offset: 0;
+  --focus-outline-offset: 1px;
 
   --card-padding: calc(var(--spacing) * 3);
 }
@@ -213,7 +213,7 @@
   --muted-foreground: oklch(70.8% 0 0deg);
   --border:           oklch(100% 0 0deg / 10%);
   --input:            oklch(100% 0 0deg / 15%);
-  --ring:             oklch(55.6% 0 0deg);
+  --ring:             oklch(67% 0.19 262deg / 80%);
 
   /* Sidebar */
   --sidebar:                    oklch(20.5% 0 0deg);
