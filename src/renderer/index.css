@@ -191,7 +191,7 @@
 /* ─── Semantic tokens — Dark mode ───────────────────────────────────────────── */
 .dark {
   /* Surface & text */
-  --background:        oklch(14.5% 0 0deg);
+  --background:        oklch(16% 0 0deg);
   --foreground:        oklch(90% 0 0deg);
   --card:              oklch(20.5% 0 0deg);
   --card-foreground:   oklch(90% 0 0deg);
@@ -199,13 +199,13 @@
   --popover-foreground: oklch(90% 0 0deg);
 
   /* Interactive */
-  --primary:              oklch(67% 0.19 262deg);
+  --primary:              oklch(62.9% 0.216 258.2deg);
   --primary-foreground:   oklch(98% 0 0deg);
   --secondary:            oklch(26.9% 0 0deg);
-  --secondary-foreground: oklch(90% 0 0deg);
+  --secondary-foreground: oklch(70% 0 0deg);
   --accent:               oklch(26.9% 0 0deg);
   --accent-foreground:    oklch(90% 0 0deg);
-  --destructive:          oklch(63.8% 0.257 27.4deg);
+  --destructive:          oklch(73.2% 0.183 24.7deg);
   --destructive-foreground: oklch(90% 0 0deg);
 
   /* Chrome */
@@ -222,8 +222,8 @@
   --sidebar-primary-foreground: oklch(90% 0 0deg);
   --sidebar-accent:             oklch(26.9% 0 0deg);
   --sidebar-accent-foreground:  oklch(90% 0 0deg);
-  --sidebar-border:             oklch(100% 0 0deg / 10%);
-  --sidebar-border-right:       oklch(100% 0 0deg / 10%);
+  --sidebar-border:             oklch(100% 0 0deg / 5%);
+  --sidebar-border-right:       oklch(100% 0 0deg / 5%);
 
   /* Status */
   --success:            oklch(69.6% 0.170 162.5deg);

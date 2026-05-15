@@ -18,7 +18,7 @@
 }
 
 .dark .model-card[data-model-state="active"] {
-  background-image: linear-gradient(135deg, color-mix(in oklch, var(--primary) 6%, var(--card)), var(--card));
+  background-image: linear-gradient(135deg, color-mix(in oklch, var(--primary) 6%, transparent), var(--card));
 }
 
 .model-card[data-model-state="downloading"],
@@ -258,11 +258,11 @@
 
 /* Destructive ghost: Delete */
 .model-card__btn[data-btn="destructive"] {
-  background-color: oklch(from var(--destructive) l c h / 20%);
+  background-color: oklch(from var(--destructive) l c h / 16%);
   color: var(--destructive);
 }
 
 .model-card__btn[data-btn="destructive"]:hover:not(:disabled) {
-  background-color: color-mix(in oklch, var(--destructive) 20%, var(--foreground) 10%);;
+  background-color: color-mix(in oklch, var(--destructive) 20%, var(--foreground) 10%);
   color: var(--destructive);
 }

@@ -59,9 +59,9 @@
 }
 
 .stat-card__title {
-  font-size: 0.9375rem;               /* ~15px */
+  font-size: 0.875rem;
   font-weight: 600;
-  line-height: 1.333;
+  line-height: 1.3;
   color: var(--card-foreground);
 }
 
@@ -79,8 +79,8 @@
 /* ─── Card description ───────────────────────────────────────────────────── */
 
 .stat-card__desc {
-  font-size: 0.875rem;                /* text-sm */
-  line-height: 1.429;
+  font-size: 0.8125rem;
+  line-height: 1.5;
   color: var(--muted-foreground);
   margin-top: auto;
 }
@@ -115,6 +115,31 @@
 .stat-card[data-accent="time"] .stat-card__icon-wrap {
   background-color: oklch(88% 0.06 165deg / 50%);
   color:            oklch(52% 0.16 165deg);
+}
+
+.dark .stat-card[data-accent="sessions"] .stat-card__icon-wrap {
+  background-color: #291f33;
+  color: #c27bff;
+}
+
+.dark .stat-card[data-accent="words"] .stat-card__icon-wrap {
+  background-color: #1d2433;
+  color: #52a2ff;
+}
+
+.dark .stat-card[data-accent="wpm"] .stat-card__icon-wrap {
+  background-color: #302719;
+  color: #ffba00;
+}
+
+.dark .stat-card[data-accent="keystrokes"] .stat-card__icon-wrap {
+  background-color: #302019;
+  color: #ff4a00;
+}
+
+.dark .stat-card[data-accent="time"] .stat-card__icon-wrap {
+  background-color: #1b2b26;
+  color: #00d492;
 }
 
 /* ─── Loading skeleton ───────────────────────────────────────────────────── */
