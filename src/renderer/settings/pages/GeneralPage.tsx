@@ -109,34 +109,42 @@ export function GeneralPage({ onOpenPermissions }: GeneralPageProps): React.JSX.
           <div className="general-skeleton" />
         ) : !isMicPermissionGranted ? (
           <div className="general-permission-card">
-            <span className="general-permission-card__title">{micPermissionTitle}</span>
-            <span className="general-permission-card__description">
-              {micPermissionDescription}
-            </span>
-            <button
-              type="button"
-              className="general-permission-card__link"
-              disabled={isMicPermissionButtonDisabled}
-              onClick={() => {
-                void handleMicPermissionAction();
-              }}
-            >
-              {isMicPermissionPolling ? 'Checking...' : micPermissionButtonLabel}
-            </button>
+            <div className="general-permission-card__text">
+              <span className="general-permission-card__title">{micPermissionTitle}</span>
+              <span className="general-permission-card__description">
+                {micPermissionDescription}
+              </span>
+            </div>
+            <div className="general-permission-card__action">
+              <button
+                type="button"
+                className="general-permission-card__btn"
+                disabled={isMicPermissionButtonDisabled}
+                onClick={() => {
+                  void handleMicPermissionAction();
+                }}
+              >
+                {isMicPermissionPolling ? 'Checking...' : micPermissionButtonLabel}
+              </button>
+            </div>
           </div>
         ) : devices.length === 0 ? (
           <div className="general-permission-card">
-            <span className="general-permission-card__title">No microphone devices available</span>
-            <span className="general-permission-card__description">
-              Open the Permissions page and allow microphone access, then return here.
-            </span>
-            <button
-              type="button"
-              className="general-permission-card__link"
-              onClick={onOpenPermissions}
-            >
-              Open Permissions
-            </button>
+            <div className="general-permission-card__text">
+              <span className="general-permission-card__title">No microphone devices available</span>
+              <span className="general-permission-card__description">
+                Open the Permissions page and allow microphone access, then return here.
+              </span>
+            </div>
+            <div className="general-permission-card__action">
+              <button
+                type="button"
+                className="general-permission-card__btn"
+                onClick={onOpenPermissions}
+              >
+                Open Permissions...
+              </button>
+            </div>
           </div>
         ) : (
           <div className="general-section__card">

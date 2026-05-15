@@ -5,6 +5,8 @@
   flex-direction: column;
   gap: calc(var(--spacing) * 6);       /* 24px between heading and grid */
   max-width: 720px;
+  height: 100%;
+  padding-bottom: calc(var(--spacing) * 2);
 }
 
 .dashboard-page__heading {
@@ -19,7 +21,8 @@
 .dashboard-page__grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: calc(var(--spacing) * 4);       /* 16px gap between cards */
+  gap: calc(var(--spacing) * 3);
+  height: 100%;
 }
 
 /* ─── Stat Card ──────────────────────────────────────────────────────────── */
@@ -30,7 +33,7 @@
   gap: calc(var(--spacing) * 3);       /* 12px between sections */
   padding: calc(var(--spacing) * 6);   /* 24px card padding */
   border-radius: var(--radius-2xl);    /* 18px, softer than current lg */
-  background-color: var(--secondary);
+  background-color: var(--card);
 }
 
 .stat-card--wide {
@@ -79,37 +82,38 @@
   font-size: 0.875rem;                /* text-sm */
   line-height: 1.429;
   color: var(--muted-foreground);
+  margin-top: auto;
 }
 
 /* ─── Per-accent icon badge colors ──────────────────────────────────────── */
 
 /* Sessions — purple / lavender */
 .stat-card[data-accent="sessions"] .stat-card__icon-wrap {
-  background-color: oklch(89% 0.06 310deg);
+  background-color: oklch(89% 0.06 310deg / 50%);
   color:            oklch(55% 0.18 305deg);
 }
 
 /* Words — blue / steel */
 .stat-card[data-accent="words"] .stat-card__icon-wrap {
-  background-color: oklch(88% 0.05 240deg);
+  background-color: oklch(88% 0.05 240deg / 50%);
   color:            oklch(52% 0.20 245deg);
 }
 
 /* WPM — amber / yellow */
 .stat-card[data-accent="wpm"] .stat-card__icon-wrap {
-  background-color: oklch(92% 0.08 85deg);
+  background-color: oklch(92% 0.08 85deg / 50%);
   color:            oklch(62% 0.18 75deg);
 }
 
 /* Keystrokes — orange */
 .stat-card[data-accent="keystrokes"] .stat-card__icon-wrap {
-  background-color: oklch(90% 0.07 55deg);
+  background-color: oklch(90% 0.07 55deg / 50%);
   color:            oklch(60% 0.20 48deg);
 }
 
 /* Time saved — teal / green */
 .stat-card[data-accent="time"] .stat-card__icon-wrap {
-  background-color: oklch(88% 0.06 165deg);
+  background-color: oklch(88% 0.06 165deg / 50%);
   color:            oklch(52% 0.16 165deg);
 }
 

@@ -16,11 +16,11 @@ const permissionsService = new PermissionsService();
  * Predefined shortcuts the user can choose with a single click.
  */
 export const PREDEFINED_SHORTCUTS = [
-  { label: 'Cmd+Shift+Space', value: 'CommandOrControl+Shift+Space' },
-  { label: 'Cmd+Shift+M', value: 'CommandOrControl+Shift+M' },
-  { label: 'Cmd+Shift+R', value: 'CommandOrControl+Shift+R' },
-  { label: 'Ctrl+Space', value: 'Control+Space' },
-  { label: 'Option+Space', value: 'Alt+Space' },
+  { label: '⌘ + ⇧ + Space', value: 'CommandOrControl+Shift+Space' },
+  { label: '⌘ + ⇧ + M', value: 'CommandOrControl+Shift+M' },
+  { label: '⌘ + ⇧ + R', value: 'CommandOrControl+Shift+R' },
+  { label: '⌃ + Space', value: 'Control+Space' },
+  { label: '⌥ + Space', value: 'Alt+Space' },
 ] as const;
 
 /**

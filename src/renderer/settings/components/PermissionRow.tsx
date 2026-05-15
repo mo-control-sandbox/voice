@@ -46,7 +46,7 @@ function statusDataAttr(status: PermissionStatus, isRequesting: boolean): string
 
 function actionLabel(status: PermissionStatus, isRequesting: boolean): string {
   if (isRequesting) return 'Applying...';
-  return status === PermissionStatus.PERMISSION_STATUS_DENIED ? 'Open System Settings' : 'Allow Access';
+  return status === PermissionStatus.PERMISSION_STATUS_DENIED ? 'Open System Settings...' : 'Allow Access';
 }
 
 /**
@@ -68,19 +68,20 @@ export function PermissionRow({
       </div>
 
       <div className="permission-row__text">
-        <span className="permission-row__name">{meta.label}</span>
+        <div className="permission-row__name-wrapper">
+          <span className="permission-row__name">{meta.label}</span>
+          <span
+              className="permission-row__badge"
+              data-status={statusDataAttr(permission.status, isRequesting)}
+          >
+            {isRequesting && (
+                <Loader2 className="permission-row__status-icon" aria-hidden="true"/>
+            )}
+            {statusLabel(permission.status, isRequesting)}
+          </span>
+        </div>
         <span className="permission-row__description">{meta.description}</span>
       </div>
-
-      <span
-        className="permission-row__badge"
-        data-status={statusDataAttr(permission.status, isRequesting)}
-      >
-        {isRequesting && (
-          <Loader2 className="permission-row__status-icon" aria-hidden="true" />
-        )}
-        {statusLabel(permission.status, isRequesting)}
-      </span>
 
       {!isGranted && (
         <button

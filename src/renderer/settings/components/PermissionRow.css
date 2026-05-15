@@ -1,32 +1,48 @@
 /* ─── Permission Row ─────────────────────────────────────────────────────── */
 
 .permission-row {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: calc(var(--spacing) * 4);       /* 16px */
-  padding: calc(var(--spacing) * 4);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border);
-  background-color: var(--card);
+  gap: calc(var(--spacing) * 4);
+  padding: var(--card-padding);
 }
 
-/* ─── Icon container ─────────────────────────────────────────────────────── */
+.permission-row:not(:first-child)::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: var(--card-padding);
+  right: var(--card-padding);
+  height: 1px;
+  background: var(--border);
+}
+
+  /* ─── Icon container ─────────────────────────────────────────────────────── */
 
 .permission-row__icon-wrap {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   flex-shrink: 0;
   border-radius: var(--radius-md);
-  background-color: var(--secondary);
+  background: linear-gradient(135deg, #b9b6ff 0%, #8885f7 100%);
+}
+
+.permission-row__icon-wrap:has(.lucide-mic) {
+  background: linear-gradient(135deg, #b9b6ff 0%, #8885f7 100%);
+}
+
+.permission-row__icon-wrap:has(.lucide-keyboard) {
+  background: linear-gradient(135deg, #a7abff 0%, #4686ff 100%)
 }
 
 .permission-row__icon {
   width: 16px;
   height: 16px;
-  color: var(--muted-foreground);
+  color: white;
 }
 
 /* ─── Text block ─────────────────────────────────────────────────────────── */
@@ -36,13 +52,18 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: calc(var(--spacing) * 0.5);
+}
+
+.permission-row__name-wrapper {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--spacing) * 2);
 }
 
 .permission-row__name {
-  font-size: 0.875rem;
-  font-weight: 500;
-  line-height: 1.429;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.5;
 }
 
 .permission-row__description {
@@ -56,25 +77,27 @@
 .permission-row__badge {
   display: inline-flex;
   align-items: center;
-  gap: calc(var(--spacing) * 1);
-  flex-shrink: 0;
-  padding: 0 calc(var(--spacing) * 2.5);  /* 0 10px */
-  height: 22px;
+  padding: 0 calc(var(--spacing) * 2);
+  height: 20px;
   border-radius: var(--radius-full);
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   font-weight: 500;
+  letter-spacing: .03em;
+  line-height: 1;
   white-space: nowrap;
+  background-color: transparent;
+  border: 1px solid transparent;
 }
 
 .permission-row__badge[data-status="granted"] {
-  background-color: var(--success);
-  color: var(--success-foreground);
+  color: var(--success);
+  border: 1px solid var(--success);
 }
 
 .permission-row__badge[data-status="denied"] {
-  background-color: color-mix(in oklch, var(--accent) 38%, var(--background));
-  color: var(--foreground);
-  border: 1px solid color-mix(in oklch, var(--accent) 60%, var(--border));
+  background-color: var(--secondary);
+  color: var(--secondary-foreground);
+  border: 1px solid var(--input);
 }
 
 .permission-row__badge[data-status="unknown"] {
@@ -100,14 +123,15 @@
 .permission-row__action {
   display: inline-flex;
   align-items: center;
-  flex-shrink: 0;
+  justify-content: center;
   padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 3);
   border-radius: var(--radius-md);
   font-size: 0.75rem;
   font-weight: 500;
-  color: var(--muted-foreground);
-  background-color: transparent;
-  border: 1px solid var(--border);
+  line-height: 1;
+  border: 1px solid transparent;
+  background-color: var(--accent);
+  color: var(--accent-foreground);
   transition: background-color var(--duration-fast) var(--ease-out),
               color var(--duration-fast) var(--ease-out);
 }

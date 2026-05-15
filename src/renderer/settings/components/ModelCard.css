@@ -137,7 +137,7 @@
 }
 
 .score-pips__dot[data-filled="true"] {
-  background-color: var(--foreground);
+  background-color: var(--muted-foreground);
   opacity: 1;
 }
 

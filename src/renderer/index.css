@@ -89,7 +89,7 @@
   /* Surface & text */
   --background:        oklch(100% 0 0deg);
   --foreground:        oklch(25% 0 0deg);
-  --card:              oklch(97.1% 0 0deg);
+  --card:              oklch(97.3% 0 0deg);
   --card-foreground:   oklch(25% 0 0deg);
   --popover:           oklch(100% 0 0deg);
   --popover-foreground: oklch(25% 0 0deg);
@@ -99,7 +99,7 @@
   --primary-foreground:   oklch(98.5% 0 0deg);
   --secondary:            oklch(97% 0 0deg);
   --secondary-foreground: oklch(20.5% 0 0deg);
-  --accent:               oklch(94% 0 0deg);
+  --accent:               oklch(93% 0 0deg);
   --accent-foreground:    oklch(20.5% 0 0deg);
   --destructive:          oklch(57.7% 0.245 27.3deg);
   --destructive-foreground: oklch(98.5% 0 0deg);
@@ -200,7 +200,7 @@
 
   /* Interactive */
   --primary:              oklch(67% 0.19 262deg);
-  --primary-foreground:   oklch(90% 0 0deg);
+  --primary-foreground:   oklch(98% 0 0deg);
   --secondary:            oklch(26.9% 0 0deg);
   --secondary-foreground: oklch(90% 0 0deg);
   --accent:               oklch(26.9% 0 0deg);
