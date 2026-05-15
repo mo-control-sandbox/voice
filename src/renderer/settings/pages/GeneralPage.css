@@ -125,7 +125,7 @@
 /* ─── Loading skeleton ───────────────────────────────────────────────────── */
 
 .general-skeleton {
-  height: 40px;                         /* matches select height */
+  height: 55px;                         /* matches select height */
   border-radius: var(--radius-lg);
   background: linear-gradient(
     90deg,

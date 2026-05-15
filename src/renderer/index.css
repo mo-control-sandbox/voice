@@ -191,7 +191,7 @@
 /* ─── Semantic tokens — Dark mode ───────────────────────────────────────────── */
 .dark {
   /* Surface & text */
-  --background:        oklch(16% 0 0deg);
+  --background:        oklch(17% 0 0deg);
   --foreground:        oklch(90% 0 0deg);
   --card:              oklch(20.5% 0 0deg);
   --card-foreground:   oklch(90% 0 0deg);
@@ -316,7 +316,7 @@
   }
 
   a[href] {
-    cursor: pointer;
+    cursor: default;
   }
 
   /* ── Link styling (system.md §10.4) ─────────────────────────────────────
