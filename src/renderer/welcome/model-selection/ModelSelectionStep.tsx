@@ -26,10 +26,10 @@ export function ModelSelectionStep(props: ModelSelectionStepProps): React.JSX.El
 
   return (
     <section className="welcome-stage">
-      <h2 className="welcome-stage__title">Choose a model for MoVoice to download</h2>
-      <p className="welcome-stage__description">
-        You can change it later in Settings.
-      </p>
+      <div className="welcome-stage__title-section">
+        <h2 className="welcome-stage__title">Choose a model for MoVoice to download</h2>
+        <p className="welcome-stage__description">You can change it later in Settings.</p>
+      </div>
       <div className="welcome-stage__body welcome-stage__body--static">
         <div className="welcome-model-list">
           {models.map((model) => (

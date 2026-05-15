@@ -3,10 +3,10 @@
   grid-template-rows: 1fr auto;
   height: 100vh;
   overflow: hidden;
-  background:
+  /*background:
     radial-gradient(120% 90% at 0% 0%, color-mix(in oklch, var(--info) 14%, transparent), transparent 60%),
     radial-gradient(80% 70% at 100% 100%, color-mix(in oklch, var(--warning) 18%, transparent), transparent 55%),
-    var(--background);
+    var(--background);*/
 }
 
 .welcome-no-drag {
@@ -20,9 +20,9 @@
 }
 
 .welcome-progress__label {
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
-  margin-left: calc(var(--spacing) * 0.5);
+  margin-left: calc(var(--spacing) * 1);
 }
 
 .welcome-progress__dot {
@@ -30,7 +30,6 @@
   height: 8px;
   border-radius: var(--radius-full);
   background-color: color-mix(in oklch, var(--muted-foreground) 45%, var(--background));
-  border: 1px solid color-mix(in oklch, var(--foreground) 24%, var(--background));
   transition: transform var(--duration-normal) var(--ease-spring),
               background-color var(--duration-fast) var(--ease-out);
 }
@@ -45,60 +44,69 @@
 }
 
 .welcome-wizard__content {
-  overflow: hidden;
-  padding: calc(var(--spacing) * 8) calc(var(--spacing) * 8) calc(var(--spacing) * 5);
+  padding-top: calc(var(--spacing) * 8);
   min-height: 0;
 }
 
 .welcome-stage {
   display: grid;
-  grid-template-rows: auto auto 1fr;
-  gap: calc(var(--spacing) * 2);
+  grid-template-rows: auto 1fr auto;
   height: 100%;
   min-height: 0;
 }
 
+.welcome-stage__title-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing);
+  padding-inline: calc(var(--spacing) * 8);
+  padding-bottom: calc(var(--spacing) * 2);
+}
+
 .welcome-stage__title {
-  font-size: 1.35rem;
+  font-size: 1.25rem;
   line-height: 1.3;
-  font-weight: 620;
+  font-weight: 700;
 }
 
 .welcome-stage__description {
-  font-size: 0.92rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
+  margin-block: var(--spacing) calc(var(--spacing) * 2);
 }
 
 .welcome-stage__body {
   overflow-y: auto;
   min-height: 0;
-  padding-top: calc(var(--spacing) * 2);
+  padding-top: calc(var(--spacing) * 3);
+  padding-inline: calc(var(--spacing) * 8);
 }
 
 .welcome-stage__body--permission {
-  overflow: hidden;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
+}
+
+.welcome-stage__body-final-stage {
+  padding-top: 0;
 }
 
 .welcome-permission-guide {
   display: flex;
   flex-direction: column;
   gap: calc(var(--spacing) * 2.5);
-  max-width: 540px;
   width: 100%;
   margin: 0 auto;
 }
 
 .welcome-permission-guide__label {
-  font-size: 0.9rem;
+  font-size: 0.8125rem;
   color: var(--muted-foreground);
   text-align: center;
 }
 
 .welcome-stage__body--static {
-  overflow: hidden;
   display: grid;
   grid-template-rows: 1fr auto;
   gap: calc(var(--spacing) * 2);
@@ -108,28 +116,23 @@
 .welcome-model-list {
   display: flex;
   flex-direction: column;
-  gap: calc(var(--spacing) * 1.25);
-  overflow: hidden;
+  gap: calc(var(--spacing) * 2);
   min-height: 0;
-  padding: 1px;
 }
 
 .welcome-model-tile {
-  text-align: left;
   position: relative;
-  border: 1px solid color-mix(in oklch, var(--border) 75%, var(--background));
+  display: flex;
+  align-items: flex-start;
+  text-align: left;
   border-radius: var(--radius-xl);
   background: linear-gradient(
     120deg,
     color-mix(in oklch, var(--card) 93%, var(--background)),
     color-mix(in oklch, var(--secondary) 35%, var(--card))
   );
-  padding: calc(var(--spacing) * 2.5);
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
+  padding: var(--card-padding);
   gap: calc(var(--spacing) * 2);
-  box-shadow: var(--shadow-sm);
   width: 100%;
   transition: border-color var(--duration-fast) var(--ease-out),
               opacity var(--duration-fast) var(--ease-out);
@@ -152,33 +155,38 @@
 }
 
 .welcome-model-tile__description {
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
-  line-height: 1.4;
+  line-height: 1.5;
   margin: 0;
 }
 
 .welcome-model-tile__tags {
   display: flex;
   flex-wrap: wrap;
-  gap: calc(var(--spacing) * 0.6);
+  gap: calc(var(--spacing) * 1);
   margin-top: calc(var(--spacing) * 0.5);
 }
 
 .welcome-model-tile__tag {
-  font-size: 0.6rem;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 calc(var(--spacing) * 2.5);
+  height: 20px;
+  border-radius: var(--radius-full);
+  font-size: 0.6875rem;
   font-weight: 500;
-  color: var(--muted-foreground);
-  background-color: color-mix(in oklch, var(--muted) 60%, var(--background));
-  border: 1px solid color-mix(in oklch, var(--border) 60%, var(--background));
-  border-radius: var(--radius-sm);
-  padding: 0.1em 0.5em;
-  letter-spacing: 0.02em;
-  line-height: 1.6;
+  letter-spacing: .03em;
+  line-height: 1;
+  white-space: nowrap;
+  background-color: var(--secondary);
+  color: var(--secondary-foreground);
+  border: 1px solid var(--input);
 }
 
 .welcome-model-tile__size {
-  font-size: 0.7rem;
+  font-size: 0.75rem;
+  line-height: 1.5;
   color: var(--muted-foreground);
 }
 
@@ -199,8 +207,8 @@
 }
 
 .welcome-model-tile__icon-btn {
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   border: none;
   border-radius: 0;
   background-color: transparent;
@@ -209,6 +217,7 @@
   align-items: center;
   justify-content: center;
   padding: 0;
+  margin-right: -5px;
 }
 
 .welcome-model-tile__icon-btn--danger {
@@ -249,9 +258,9 @@
 }
 
 .welcome-model-card__name {
-  font-size: 0.76rem;
-  font-weight: 700;
-  line-height: 1.2;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.3;
 }
 
 .welcome-model-card__error {
@@ -327,7 +336,7 @@
   display: flex;
   align-items: center;
   gap: calc(var(--spacing) * 1.5);
-  font-size: 0.85rem;
+  font-size: 0.8125rem;
   border-radius: var(--radius-lg);
   padding: calc(var(--spacing) * 2);
   border: 1px solid color-mix(in oklch, var(--border) 70%, var(--background));
@@ -568,15 +577,17 @@
 }
 
 .welcome-btn {
+  align-self: center;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  width: fit-content;
   gap: calc(var(--spacing) * 1);
   padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3.5);
   border-radius: var(--radius-md);
   border: 1px solid transparent;
-  font-size: 0.84rem;
-  font-weight: 560;
+  font-size: 0.8125rem;
+  font-weight: 600;
   transition: background-color var(--duration-fast) var(--ease-out),
               color var(--duration-fast) var(--ease-out),
               border-color var(--duration-fast) var(--ease-out),

@@ -20,10 +20,10 @@ export function MicrophoneSelectionStep(props: MicrophoneSelectionStepProps): Re
 
   return (
     <section className="welcome-stage">
-      <h2 className="welcome-stage__title">Select your microphone</h2>
-      <p className="welcome-stage__description">
-        Choose the input device used when recording begins.
-      </p>
+      <div className="welcome-stage__title-section">
+        <h2 className="welcome-stage__title">Select your microphone</h2>
+        <p className="welcome-stage__description">Choose the input device used when recording begins.</p>
+      </div>
       <div className="welcome-stage__body">
         <div className="welcome-input-card">
           {audioDevicesLoading && (

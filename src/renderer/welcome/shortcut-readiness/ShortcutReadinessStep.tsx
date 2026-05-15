@@ -1,3 +1,4 @@
+import { ChevronRight, FileText, Mic } from 'lucide-react';
 import { ShortcutKeycaps } from './ShortcutKeycaps';
 
 interface ShortcutReadinessStepProps {
@@ -11,20 +12,25 @@ export function ShortcutReadinessStep(props: ShortcutReadinessStepProps): React.
   const { shortcutKey } = props;
 
   return (
-    <section className="welcome-stage">
-      <h2 className="welcome-stage__title">You are ready to speak</h2>
-      <div className="welcome-stage__body">
+    <section className="welcome-stage welcome-stage__shortcut-readiness">
+      <div className="welcome-stage__title-section">
+        <span className="welcome-final-stage__icon" aria-hidden="true">
+          <Mic />
+        </span>
+        <h2 className="welcome-stage__title">You are ready to speak</h2>
+        <p className="welcome-final-stage__close-hint">
+          Everything is configured. Close this window and start using MoVoice right away.
+        </p>
+      </div>
+      <div className="welcome-stage__body welcome-stage__body-final-stage">
         <div className="welcome-final-stage">
           <div className="welcome-final-stage__primary">
-            <p className="welcome-final-stage__close-hint">
-              Everything is configured. Close this window and start using MoVoice right away.
-            </p>
             <ShortcutKeycaps shortcut={shortcutKey} large />
             <p className="welcome-final-stage__shortcut-label">your recording shortcut</p>
           </div>
 
           <div className="welcome-final-stage__or-divider" aria-hidden="true">
-            <span>or try it here</span>
+            <span>Or try it here</span>
           </div>
 
           <div className="welcome-final-stage__test">
@@ -33,21 +39,26 @@ export function ShortcutReadinessStep(props: ShortcutReadinessStepProps): React.
                 <span className="welcome-final-stage__step-badge" aria-hidden="true">1</span>
                 <span>Press the shortcut</span>
               </span>
+              <ChevronRight className="welcome-final-stage__step-chevron" aria-hidden="true" />
               <span className="welcome-final-stage__step">
                 <span className="welcome-final-stage__step-badge" aria-hidden="true">2</span>
                 <span>Speak</span>
               </span>
+              <ChevronRight className="welcome-final-stage__step-chevron" aria-hidden="true" />
               <span className="welcome-final-stage__step">
                 <span className="welcome-final-stage__step-badge" aria-hidden="true">3</span>
                 <span>Press it again</span>
               </span>
             </p>
-            <textarea
-              id="welcome-dictation-preview"
-              className="welcome-dictation-preview welcome-no-drag"
-              rows={4}
-              placeholder="Transcribed text will appear here"
-            />
+            <div className="welcome-dictation-preview-wrap">
+              <FileText className="welcome-dictation-preview-icon" size={18} aria-hidden="true" />
+              <textarea
+                id="welcome-dictation-preview"
+                className="welcome-dictation-preview welcome-no-drag"
+                rows={3}
+                placeholder="Transcribed text will appear here"
+              />
+            </div>
           </div>
         </div>
       </div>
