@@ -31,7 +31,7 @@
   width: 16px;
   height: 16px;
   border-radius: var(--radius-full);
-  background-color: var(--background);
+  background-color: var(--color-primary-foreground);
   box-shadow: var(--shadow-xs);
   transform: translateX(0);
   transition: transform var(--duration-fast) var(--ease-out);
