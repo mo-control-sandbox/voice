@@ -43,20 +43,23 @@ export function AccessibilityPermissionStep(props: AccessibilityPermissionStepPr
               {accessibilityFeedback === 'idle' && 'Waiting for Accessibility permission.'}
             </span>
           </div>
-          <p className="welcome-permission-guide__label">
-            Open System Settings and enable MoVoice in Accessibility.
-          </p>
           {accessibilityStatus !== PermissionStatus.PERMISSION_STATUS_GRANTED && (
-            <button
-              type="button"
-              className="welcome-btn welcome-btn--primary welcome-no-drag"
-              disabled={accessibilityFeedback === 'loading'}
-              onClick={() => {
-                void onOpenSystemSettings();
-              }}
-            >
-              Open System Settings
-            </button>
+            <>
+              <p className="welcome-permission-guide__label welcome-permission-guide__label-accessibility">
+                Open System Settings and enable MoVoice in Accessibility.
+              </p>
+
+              <button
+                type="button"
+                className="welcome-btn welcome-btn--primary welcome-no-drag"
+                disabled={accessibilityFeedback === 'loading'}
+                onClick={() => {
+                  void onOpenSystemSettings();
+                }}
+              >
+                Open System Settings
+              </button>
+            </>
           )}
         </div>
       </div>
