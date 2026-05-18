@@ -99,12 +99,15 @@ export class RendererModelRepository {
       await this.fileStore.download(
         id,
         (fraction) => {
-          if (!active) return;
+          if (!active || controller.signal.aborted) return;
           this.downloadProgress.set(id, fraction);
           onProgress(fraction);
         },
         controller.signal,
       );
+      if (controller.signal.aborted) {
+        throw new DOMException('Model download was cancelled.', 'AbortError');
+      }
     } finally {
       active = false;
       this.downloadProgress.delete(id);
