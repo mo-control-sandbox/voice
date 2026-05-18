@@ -68,6 +68,7 @@
   padding: var(--card-padding);
   background-color: var(--card);
   border-radius: var(--radius-lg);
+  margin-inline: calc(var(--card-padding) * -1);
 }
 
 .general-permission-card__text {
@@ -189,6 +190,7 @@
 /* ─── Toggle row (Switch + label) ────────────────────────────────────────── */
 
 .toggle-row {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -196,8 +198,14 @@
   padding: var(--card-padding);
 }
 
-.toggle-row:not(:first-child) {
-  border-top: 1px solid var(--border);
+.toggle-row:not(:first-child)::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: var(--card-padding);
+  right: var(--card-padding);
+  height: 1px;
+  background: var(--border);
 }
 
 .toggle-row__label {

@@ -39,7 +39,8 @@
   color: var(--foreground);
   padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
   font-size: 0.8125rem;
-  line-height: 1.45;
+  line-height: 1.5;
+  margin-inline: calc(var(--card-padding) * -1);
 }
 
 /* ─── Refresh button ─────────────────────────────────────────────────────── */
