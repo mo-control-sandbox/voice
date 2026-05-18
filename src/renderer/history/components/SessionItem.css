@@ -95,7 +95,3 @@
 .session-item[aria-selected="true"] .session-item__duration {
   color: var(--primary-foreground);
 }
-
-.session-item:not([aria-selected="true"]):hover .session-item__words {
-  border-color: oklch(from var(--accent-foreground) l c h / 25%);
-}

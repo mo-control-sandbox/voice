@@ -28,21 +28,33 @@
   height: 32px;
   flex-shrink: 0;
   border-radius: var(--radius-md);
-  background: linear-gradient(135deg, #b9b6ff 0%, #8885f7 100%);
 }
 
 .permission-row__icon-wrap:has(.lucide-mic) {
-  background: linear-gradient(135deg, #b9b6ff 0%, #8885f7 100%);
+  background-color: oklch(89% 0.06 310deg / 50%);
+  color: oklch(55% 0.18 305deg);
 }
 
 .permission-row__icon-wrap:has(.lucide-keyboard) {
-  background: linear-gradient(135deg, #a7abff 0%, #4686ff 100%)
+  background-color: oklch(88% 0.05 240deg / 50%);
+  color: oklch(52% 0.20 245deg);
+}
+
+.dark .permission-row__icon-wrap:has(.lucide-mic) {
+  background: linear-gradient(to bottom, oklch(68% 0.22 312deg / 14%) 0%, oklch(68% 0.22 312deg / 7%) 100%);
+  color: oklch(68% 0.22 312deg);
+  box-shadow: inset 0 1px 0 oklch(68% 0.22 312deg / 22%);
+}
+
+.dark .permission-row__icon-wrap:has(.lucide-keyboard) {
+  background: linear-gradient(to bottom, oklch(67% 0.17 255deg / 14%) 0%, oklch(67% 0.17 255deg / 7%) 100%);
+  color: oklch(67% 0.17 255deg);
+  box-shadow: inset 0 1px 0 oklch(67% 0.17 255deg / 22%);
 }
 
 .permission-row__icon {
   width: 16px;
   height: 16px;
-  color: white;
 }
 
 /* ─── Text block ─────────────────────────────────────────────────────────── */

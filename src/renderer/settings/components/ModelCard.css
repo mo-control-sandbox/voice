@@ -6,6 +6,7 @@
   padding: var(--card-padding);
   border-radius: var(--radius-lg);
   background-color: var(--card);
+  margin-inline: calc(var(--card-padding) * -1);
 
   /* Left accent via box-shadow — no layout shift */
   box-shadow: inset 3px 0 0 transparent;
@@ -74,8 +75,8 @@
 }
 
 .model-card__badge[data-badge="active"] {
-  color: var(--primary);
-  border: 1px solid var(--primary);
+  color: var(--info);
+  border: 1px solid var(--info);
 }
 
 .model-card__badge[data-badge="multilingual"] {

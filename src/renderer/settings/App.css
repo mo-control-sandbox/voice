@@ -76,13 +76,6 @@
   color: var(--sidebar-primary-foreground);
 }
 
-/* Hover on active item — maintain active colours, just slightly lightened */
-.settings-nav-item[aria-current="page"]:hover {
-  background-color: var(--sidebar-primary);
-  color: var(--sidebar-primary-foreground);
-  opacity: 0.9;
-}
-
 .settings-nav-item__icon {
   width: 16px;
   height: 16px;

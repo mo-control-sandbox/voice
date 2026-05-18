@@ -90,13 +90,13 @@
 /* Sessions — purple / lavender */
 .stat-card[data-accent="sessions"] .stat-card__icon-wrap {
   background-color: oklch(89% 0.06 310deg / 50%);
-  color:            oklch(55% 0.18 305deg);
+  color: oklch(55% 0.18 305deg);
 }
 
 /* Words — blue / steel */
 .stat-card[data-accent="words"] .stat-card__icon-wrap {
   background-color: oklch(88% 0.05 240deg / 50%);
-  color:            oklch(52% 0.20 245deg);
+  color: oklch(52% 0.20 245deg);
 }
 
 /* WPM — amber / yellow */
@@ -118,28 +118,28 @@
 }
 
 .dark .stat-card[data-accent="sessions"] .stat-card__icon-wrap {
-  background-color: #291f33;
-  color: #c27bff;
+  background-color: oklch(70% 0.21 310deg / 16%);
+  color: oklch(70% 0.21 310deg);
 }
 
 .dark .stat-card[data-accent="words"] .stat-card__icon-wrap {
-  background-color: #1d2433;
-  color: #52a2ff;
+  background-color: oklch(69% 0.16 252deg / 16%);
+  color: oklch(69% 0.16 252deg);
 }
 
 .dark .stat-card[data-accent="wpm"] .stat-card__icon-wrap {
-  background-color: #302719;
-  color: #ffba00;
+  background-color: oklch(83% 0.17 85deg / 16%);
+  color: oklch(83% 0.17 85deg);
 }
 
 .dark .stat-card[data-accent="keystrokes"] .stat-card__icon-wrap {
-  background-color: #302019;
-  color: #ff4a00;
+  background-color: oklch(68% 0.24 40deg / 16%);
+  color: oklch(68% 0.24 40deg);
 }
 
 .dark .stat-card[data-accent="time"] .stat-card__icon-wrap {
-  background-color: #1b2b26;
-  color: #00d492;
+  background-color: oklch(77% 0.17 165deg / 16%);
+  color: oklch(77% 0.17 165deg);
 }
 
 /* ─── Loading skeleton ───────────────────────────────────────────────────── */

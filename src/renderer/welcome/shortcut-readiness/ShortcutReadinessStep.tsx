@@ -1,4 +1,4 @@
-import { ChevronRight, FileText, Mic } from 'lucide-react';
+import { ChevronRight, Mic } from 'lucide-react';
 import { ShortcutKeycaps } from './ShortcutKeycaps';
 
 interface ShortcutReadinessStepProps {
@@ -51,7 +51,6 @@ export function ShortcutReadinessStep(props: ShortcutReadinessStepProps): React.
               </span>
             </p>
             <div className="welcome-dictation-preview-wrap">
-              <FileText className="welcome-dictation-preview-icon" size={18} aria-hidden="true" />
               <textarea
                 id="welcome-dictation-preview"
                 className="welcome-dictation-preview welcome-no-drag"

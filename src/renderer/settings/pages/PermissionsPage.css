@@ -115,6 +115,7 @@
   flex-direction: column;
   background-color: var(--card);
   border-radius: var(--radius-lg);
+  margin-inline: calc(var(--card-padding) * -1);
 }
 
 /* ─── Loading state ──────────────────────────────────────────────────────── */

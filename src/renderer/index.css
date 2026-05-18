@@ -191,9 +191,9 @@
 /* ─── Semantic tokens — Dark mode ───────────────────────────────────────────── */
 .dark {
   /* Surface & text */
-  --background:        oklch(17% 0 0deg);
+  --background:        oklch(22.5% 0 0deg);
   --foreground:        oklch(90% 0 0deg);
-  --card:              oklch(20.5% 0 0deg);
+  --card:              oklch(27.5% 0 0deg);
   --card-foreground:   oklch(90% 0 0deg);
   --popover:           oklch(20.5% 0 0deg);
   --popover-foreground: oklch(90% 0 0deg);
@@ -203,34 +203,34 @@
   --primary-foreground:   oklch(98% 0 0deg);
   --secondary:            oklch(26.9% 0 0deg);
   --secondary-foreground: oklch(70% 0 0deg);
-  --accent:               oklch(26.9% 0 0deg);
+  --accent:               oklch(24.5% 0 0deg);
   --accent-foreground:    oklch(90% 0 0deg);
   --destructive:          oklch(73.2% 0.183 24.7deg);
   --destructive-foreground: oklch(90% 0 0deg);
 
   /* Chrome */
-  --muted:            oklch(26.9% 0 0deg);
+  --muted:            oklch(30% 0 0deg);
   --muted-foreground: oklch(70.8% 0 0deg);
   --border:           oklch(100% 0 0deg / 10%);
   --input:            oklch(100% 0 0deg / 15%);
   --ring:             oklch(67% 0.19 262deg / 80%);
 
   /* Sidebar */
-  --sidebar:                    oklch(20.5% 0 0deg);
+  --sidebar:                    oklch(20% 0 0deg);
   --sidebar-foreground:         oklch(72% 0 0deg);
-  --sidebar-primary:            oklch(31% 0 0deg);
+  --sidebar-primary:            oklch(29% 0 0deg);
   --sidebar-primary-foreground: oklch(90% 0 0deg);
   --sidebar-accent:             oklch(26.9% 0 0deg);
   --sidebar-accent-foreground:  oklch(90% 0 0deg);
-  --sidebar-border:             oklch(100% 0 0deg / 5%);
-  --sidebar-border-right:       oklch(100% 0 0deg / 5%);
+  --sidebar-border:             oklch(100% 0 0deg / 8%);
+  --sidebar-border-right:       oklch(100% 0 0deg / 8%);
 
   /* Status */
-  --success:            oklch(69.6% 0.170 162.5deg);
+  --success:            oklch(79% 0.19 157deg);
   --success-foreground: oklch(14.5% 0 0deg);
   --warning:            oklch(82% 0.160 75.0deg);
   --warning-foreground: oklch(14.5% 0 0deg);
-  --info:               var(--primary);
+  --info:               oklch(69% 0.18 258.62deg);
   --info-foreground:    oklch(90% 0 0deg);
 
   /* MoVoice — recording state */
