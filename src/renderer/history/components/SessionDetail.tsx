@@ -71,7 +71,7 @@ export function SessionDetail({
           <span className="session-detail__section-label">Transcript</span>
           <button
             type="button"
-            className="session-detail__copy-btn"
+            className="session-detail__copy-btn no-drag"
             onClick={() => { void handleCopyTranscript(); }}
             disabled={!transcriptSaved}
             aria-label={copied ? 'Transcript copied' : 'Copy transcript'}

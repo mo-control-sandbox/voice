@@ -322,6 +322,10 @@
   padding: calc(var(--spacing) * 1);
   border-radius: var(--radius-sm);
   font-size: 0.6875rem;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
   font-weight: 500;
+}
+
+.dark .shortcut-summary__value {
+  background-color: oklch(34% 0 0deg);
 }
