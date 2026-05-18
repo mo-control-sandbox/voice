@@ -28,7 +28,7 @@
   flex-shrink: 0;
   width: 200px;
   gap: calc(var(--spacing) * 1);
-  padding: calc(var(--spacing) * 10) calc(var(--spacing) * 3) calc(var(--spacing) * 3);
+  padding: calc(var(--spacing) * 10) calc(var(--spacing) * 2.5) calc(var(--spacing) * 2.5);
   background: var(--sidebar);
   border-left: 1px solid var(--sidebar-border);
   border-right: 1px solid var(--sidebar-border-right);

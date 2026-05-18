@@ -3,10 +3,18 @@
   grid-template-rows: 1fr auto;
   height: 100vh;
   overflow: hidden;
-  /*background:
-    radial-gradient(120% 90% at 0% 0%, color-mix(in oklch, var(--info) 14%, transparent), transparent 60%),
-    radial-gradient(80% 70% at 100% 100%, color-mix(in oklch, var(--warning) 18%, transparent), transparent 55%),
-    var(--background);*/
+}
+
+.welcome-wizard:has(.welcome-stage__shortcut-readiness) {
+  background:
+    radial-gradient(100% 100% at -10% 0%, color-mix(in oklch, var(--info) 10%, transparent), transparent 60%),
+    var(--background)
+}
+
+.dark .welcome-wizard:has(.welcome-stage__shortcut-readiness) {
+  background:
+    radial-gradient(100% 100% at -10% 0%, color-mix(in oklch, var(--info) 20%, transparent), transparent 60%),
+    var(--background)
 }
 
 .welcome-no-drag {
@@ -108,7 +116,7 @@
 
 .dark .welcome-final-stage__icon {
   background: color-mix(in oklch, var(--primary) 16%, transparent);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 20%), inset 1px 0 0 rgb(255 255 255 / 20%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 16%), inset 1px 0 0 rgb(255 255 255 / 8%);
 }
 
 .dark .welcome-final-stage__icon::before {
@@ -708,7 +716,7 @@
   justify-content: center;
   width: fit-content;
   gap: calc(var(--spacing) * 1);
-  padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3.5);
+  padding: calc(var(--spacing) * 1) calc(var(--spacing) * 4);
   border-radius: var(--radius-md);
   border: 1px solid transparent;
   font-size: 0.8125rem;

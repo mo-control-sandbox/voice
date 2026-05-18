@@ -21,10 +21,10 @@ export function SessionList({ sessions, selectedId, onSelect, onDelete }: Sessio
   if (sessions.length === 0) {
     return (
       <div className="empty-history">
-        <ScrollText className="empty-history__icon" aria-hidden="true" />
+        <ScrollText className="empty-history__icon" aria-hidden="true" strokeWidth={1} />
         <span className="empty-history__title">No recordings yet</span>
         <span className="empty-history__hint">
-          Press your shortcut key to start recording.
+          Press your shortcut key to{"\u00A0"}start{"\u00A0"}recording.
         </span>
       </div>
     );

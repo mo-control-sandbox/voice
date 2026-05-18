@@ -258,9 +258,8 @@
 
 .shortcut-preset[data-active="true"] {
   border-color: var(--primary);
-  background-color: var(--background);
+  background-color: color-mix(in oklch, var(--info) 10%, transparent);
   color: var(--foreground);
-  box-shadow: 0 2px 0 #00000016, 0 0 0 1px color-mix(in oklch, var(--primary) 28%, transparent), var(--shadow-sm);
 }
 
 /* Custom capture widget */
@@ -274,7 +273,7 @@
   padding: calc(var(--spacing) * 1) calc(var(--spacing) * 2.5);
   border-radius: var(--radius-md);
   border: 1px solid var(--input);
-  background-color: var(--background);
+  background-color: transparent;
   color: var(--muted-foreground);
   font-size: 0.8125rem;
   transition: border-color var(--duration-fast) var(--ease-out),
@@ -292,6 +291,7 @@
 }
 
 .shortcut-capture[data-state="capturing"] {
+  background-color: var(--background);
   border-color: var(--ring);
   color: var(--foreground);
 }

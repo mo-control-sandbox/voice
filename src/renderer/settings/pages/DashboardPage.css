@@ -133,8 +133,8 @@
 }
 
 .dark .stat-card[data-accent="keystrokes"] .stat-card__icon-wrap {
-  background-color: oklch(68% 0.24 40deg / 16%);
-  color: oklch(68% 0.24 40deg);
+  background-color: oklch(76% 0.24 40deg / 16%);
+  color: oklch(76% 0.24 40deg);
 }
 
 .dark .stat-card[data-accent="time"] .stat-card__icon-wrap {
