@@ -55,7 +55,10 @@ export function WelcomeApp(): React.JSX.Element {
         )}
 
         {state.step === 'final-shortcut' && (
-          <ShortcutReadinessStep shortcutKey={state.shortcutKey} />
+          <ShortcutReadinessStep
+            shortcutKey={state.shortcutKey}
+            dictationPreview={state.dictationPreview}
+          />
         )}
       </main>
 

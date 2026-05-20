@@ -1,15 +1,24 @@
 import { ChevronRight, Mic } from 'lucide-react';
 import { ShortcutKeycaps } from './ShortcutKeycaps';
+import type { ShortcutDictationPreview } from './useShortcutReadiness';
 
 interface ShortcutReadinessStepProps {
   readonly shortcutKey: string;
+  readonly dictationPreview: ShortcutDictationPreview;
+}
+
+function getPreviewClassName(preview: ShortcutDictationPreview): string {
+  let className = 'welcome-dictation-preview welcome-no-drag';
+  if (preview.isBusy) className += ' welcome-dictation-preview--busy';
+  if (preview.status === 'error') className += ' welcome-dictation-preview--error';
+  return className;
 }
 
 /**
  * Displays the final onboarding step confirming setup is complete.
  */
 export function ShortcutReadinessStep(props: ShortcutReadinessStepProps): React.JSX.Element {
-  const { shortcutKey } = props;
+  const { shortcutKey, dictationPreview } = props;
 
   return (
     <section className="welcome-stage welcome-stage__shortcut-readiness">
@@ -53,9 +62,13 @@ export function ShortcutReadinessStep(props: ShortcutReadinessStepProps): React.
             <div className="welcome-dictation-preview-wrap">
               <textarea
                 id="welcome-dictation-preview"
-                className="welcome-dictation-preview welcome-no-drag"
+                className={getPreviewClassName(dictationPreview)}
                 rows={3}
+                value={dictationPreview.displayText}
                 placeholder="Transcribed text will appear here"
+                readOnly
+                aria-busy={dictationPreview.isBusy}
+                aria-live="polite"
               />
             </div>
           </div>

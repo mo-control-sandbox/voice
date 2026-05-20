@@ -10,6 +10,22 @@ const AUDIO_START_FAILURE_DISMISS_MS = 2000;
 const RECORDING_POLL_INTERVAL_MS = 1000 / 30;
 
 /**
+ * Recording state update delivered to non-owning renderer observers.
+ */
+export interface RecordingObserverState extends RecordingViewState {
+  readonly sessionId: string;
+}
+
+/**
+ * Receives recording lifecycle and transcription output without owning the session.
+ */
+export interface RecordingEventObserver {
+  readonly onStateChanged: (state: RecordingObserverState) => void;
+  readonly onPartialTranscription: (sessionId: string, text: string) => void;
+  readonly onCompletedTranscription: (sessionId: string, text: string) => void;
+}
+
+/**
  * Orchestrates one recording session lifecycle in the renderer.
  */
 export class RecordingOrchestrator {
@@ -49,7 +65,10 @@ export class RecordingOrchestrator {
    */
   private stateCallback: ((state: RecordingViewState) => void) | null = null;
 
-  constructor(private readonly transcriptionService: TranscriptionService) {}
+  constructor(
+    private readonly transcriptionService: TranscriptionService,
+    private readonly eventObserver: RecordingEventObserver | null = null,
+  ) {}
 
   /**
    * Starts orchestrator signal subscription and emits view-state updates.
@@ -119,6 +138,7 @@ export class RecordingOrchestrator {
           });
         },
         onPartialResult: (text) => {
+          this.eventObserver?.onPartialTranscription(sessionId, text);
           void this.streamPartialTranscription(sessionId, text);
         },
         onBatchMaxDurationReached: () => {
@@ -147,6 +167,7 @@ export class RecordingOrchestrator {
       const processingResult = await processingPromise;
 
       if (processingResult.status === 'completed') {
+        this.eventObserver?.onCompletedTranscription(next.sessionId, processingResult.submission.text);
         await this.submitTranscription(processingResult.submission);
       } else {
         await this.cancelRecording({ sessionId: next.sessionId, reason: 'CANCELLED' });
@@ -169,11 +190,16 @@ export class RecordingOrchestrator {
    * Emits state for view subscribers using current orchestration and service data.
    */
   private notifyState(): void {
-    const phase = this.errorMessage === null ? this.lastState : 'error';
-    this.stateCallback?.({
+    const phase: RecordingViewState['phase'] = this.errorMessage === null ? this.lastState : 'error';
+    const state: RecordingViewState = {
       phase,
       isAudioReady: this.transcriptionService.isAudioReady,
       errorMessage: this.errorMessage,
+    };
+    this.stateCallback?.(state);
+    this.eventObserver?.onStateChanged({
+      ...state,
+      sessionId: this.lastSessionId,
     });
   }
 
