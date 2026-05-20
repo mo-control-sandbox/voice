@@ -62,6 +62,47 @@ jobs:
       - name: Build release package
         run: npm run build
 
+      - name: Upload DMG to Cloudflare R2
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          R2_ACCOUNT_ID: ${{ vars.R2_ACCOUNT_ID }}
+          R2_BUCKET: ${{ vars.R2_BUCKET }}
+          R2_PUBLIC_BASE_URL: ${{ vars.R2_PUBLIC_BASE_URL }}
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+
+          dmg_files=(build/dist/mac-arm64/pack/*.dmg)
+          if [[ ${#dmg_files[@]} -ne 1 ]]; then
+            echo "Expected exactly one DMG, found ${#dmg_files[@]}" >&2
+            exit 1
+          fi
+
+          product_name="$(node -e "const fs = require('fs'); const config = JSON.parse(fs.readFileSync('mobrowser.conf.json', 'utf8')); process.stdout.write(config.app.name);")"
+          config_version="$(node -e "const fs = require('fs'); const config = JSON.parse(fs.readFileSync('mobrowser.conf.json', 'utf8')); const version = config.app.version; process.stdout.write([version.major, version.minor, version.patch].join('.'));")"
+
+          if [[ "${GITHUB_REF_TYPE}" == "tag" && "${GITHUB_REF_NAME}" == v* ]]; then
+            version="${GITHUB_REF_NAME#v}"
+          else
+            version="${config_version}"
+          fi
+
+          dmg_path="${dmg_files[0]}"
+          upload_filename="${product_name}-${version}-arm64.dmg"
+          object_key="${product_name}/${upload_filename}"
+          endpoint_url="https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com"
+
+          aws s3 cp "${dmg_path}" "s3://${R2_BUCKET}/${object_key}" \
+            --endpoint-url "${endpoint_url}" \
+            --content-type "application/x-apple-diskimage"
+
+          echo "Uploaded to s3://${R2_BUCKET}/${object_key}"
+          if [[ -n "${R2_PUBLIC_BASE_URL:-}" ]]; then
+            echo "Download URL: ${R2_PUBLIC_BASE_URL%/}/${object_key}"
+          fi
+
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
