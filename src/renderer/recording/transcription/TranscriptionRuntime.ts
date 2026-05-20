@@ -1,8 +1,14 @@
 import { getRendererModelRepository } from '../../models/application/getRendererModelRepository';
 import { RecordingPhase } from '../../gen/reverse_ipc_bridge';
+import {
+  RecordingPreviewEventPublisher,
+} from '../RecordingPreviewEvents';
 import { RecordingController } from '../RecordingController';
 import { TranscriptionService } from '../application/TranscriptionService';
-import { RecordingOrchestrator } from '../application/RecordingOrchestrator';
+import {
+  RecordingOrchestrator,
+  type RecordingEventObserver,
+} from '../application/RecordingOrchestrator';
 import { BackendFactory } from './BackendFactory';
 
 /*
@@ -15,8 +21,33 @@ const transcriptionService = new TranscriptionService(
   modelRepository,
   new BackendFactory(),
 );
+const previewEventPublisher = new RecordingPreviewEventPublisher();
+const recordingEventObserver: RecordingEventObserver = {
+  onStateChanged(state): void {
+    previewEventPublisher.publish({
+      type: 'recording-state',
+      sessionId: state.sessionId,
+      phase: state.phase,
+      errorMessage: state.errorMessage,
+    });
+  },
+  onPartialTranscription(sessionId, text): void {
+    previewEventPublisher.publish({
+      type: 'partial-transcription',
+      sessionId,
+      text,
+    });
+  },
+  onCompletedTranscription(sessionId, text): void {
+    previewEventPublisher.publish({
+      type: 'completed-transcription',
+      sessionId,
+      text,
+    });
+  },
+};
 const controller = new RecordingController(
-  new RecordingOrchestrator(transcriptionService),
+  new RecordingOrchestrator(transcriptionService, recordingEventObserver),
 );
 
 function prewarmSilently(): void {

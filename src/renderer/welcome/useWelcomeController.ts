@@ -9,7 +9,10 @@ import { useMicrophoneSelection } from './microphone-selection/useMicrophoneSele
 import { useModelSelection } from './model-selection/useModelSelection';
 import type { FeedbackState } from './shared/feedback';
 import { readRequiredPermissions } from './shared/readRequiredPermissions';
-import { useShortcutReadiness } from './shortcut-readiness/useShortcutReadiness';
+import {
+  useShortcutReadiness,
+  type ShortcutDictationPreview,
+} from './shortcut-readiness/useShortcutReadiness';
 
 const AUTO_ADVANCE_DELAY_MS = 900;
 
@@ -32,6 +35,7 @@ export interface WelcomeControllerState {
   readonly audioDevicesLoading: boolean;
   readonly selectedAudioDeviceId: string;
   readonly shortcutKey: string;
+  readonly dictationPreview: ShortcutDictationPreview;
   readonly canContinue: boolean;
   readonly showContinue: boolean;
 }
@@ -212,6 +216,7 @@ export function useWelcomeController(): {
       audioDevicesLoading: microphoneSelection.audioDevicesLoading,
       selectedAudioDeviceId: microphoneSelection.selectedAudioDeviceId,
       shortcutKey: shortcutReadiness.shortcutKey,
+      dictationPreview: shortcutReadiness.dictationPreview,
       canContinue,
       showContinue,
     },

@@ -563,13 +563,52 @@
   color: var(--foreground);
   padding: calc(var(--spacing) * 2) calc(var(--spacing) * 2.5);
   font-size: 0.8125rem;
+  line-height: 1.5;
   min-height: 104px;
   resize: none;
+  transition: border-color var(--duration-fast) var(--ease-out),
+              box-shadow var(--duration-fast) var(--ease-out),
+              color var(--duration-fast) var(--ease-out);
+}
+
+.welcome-dictation-preview--busy {
+  border: 1px solid var(--primary);
+  color: color-mix(in oklch, var(--foreground) 78%, var(--muted-foreground));
+  background: linear-gradient(
+    90deg,
+    var(--background) 0%,
+    oklch(from var(--primary) l c h / 10%) 50%,
+    var(--background) 100%
+  );
+  background-size: 200% 100%;
+  animation: dictation-preview-busy 1.6s linear infinite;
+}
+
+.welcome-dictation-preview--error {
+  border-color: color-mix(in oklch, var(--destructive) 60%, var(--border));
+  background-color: color-mix(in oklch, var(--destructive) 7%, var(--background));
+  color: var(--destructive);
 }
 
 .welcome-dictation-preview:focus-visible {
   outline: var(--focus-outline);
   outline-offset: var(--focus-outline-offset);
+}
+
+@keyframes dictation-preview-busy {
+  from {
+    background-position: 100% 0;
+  }
+
+  to {
+    background-position: -100% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .welcome-dictation-preview--busy {
+    animation: none;
+  }
 }
 
 .welcome-final-stage {
