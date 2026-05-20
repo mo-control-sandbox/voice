@@ -55,9 +55,13 @@ jobs:
         run: cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -B build -S .
 
       - name: Setup LLVM
-        uses: KyleMayes/install-llvm-action@v2
-        with:
-          version: "20"
+        shell: bash
+        run: |
+          set -euo pipefail
+          brew install llvm@20
+          llvm_prefix="$(brew --prefix llvm@20)"
+          echo "${llvm_prefix}/bin" >> "${GITHUB_PATH}"
+          echo "LLVM_PATH=${llvm_prefix}" >> "${GITHUB_ENV}"
 
       - name: Lint C++
         shell: bash
