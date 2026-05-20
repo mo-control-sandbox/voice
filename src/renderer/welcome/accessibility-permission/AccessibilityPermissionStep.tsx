@@ -21,10 +21,12 @@ export function AccessibilityPermissionStep(props: AccessibilityPermissionStepPr
 
   return (
     <section className="welcome-stage">
-      <h2 className="welcome-stage__title">Allow Accessibility access</h2>
-      <p className="welcome-stage__description">
-        Accessibility permission lets MoVoice paste transcription into the app you were using.
-      </p>
+      <div className="welcome-stage__title-section">
+        <h2 className="welcome-stage__title">Allow Accessibility access</h2>
+        <p className="welcome-stage__description">
+          Accessibility permission lets MoVoice paste transcription into the app you were using.
+        </p>
+      </div>
       <div className="welcome-stage__body welcome-stage__body--permission">
         <div className="welcome-permission-guide">
           <div className="welcome-status" data-state={accessibilityFeedback}>
@@ -41,20 +43,23 @@ export function AccessibilityPermissionStep(props: AccessibilityPermissionStepPr
               {accessibilityFeedback === 'idle' && 'Waiting for Accessibility permission.'}
             </span>
           </div>
-          <p className="welcome-permission-guide__label">
-            Open System Settings and enable MoVoice in Accessibility.
-          </p>
           {accessibilityStatus !== PermissionStatus.PERMISSION_STATUS_GRANTED && (
-            <button
-              type="button"
-              className="welcome-btn welcome-btn--primary welcome-no-drag"
-              disabled={accessibilityFeedback === 'loading'}
-              onClick={() => {
-                void onOpenSystemSettings();
-              }}
-            >
-              Open System Settings
-            </button>
+            <>
+              <p className="welcome-permission-guide__label welcome-permission-guide__label-accessibility">
+                Open System Settings and enable MoVoice in Accessibility.
+              </p>
+
+              <button
+                type="button"
+                className="welcome-btn welcome-btn--primary welcome-no-drag"
+                disabled={accessibilityFeedback === 'loading'}
+                onClick={() => {
+                  void onOpenSystemSettings();
+                }}
+              >
+                Open System Settings
+              </button>
+            </>
           )}
         </div>
       </div>

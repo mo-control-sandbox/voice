@@ -6,21 +6,20 @@
   text-align: left;
   padding: calc(var(--spacing) * 3) calc(var(--spacing) * 4); /* 12px 16px */
   background-color: transparent;
+  color: var(--foreground);
   border: none;
+  border-radius: var(--radius-md);
   transition: background-color var(--duration-fast) var(--ease-out);
 }
 
-.session-item:hover {
-  background-color: var(--accent);
-}
-
 .session-item:focus-visible {
-  outline: 3px solid var(--ring);
-  outline-offset: -3px;                /* Inset so it doesn't bleed outside the pane */
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-outline-offset);
 }
 
 .session-item[aria-selected="true"] {
-  background-color: var(--accent);
+  background-color: var(--primary);
+  color: var(--primary-foreground);
 }
 
 /* ─── Item content layout ────────────────────────────────────────────────── */
@@ -28,7 +27,7 @@
 .session-item__body {
   display: flex;
   flex-direction: column;
-  gap: calc(var(--spacing) * 1);       /* 4px between rows */
+  gap: calc(var(--spacing) * .5);
 }
 
 /* Top row: date + duration */
@@ -40,17 +39,12 @@
 }
 
 .session-item__date {
-  font-size: 0.875rem;
-  font-weight: 500;
-  line-height: 1.429;
-  color: var(--foreground);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.5;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.session-item[aria-selected="true"] .session-item__date {
-  color: var(--accent-foreground);
 }
 
 .session-item__duration {
@@ -59,6 +53,7 @@
   color: var(--muted-foreground);
   font-variant-numeric: tabular-nums;
   flex-shrink: 0;
+  margin-right: calc(var(--spacing) * .5);
 }
 
 /* Bottom row: engine + word count badge */
@@ -78,15 +73,25 @@
 }
 
 .session-item__words {
-  font-size: 0.6875rem;
-  font-weight: 500;
-  color: var(--muted-foreground);
-  background-color: var(--secondary);
-  border-radius: var(--radius-full);
-  padding: 0 calc(var(--spacing) * 1.5);
-  height: 16px;
   display: inline-flex;
   align-items: center;
-  flex-shrink: 0;
+  padding: 0 calc(var(--spacing) * 2);
+  height: 20px;
+  border-radius: var(--radius-full);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: .03em;
+  line-height: 1;
   white-space: nowrap;
+  background-color: transparent;
+  color: var(--muted-foreground);
+  border: 1px solid var(--border);
+  transition: border-color var(--duration-fast) var(--ease-out);
+}
+
+.session-item[aria-selected="true"] .session-item__meta,
+.session-item[aria-selected="true"] .session-item__engine,
+.session-item[aria-selected="true"] .session-item__words,
+.session-item[aria-selected="true"] .session-item__duration {
+  color: var(--primary-foreground);
 }

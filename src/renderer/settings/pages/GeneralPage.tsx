@@ -48,7 +48,7 @@ export function GeneralPage({ onOpenPermissions }: GeneralPageProps): React.JSX.
   const micPermissionDescription = isMicPermissionDenied
     ? 'Open System Settings and enable microphone access for MoVoice, then return here.'
     : 'Allow microphone access to choose your input device.';
-  const micPermissionButtonLabel = isMicPermissionDenied ? 'Open System Settings' : 'Allow Access';
+  const micPermissionButtonLabel = isMicPermissionDenied ? 'Open System Settings...' : 'Allow Access';
   const isMicPermissionButtonDisabled = isMicPermissionActionLoading || isMicPermissionPolling;
 
   return (
@@ -57,45 +57,49 @@ export function GeneralPage({ onOpenPermissions }: GeneralPageProps): React.JSX.
 
       <section className="general-section">
         <span className="general-section__label">Privacy</span>
-        <div className="toggle-row">
-          <label htmlFor="save-transcripts" className="toggle-row__label">
-            Save transcripts
-          </label>
-          <Switch
-            id="save-transcripts"
-            checked={saveTranscripts}
-            onChange={(value) => {
-              void handleSaveTranscripts(value);
-            }}
-          />
-        </div>
-        <div className="toggle-row">
-          <label htmlFor="save-audio" className="toggle-row__label">
-            Save audio
-          </label>
-          <Switch
-            id="save-audio"
-            checked={saveAudio}
-            onChange={(value) => {
-              void handleSaveAudio(value);
-            }}
-          />
+        <div className="general-section__card">
+          <div className="toggle-row">
+            <label htmlFor="save-transcripts" className="toggle-row__label">
+              Save transcripts
+            </label>
+            <Switch
+              id="save-transcripts"
+              checked={saveTranscripts}
+              onChange={(value) => {
+                void handleSaveTranscripts(value);
+              }}
+            />
+          </div>
+          <div className="toggle-row">
+            <label htmlFor="save-audio" className="toggle-row__label">
+              Save audio
+            </label>
+            <Switch
+              id="save-audio"
+              checked={saveAudio}
+              onChange={(value) => {
+                void handleSaveAudio(value);
+              }}
+            />
+          </div>
         </div>
       </section>
 
       <section className="general-section">
         <span className="general-section__label">Behavior</span>
-        <div className="toggle-row">
-          <label htmlFor="show-window-on-app-launch" className="toggle-row__label">
-            Show this window on app launch
-          </label>
-          <Switch
-            id="show-window-on-app-launch"
-            checked={showWindowOnAppLaunch}
-            onChange={(value) => {
-              void handleShowWindowOnAppLaunch(value);
-            }}
-          />
+        <div className="general-section__card">
+          <div className="toggle-row">
+            <label htmlFor="show-window-on-app-launch" className="toggle-row__label">
+              Show this window on app launch
+            </label>
+            <Switch
+              id="show-window-on-app-launch"
+              checked={showWindowOnAppLaunch}
+              onChange={(value) => {
+                void handleShowWindowOnAppLaunch(value);
+              }}
+            />
+          </div>
         </div>
       </section>
 
@@ -105,51 +109,61 @@ export function GeneralPage({ onOpenPermissions }: GeneralPageProps): React.JSX.
           <div className="general-skeleton" />
         ) : !isMicPermissionGranted ? (
           <div className="general-permission-card">
-            <span className="general-permission-card__title">{micPermissionTitle}</span>
-            <span className="general-permission-card__description">
-              {micPermissionDescription}
-            </span>
-            <button
-              type="button"
-              className="general-permission-card__link"
-              disabled={isMicPermissionButtonDisabled}
-              onClick={() => {
-                void handleMicPermissionAction();
-              }}
-            >
-              {isMicPermissionPolling ? 'Checking...' : micPermissionButtonLabel}
-            </button>
+            <div className="general-permission-card__text">
+              <span className="general-permission-card__title">{micPermissionTitle}</span>
+              <span className="general-permission-card__description">
+                {micPermissionDescription}
+              </span>
+            </div>
+            <div className="general-permission-card__action">
+              <button
+                type="button"
+                className="general-permission-card__btn"
+                disabled={isMicPermissionButtonDisabled}
+                onClick={() => {
+                  void handleMicPermissionAction();
+                }}
+              >
+                {isMicPermissionPolling ? 'Checking...' : micPermissionButtonLabel}
+              </button>
+            </div>
           </div>
         ) : devices.length === 0 ? (
           <div className="general-permission-card">
-            <span className="general-permission-card__title">No microphone devices available</span>
-            <span className="general-permission-card__description">
-              Open the Permissions page and allow microphone access, then return here.
-            </span>
-            <button
-              type="button"
-              className="general-permission-card__link"
-              onClick={onOpenPermissions}
-            >
-              Open Permissions
-            </button>
+            <div className="general-permission-card__text">
+              <span className="general-permission-card__title">No microphone devices available</span>
+              <span className="general-permission-card__description">
+                Open the Permissions page and allow microphone access, then return here.
+              </span>
+            </div>
+            <div className="general-permission-card__action">
+              <button
+                type="button"
+                className="general-permission-card__btn"
+                onClick={onOpenPermissions}
+              >
+                Open Permissions...
+              </button>
+            </div>
           </div>
         ) : (
-          <div className="general-field">
-            <label htmlFor="mic-select" className="toggle-row__label">Microphone</label>
-            <select
-              id="mic-select"
-              className="device-select"
-              value={selectedDeviceId}
-              onChange={(event) => {
-                void handleDeviceChange(event.target.value);
-              }}
-            >
-              <option value="">System default</option>
-              {devices.map((device) => (
-                <option key={device.deviceId} value={device.deviceId}>{device.label}</option>
-              ))}
-            </select>
+          <div className="general-section__card">
+            <div className="general-field">
+              <label htmlFor="mic-select" className="toggle-row__label">Microphone</label>
+              <select
+                id="mic-select"
+                className="device-select"
+                value={selectedDeviceId}
+                onChange={(event) => {
+                  void handleDeviceChange(event.target.value);
+                }}
+              >
+                <option value="">System default</option>
+                {devices.map((device) => (
+                  <option key={device.deviceId} value={device.deviceId}>{device.label}</option>
+                ))}
+              </select>
+            </div>
           </div>
         )}
       </section>
@@ -159,44 +173,46 @@ export function GeneralPage({ onOpenPermissions }: GeneralPageProps): React.JSX.
         {isShortcutLoading ? (
           <div className="general-skeleton" />
         ) : (
-          <div className="shortcut-section">
-            <div className="shortcut-presets">
-              {PREDEFINED_SHORTCUTS.map((shortcut) => (
+          <div className="general-section__card">
+            <div className="shortcut-section">
+              <div className="shortcut-presets">
+                {PREDEFINED_SHORTCUTS.map((shortcut) => (
+                  <button
+                    key={shortcut.value}
+                    type="button"
+                    className="shortcut-preset"
+                    data-active={shortcutKey === shortcut.value ? 'true' : undefined}
+                    onClick={() => {
+                      void saveShortcut(shortcut.value);
+                    }}
+                  >
+                    {shortcut.label}
+                  </button>
+                ))}
+              </div>
+              <div className="shortcut-capture-row">
                 <button
-                  key={shortcut.value}
+                  ref={captureRef}
                   type="button"
-                  className="shortcut-preset"
-                  data-active={shortcutKey === shortcut.value ? 'true' : undefined}
+                  className="shortcut-capture"
+                  data-state={isCapturing ? 'capturing' : undefined}
                   onClick={() => {
-                    void saveShortcut(shortcut.value);
+                    setIsCapturing(true);
+                    captureRef.current?.focus();
                   }}
                 >
-                  {shortcut.label}
+                  {isCapturing ? 'Press a key... (Esc to cancel)' : 'Custom...'}
                 </button>
-              ))}
-            </div>
-            <div className="shortcut-capture-row">
-              <button
-                ref={captureRef}
-                type="button"
-                className="shortcut-capture"
-                data-state={isCapturing ? 'capturing' : undefined}
-                onClick={() => {
-                  setIsCapturing(true);
-                  captureRef.current?.focus();
-                }}
-              >
-                {isCapturing ? 'Press a key... (Esc to cancel)' : 'Custom...'}
-              </button>
-              {customLabel !== null && (
-                <span className="shortcut-custom-value">{customLabel}</span>
+                {customLabel !== null && (
+                  <span className="shortcut-custom-value">{customLabel}</span>
+                )}
+              </div>
+              {shortcutKey !== '' && (
+                <span className="shortcut-summary">
+                  Active shortcut: <span className="shortcut-summary__value">{shortcutKey}</span>
+                </span>
               )}
             </div>
-            {shortcutKey !== '' && (
-              <span className="shortcut-summary">
-                Active shortcut: <span className="shortcut-summary__value">{shortcutKey}</span>
-              </span>
-            )}
           </div>
         )}
       </section>

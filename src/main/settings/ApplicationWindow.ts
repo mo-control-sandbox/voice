@@ -20,7 +20,10 @@ export class ApplicationWindow {
         size,
         minimumSize: size,
         title: 'MoVoice',
-        resizable: false
+        resizable: false,
+        windowTitleVisible: false,
+        windowTitlebarVisible: false,
+        windowButtonPosition: { x: 19, y: 19 },
       });
       attachPermissionHandler(window);
       window.setWindowButtonVisible('zoom', false);

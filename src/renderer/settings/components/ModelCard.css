@@ -3,11 +3,10 @@
 .model-card {
   display: flex;
   flex-direction: column;
-  gap: calc(var(--spacing) * 3);       /* 12px between rows */
-  padding: calc(var(--spacing) * 4);   /* 16px */
+  padding: var(--card-padding);
   border-radius: var(--radius-lg);
-  border: 1px solid var(--border);
   background-color: var(--card);
+  margin-inline: calc(var(--card-padding) * -1);
 
   /* Left accent via box-shadow — no layout shift */
   box-shadow: inset 3px 0 0 transparent;
@@ -15,12 +14,17 @@
 }
 
 .model-card[data-model-state="active"] {
-  box-shadow: inset 3px 0 0 var(--primary);
+  background-image: linear-gradient(135deg, color-mix(in oklch, var(--primary) 6%, white), color-mix(in oklch, var(--primary) 4%, white));
+  border: 1px solid var(--primary);
+}
+
+.dark .model-card[data-model-state="active"] {
+  background-image: linear-gradient(135deg, color-mix(in oklch, var(--primary) 6%, transparent), var(--card));
 }
 
 .model-card[data-model-state="downloading"],
 .model-card[data-model-state="preparing"] {
-  box-shadow: inset 3px 0 0 var(--info);
+  border: 1px solid var(--primary);
 }
 
 .model-card[data-model-state="error"] {
@@ -46,37 +50,39 @@
 .model-card__title-row {
   display: flex;
   align-items: center;
-  gap: calc(var(--spacing) * 2);
+  gap: calc(var(--spacing) * 1);
   flex-wrap: wrap;
 }
 
 .model-card__name {
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 600;
-  line-height: 1.429;
+  line-height: 1.5;
+  margin-right: calc(var(--spacing) * 1);
 }
 
 .model-card__badge {
   display: inline-flex;
   align-items: center;
-  padding: 0 calc(var(--spacing) * 1.5);
-  height: 18px;
+  padding: 0 calc(var(--spacing) * 2.5);
+  height: 20px;
   border-radius: var(--radius-full);
   font-size: 0.6875rem;
   font-weight: 500;
+  letter-spacing: .03em;
   line-height: 1;
   white-space: nowrap;
 }
 
 .model-card__badge[data-badge="active"] {
-  background-color: var(--primary);
-  color: var(--primary-foreground);
+  color: var(--info);
+  border: 1px solid var(--info);
 }
 
 .model-card__badge[data-badge="multilingual"] {
   background-color: var(--secondary);
   color: var(--secondary-foreground);
-  border: 1px solid var(--border);
+  border: 1px solid var(--input);
 }
 
 .model-card__badge[data-badge="en-only"] {
@@ -102,7 +108,8 @@
 
 .model-card__scores {
   display: flex;
-  gap: calc(var(--spacing) * 4);       /* 16px between speed and accuracy */
+  gap: calc(var(--spacing) * 4);
+  margin-block: calc(var(--spacing) * 4) calc(var(--spacing) * 2);
 }
 
 .score-pips {
@@ -113,8 +120,7 @@
 
 .score-pips__label {
   font-size: 0.75rem;
-  color: var(--muted-foreground);
-  width: 52px;
+  color: var(--foreground);
   flex-shrink: 0;
 }
 
@@ -127,11 +133,17 @@
   width: 6px;
   height: 6px;
   border-radius: var(--radius-full);
-  background-color: var(--muted);
+  background-color: var(--muted-foreground);
+  opacity: .4;
 }
 
 .score-pips__dot[data-filled="true"] {
-  background-color: var(--foreground);
+  background-color: var(--muted-foreground);
+  opacity: 1;
+}
+
+.model-card[data-model-state="active"] .score-pips__dot[data-filled="true"] {
+  background-color: var(--primary);
 }
 
 /* ─── Download progress ──────────────────────────────────────────────────── */
@@ -213,8 +225,8 @@
 }
 
 .model-card__btn:focus-visible {
-  outline: 3px solid var(--ring);
-  outline-offset: 2px;
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-outline-offset);
 }
 
 .model-card__btn:disabled {
@@ -247,12 +259,11 @@
 
 /* Destructive ghost: Delete */
 .model-card__btn[data-btn="destructive"] {
-  background-color: transparent;
+  background-color: oklch(from var(--destructive) l c h / 16%);
   color: var(--destructive);
-  border-color: var(--destructive);
 }
 
 .model-card__btn[data-btn="destructive"]:hover:not(:disabled) {
-  background-color: var(--destructive);
-  color: var(--destructive-foreground);
+  background-color: color-mix(in oklch, var(--destructive) 20%, var(--foreground) 10%);
+  color: var(--destructive);
 }

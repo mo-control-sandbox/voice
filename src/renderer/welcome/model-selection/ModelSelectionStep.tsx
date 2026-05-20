@@ -1,4 +1,4 @@
-import { Download, Loader2, X } from 'lucide-react';
+import { Loader2, X } from 'lucide-react';
 import type { ModelEntry } from '../../types/models';
 import { formatModelSize } from './formatModelSize';
 
@@ -9,6 +9,25 @@ interface ModelSelectionStepProps {
   readonly downloadErrors: ReadonlyMap<string, string>;
   readonly onDownload: (id: string) => Promise<void>;
   readonly onDelete: (id: string) => Promise<void>;
+}
+
+function ScorePips(props: { readonly score: number; readonly label: string }): React.JSX.Element {
+  const { score, label } = props;
+
+  return (
+    <div className="welcome-score-pips">
+      <span className="welcome-score-pips__label">{label}</span>
+      <div className="welcome-score-pips__dots">
+        {Array.from({ length: 5 }, (_, index) => (
+          <span
+            key={index}
+            className="welcome-score-pips__dot"
+            data-filled={index < Math.round(score) ? 'true' : undefined}
+          />
+        ))}
+      </div>
+    </div>
+  );
 }
 
 /**
@@ -26,10 +45,10 @@ export function ModelSelectionStep(props: ModelSelectionStepProps): React.JSX.El
 
   return (
     <section className="welcome-stage">
-      <h2 className="welcome-stage__title">Choose a model for MoVoice to download</h2>
-      <p className="welcome-stage__description">
-        You can change it later in Settings.
-      </p>
+      <div className="welcome-stage__title-section">
+        <h2 className="welcome-stage__title">Download a model for MoVoice</h2>
+        <p className="welcome-stage__description">You can change it later in Settings.</p>
+      </div>
       <div className="welcome-stage__body welcome-stage__body--static">
         <div className="welcome-model-list">
           {models.map((model) => (
@@ -42,6 +61,10 @@ export function ModelSelectionStep(props: ModelSelectionStepProps): React.JSX.El
               <div className="welcome-model-tile__info">
                 <h3 className="welcome-model-card__name">{model.definition.label}</h3>
                 <p className="welcome-model-tile__description">{model.definition.description}</p>
+                <div className="welcome-model-tile__scores">
+                  <ScorePips score={model.definition.speedScore} label="Speed" />
+                  <ScorePips score={model.definition.accuracyScore} label="Accuracy" />
+                </div>
                 <div className="welcome-model-tile__tags">
                   <span className="welcome-model-tile__tag">
                     {model.definition.isMultilingual ? 'Polyglot' : 'English'}
@@ -87,14 +110,14 @@ export function ModelSelectionStep(props: ModelSelectionStepProps): React.JSX.El
                   {model.downloadProgress === null && warmingUpModelId !== model.definition.id && !model.isDownloaded && (
                     <button
                       type="button"
-                      className="welcome-model-tile__icon-btn welcome-no-drag"
+                      className="welcome-model-tile__download-btn welcome-no-drag"
                       disabled={downloadingModelId !== null}
                       onClick={() => {
                         void onDownload(model.definition.id);
                       }}
                       aria-label={`Download ${model.definition.label}`}
                     >
-                      <Download size={14} aria-hidden="true" />
+                      Download
                     </button>
                   )}
                   {model.downloadProgress === null && warmingUpModelId !== model.definition.id && model.isDownloaded && (

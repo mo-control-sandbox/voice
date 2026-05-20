@@ -16,6 +16,7 @@ export function WelcomeApp(): React.JSX.Element {
 
   return (
     <div className="welcome-wizard">
+      <div className="draggable"></div>
       <main className="welcome-wizard__content">
         {state.step === 'welcome-model' && (
           <ModelSelectionStep

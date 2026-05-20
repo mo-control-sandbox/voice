@@ -25,6 +25,8 @@
 /* ─── App icon ───────────────────────────────────────────────────────────── */
 
 .about-window__icon {
+  position: relative;
+  z-index: 1;
   width: 80px;
   height: 80px;
   border-radius: var(--radius-2xl);
@@ -62,24 +64,39 @@
 
 .about-window__icon-button {
   all: unset;
+  position: relative;
+  display: inline-flex;
   cursor: pointer;
   border-radius: var(--radius-2xl);
 }
 
+.dark .about-window__icon-button::before {
+  position: absolute;
+  content: "";
+  top: 55%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80px;
+  height: 80px;
+  border-radius: var(--radius-full);
+  background: color-mix(in oklch, var(--primary) 12%, transparent);
+  filter: blur(18px);
+}
+
 .about-window__icon-button:focus-visible {
-  outline: 2px solid var(--ring);
-  outline-offset: 2px;
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-outline-offset);
 }
 
 .about-window__powered-by-label {
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   opacity: 0.6;
 }
 
 .about-window__powered-by {
   all: unset;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   opacity: 0.6;
   cursor: pointer;
@@ -87,6 +104,6 @@
 }
 
 .about-window__powered-by:focus-visible {
-  outline: 2px solid var(--ring);
-  outline-offset: 2px;
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-outline-offset);
 }

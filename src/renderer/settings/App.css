@@ -3,6 +3,7 @@
 ─────────────────────────────────────────────────────────────────────────── */
 
 .settings-app {
+  position: relative;
   display: flex;
   height: 100vh;
   overflow: hidden;
@@ -10,17 +11,31 @@
   color: var(--foreground);
 }
 
+.draggable {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 80px;
+  -webkit-app-region: drag;
+  z-index: -1;
+}
+
 /* ─── Sidebar ───────────────────────────────────────────────────────────── */
 
 .settings-sidebar {
-  width: 200px;
-  flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  gap: calc(var(--spacing) * 1);       /* 4px between items */
-  padding: calc(var(--spacing) * 3);   /* 12px all sides */
-  background-color: var(--sidebar);
-  border-right: 1px solid var(--sidebar-border);
+  flex-shrink: 0;
+  width: 200px;
+  gap: calc(var(--spacing) * 1);
+  padding: calc(var(--spacing) * 10) calc(var(--spacing) * 2.5) calc(var(--spacing) * 2.5);
+  background: var(--sidebar);
+  border-left: 1px solid var(--sidebar-border);
+  border-right: 1px solid var(--sidebar-border-right);
+  border-radius: var(--radius-xl);
+  backdrop-filter: blur(36px) saturate(1.5);
+  box-shadow: var(--radius-2xl);
+  margin: calc(var(--spacing) * 2) 0 calc(var(--spacing) * 2) calc(var(--spacing) * 2);
 }
 
 .settings-sidebar__nav {
@@ -34,10 +49,11 @@
 .settings-nav-item {
   display: flex;
   align-items: center;
-  gap: calc(var(--spacing) * 2);       /* 8px icon-to-label */
-  padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3); /* 8px 12px */
+  text-decoration: none;
+  gap: calc(var(--spacing) * 2);
+  padding: calc(var(--spacing) * 1.8) calc(var(--spacing) * 3.5);
   border-radius: var(--radius-md);
-  font-size: 0.875rem;                 /* text-sm */
+  font-size: 0.8125rem;                 /* text-sm */
   font-weight: 500;
   line-height: 1.429;
   color: var(--sidebar-foreground);
@@ -49,27 +65,15 @@
               color var(--duration-fast) var(--ease-out);
 }
 
-.settings-nav-item:hover {
-  background-color: var(--sidebar-accent);
-  color: var(--sidebar-accent-foreground);
-}
-
 .settings-nav-item:focus-visible {
-  outline: 3px solid var(--sidebar-ring);
-  outline-offset: 2px;
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-outline-offset);
 }
 
 
 .settings-nav-item[aria-current="page"] {
   background-color: var(--sidebar-primary);
   color: var(--sidebar-primary-foreground);
-}
-
-/* Hover on active item — maintain active colours, just slightly lightened */
-.settings-nav-item[aria-current="page"]:hover {
-  background-color: var(--sidebar-primary);
-  color: var(--sidebar-primary-foreground);
-  opacity: 0.9;
 }
 
 .settings-nav-item__icon {

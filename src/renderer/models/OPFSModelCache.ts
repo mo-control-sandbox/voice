@@ -68,13 +68,17 @@ export class OPFSModelCache {
     url: string,
     response: Response,
     progressCallback?: (data: { progress: number; loaded: number; total: number }) => void,
+    signal?: AbortSignal,
   ): Promise<void> {
+    OPFSModelCache.throwIfAborted(signal);
     const root = await this.getRoot();
     const parts = this.urlToParts(url);
     let dir = root;
     for (let i = 0; i < parts.length - 1; i++) {
+      OPFSModelCache.throwIfAborted(signal);
       dir = await dir.getDirectoryHandle(parts[i], { create: true });
     }
+    OPFSModelCache.throwIfAborted(signal);
     const fileHandle = await dir.getFileHandle(parts[parts.length - 1], { create: true });
     const writable = await fileHandle.createWritable();
     const total = Number(response.headers.get('content-length')) || 0;
@@ -86,7 +90,9 @@ export class OPFSModelCache {
     const reader = response.body.getReader();
     try {
       for (;;) {
+        OPFSModelCache.throwIfAborted(signal);
         const { done, value } = await reader.read();
+        OPFSModelCache.throwIfAborted(signal);
         if (done) break;
         await writable.write(value);
         loaded += value.byteLength;
@@ -94,6 +100,7 @@ export class OPFSModelCache {
           reportProgress({ progress: (loaded / total) * 100, loaded, total });
         }
       }
+      OPFSModelCache.throwIfAborted(signal);
       await writable.close();
     } catch (err) {
       await writable.abort();
@@ -130,21 +137,37 @@ export class OPFSModelCache {
   async download(modelId: string, onProgress: (fraction: number) => void, signal?: AbortSignal): Promise<void> {
     const definition = this.requireDefinition(modelId);
     const repo = definition.huggingFaceRepo;
+    const internalController = new AbortController();
+    const forwardAbort = (): void => {
+      internalController.abort(signal?.reason);
+    };
+    if (signal?.aborted === true) {
+      forwardAbort();
+    } else {
+      signal?.addEventListener('abort', forwardAbort, { once: true });
+    }
 
     env.useBrowserCache = false;
     env.useCustomCache = true;
-    env.customCache = this;
+    const abortableCache: NonNullable<typeof env.customCache> = {
+      match: async (request) => this.match(request),
+      put: async (request, response, progressCallback) => this.put(
+        request,
+        response,
+        progressCallback,
+        internalController.signal,
+      ),
+    };
+    env.customCache = abortableCache;
 
     // Transformers.js can fail to propagate certain internal errors (e.g.
     // RangeError from oversized allocations) through the pipeline() promise,
     // firing them as unhandled rejections instead. We intercept those here by
     // racing the actual load against the window's unhandledrejection event so
     // they are treated as first-class download failures.
-    const internalController = new AbortController();
-    signal?.addEventListener('abort', () => { internalController.abort(signal.reason); });
-
     let postDownloadStageStart: number | undefined;
     const progressCallback = (info: ProgressInfo): void => {
+      OPFSModelCache.throwIfAborted(internalController.signal);
       if (info.status === 'progress_total') {
         onProgress(info.progress / 100);
         if (info.progress >= 100 && postDownloadStageStart === undefined) {
@@ -163,15 +186,20 @@ export class OPFSModelCache {
     });
 
     const loadModel = async (): Promise<void> => {
+      OPFSModelCache.throwIfAborted(internalController.signal);
       if (definition.inferenceMode === 'realtime') {
         await Promise.all([
-          (async (): Promise<void> => {
+          (async () => {
             const model = await VoxtralRealtimeForConditionalGeneration.from_pretrained(repo, {
               dtype: { audio_encoder: 'q4f16', embed_tokens: 'q4f16', decoder_model_merged: 'q4f16' },
               device: 'webgpu',
               progress_callback: progressCallback,
             }) as VoxtralRealtimeForConditionalGeneration;
-            await model.dispose();
+            try {
+              OPFSModelCache.throwIfAborted(internalController.signal);
+            } finally {
+              await model.dispose();
+            }
           })(),
           VoxtralRealtimeProcessor.from_pretrained(repo),
         ]);
@@ -183,8 +211,13 @@ export class OPFSModelCache {
           ...loadOptions,
           progress_callback: progressCallback,
         });
-        await pipe.dispose();
+        try {
+          OPFSModelCache.throwIfAborted(internalController.signal);
+        } finally {
+          await pipe.dispose();
+        }
       }
+      OPFSModelCache.throwIfAborted(internalController.signal);
       await this.writeMarker(repo);
     };
 
@@ -197,6 +230,10 @@ export class OPFSModelCache {
       await this.removeModelDir(repo);
       throw error;
     } finally {
+      if (env.customCache === abortableCache) {
+        env.customCache = this;
+      }
+      signal?.removeEventListener('abort', forwardAbort);
       window.removeEventListener('unhandledrejection', unhandledRejectionListener);
     }
   }
@@ -215,6 +252,15 @@ export class OPFSModelCache {
   private async getRoot(): Promise<FileSystemDirectoryHandle> {
     const root = await navigator.storage.getDirectory();
     return root.getDirectoryHandle(OPFS_DIR, { create: true });
+  }
+
+  /**
+   * Throws the standard abort exception when a model download has been cancelled.
+   */
+  private static throwIfAborted(signal?: AbortSignal): void {
+    if (signal?.aborted === true) {
+      throw new DOMException('Model download was cancelled.', 'AbortError');
+    }
   }
 
   private async getModelDir(

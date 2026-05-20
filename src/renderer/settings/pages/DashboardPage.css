@@ -5,13 +5,15 @@
   flex-direction: column;
   gap: calc(var(--spacing) * 6);       /* 24px between heading and grid */
   max-width: 720px;
+  height: 100%;
+  padding-bottom: calc(var(--spacing) * 2);
 }
 
 .dashboard-page__heading {
-  font-size: 1.5rem;                   /* text-2xl */
-  font-weight: 600;
-  line-height: 1.333;
-  letter-spacing: -0.025em;           /* tracking-tight */
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.3;
+  margin-top: calc(var(--spacing) * 2);
 }
 
 /* ─── Stat grid ──────────────────────────────────────────────────────────── */
@@ -19,7 +21,8 @@
 .dashboard-page__grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: calc(var(--spacing) * 4);       /* 16px gap between cards */
+  gap: calc(var(--spacing) * 3);
+  height: 100%;
 }
 
 /* ─── Stat Card ──────────────────────────────────────────────────────────── */
@@ -30,7 +33,7 @@
   gap: calc(var(--spacing) * 3);       /* 12px between sections */
   padding: calc(var(--spacing) * 6);   /* 24px card padding */
   border-radius: var(--radius-2xl);    /* 18px, softer than current lg */
-  background-color: var(--secondary);
+  background-color: var(--card);
 }
 
 .stat-card--wide {
@@ -56,9 +59,9 @@
 }
 
 .stat-card__title {
-  font-size: 0.9375rem;               /* ~15px */
+  font-size: 0.875rem;
   font-weight: 600;
-  line-height: 1.333;
+  line-height: 1.3;
   color: var(--card-foreground);
 }
 
@@ -76,41 +79,67 @@
 /* ─── Card description ───────────────────────────────────────────────────── */
 
 .stat-card__desc {
-  font-size: 0.875rem;                /* text-sm */
-  line-height: 1.429;
+  font-size: 0.8125rem;
+  line-height: 1.5;
   color: var(--muted-foreground);
+  margin-top: auto;
 }
 
 /* ─── Per-accent icon badge colors ──────────────────────────────────────── */
 
 /* Sessions — purple / lavender */
 .stat-card[data-accent="sessions"] .stat-card__icon-wrap {
-  background-color: oklch(89% 0.06 310deg);
-  color:            oklch(55% 0.18 305deg);
+  background-color: oklch(89% 0.06 310deg / 50%);
+  color: oklch(55% 0.18 305deg);
 }
 
 /* Words — blue / steel */
 .stat-card[data-accent="words"] .stat-card__icon-wrap {
-  background-color: oklch(88% 0.05 240deg);
-  color:            oklch(52% 0.20 245deg);
+  background-color: oklch(88% 0.05 240deg / 50%);
+  color: oklch(52% 0.20 245deg);
 }
 
 /* WPM — amber / yellow */
 .stat-card[data-accent="wpm"] .stat-card__icon-wrap {
-  background-color: oklch(92% 0.08 85deg);
+  background-color: oklch(92% 0.08 85deg / 50%);
   color:            oklch(62% 0.18 75deg);
 }
 
 /* Keystrokes — orange */
 .stat-card[data-accent="keystrokes"] .stat-card__icon-wrap {
-  background-color: oklch(90% 0.07 55deg);
+  background-color: oklch(90% 0.07 55deg / 50%);
   color:            oklch(60% 0.20 48deg);
 }
 
 /* Time saved — teal / green */
 .stat-card[data-accent="time"] .stat-card__icon-wrap {
-  background-color: oklch(88% 0.06 165deg);
+  background-color: oklch(88% 0.06 165deg / 50%);
   color:            oklch(52% 0.16 165deg);
+}
+
+.dark .stat-card[data-accent="sessions"] .stat-card__icon-wrap {
+  background-color: oklch(70% 0.21 310deg / 16%);
+  color: oklch(70% 0.21 310deg);
+}
+
+.dark .stat-card[data-accent="words"] .stat-card__icon-wrap {
+  background-color: oklch(69% 0.16 252deg / 16%);
+  color: oklch(69% 0.16 252deg);
+}
+
+.dark .stat-card[data-accent="wpm"] .stat-card__icon-wrap {
+  background-color: oklch(83% 0.17 85deg / 16%);
+  color: oklch(83% 0.17 85deg);
+}
+
+.dark .stat-card[data-accent="keystrokes"] .stat-card__icon-wrap {
+  background-color: oklch(76% 0.24 40deg / 16%);
+  color: oklch(76% 0.24 40deg);
+}
+
+.dark .stat-card[data-accent="time"] .stat-card__icon-wrap {
+  background-color: oklch(77% 0.17 165deg / 16%);
+  color: oklch(77% 0.17 165deg);
 }
 
 /* ─── Loading skeleton ───────────────────────────────────────────────────── */

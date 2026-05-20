@@ -19,8 +19,8 @@ export class WelcomeWindow {
         minimumSize: size,
         title: 'MoVoice Initial Configuration',
         resizable: false,
-        windowTitleVisible: true,
-        windowTitlebarVisible: true,
+        windowTitleVisible: false,
+        windowTitlebarVisible: false,
         windowButtonVisible: {
           close: true,
           minimize: false,

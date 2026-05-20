@@ -18,10 +18,12 @@ export function MicrophonePermissionStep(props: MicrophonePermissionStepProps): 
 
   return (
     <section className="welcome-stage">
-      <h2 className="welcome-stage__title">Allow microphone access</h2>
-      <p className="welcome-stage__description">
-        MoVoice needs your microphone to capture speech.
-      </p>
+      <div className="welcome-stage__title-section">
+        <h2 className="welcome-stage__title">Allow microphone access</h2>
+        <p className="welcome-stage__description">
+          MoVoice needs your microphone to capture speech.
+        </p>
+      </div>
       <div className="welcome-stage__body welcome-stage__body--permission">
         <div className="welcome-permission-guide">
           <div className="welcome-status" data-state={microphoneFeedback}>

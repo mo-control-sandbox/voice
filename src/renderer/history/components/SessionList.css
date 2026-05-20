@@ -2,13 +2,33 @@
 
 .session-list {
   list-style: none;
-  margin: 0;
-  padding: 0;
+  margin-top: calc(var(--spacing) * 4);
+  padding-inline: calc(var(--spacing) * 2);
+}
+
+.session-list__item {
+  position: relative;
 }
 
 /* Thin divider between items — border-top on every item except the first */
-.session-list__item + .session-list__item {
-  border-top: 1px solid var(--border);
+.session-list__item:not(:first-child)::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: calc(var(--spacing) * 4);
+  right: calc(var(--spacing) * 4);
+  height: 1px;
+  background: var(--border);
+  opacity: 1;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.session-list__item[aria-selected="true"]::before {
+  opacity: 0;
+}
+
+.session-list__item[aria-selected="true"] + .session-list__item::before {
+  opacity: 0;
 }
 
 /* ─── Empty History ──────────────────────────────────────────────────────── */
