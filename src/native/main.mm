@@ -170,7 +170,8 @@ static const CGFloat kDotTextGap          = 8.0;
   [self addSubview:_label];
 }
 
-- (void)drawRect:(NSRect)__unused dirtyRect {
+- (void)drawRect:(NSRect)dirtyRect {
+  (void)dirtyRect;
   NSBezierPath* pill = [NSBezierPath bezierPathWithRoundedRect:self.bounds
                                                        xRadius:kOverlayCornerRadius
                                                        yRadius:kOverlayCornerRadius];
