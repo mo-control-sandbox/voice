@@ -55,7 +55,11 @@ jobs:
         run: npm run gen
 
       - name: Configure CMake (generate compile_commands.json for clang-tidy)
-        run: cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -B build -S .
+        shell: bash
+        run: |
+          set -euo pipefail
+          sdk_path="$(xcrun --sdk macosx --show-sdk-path)"
+          cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_OSX_SYSROOT="${sdk_path}" -B build -S .
 
       - name: Setup LLVM
         uses: KyleMayes/install-llvm-action@v2
