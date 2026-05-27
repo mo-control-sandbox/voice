@@ -1,14 +1,13 @@
-import { Loader2, X } from 'lucide-react';
-import type { ModelEntry } from '../../types/models';
+import type { ModelEntry } from '@/types/models.ts';
 import { formatModelSize } from './formatModelSize';
 
 interface ModelSelectionStepProps {
   readonly models: readonly ModelEntry[];
+  readonly selectedModelId: string;
   readonly downloadingModelId: string | null;
   readonly warmingUpModelId: string | null;
   readonly downloadErrors: ReadonlyMap<string, string>;
-  readonly onDownload: (id: string) => Promise<void>;
-  readonly onDelete: (id: string) => Promise<void>;
+  readonly onSelectModel: (id: string) => void;
 }
 
 function ScorePips(props: { readonly score: number; readonly label: string }): React.JSX.Element {
@@ -31,112 +30,86 @@ function ScorePips(props: { readonly score: number; readonly label: string }): R
 }
 
 /**
- * Displays model options and download controls for the onboarding model step.
+ * Displays selectable model options for the onboarding model step.
  */
 export function ModelSelectionStep(props: ModelSelectionStepProps): React.JSX.Element {
   const {
     models,
+    selectedModelId,
     downloadingModelId,
     warmingUpModelId,
     downloadErrors,
-    onDownload,
-    onDelete,
+    onSelectModel,
   } = props;
 
   return (
     <section className="welcome-stage">
       <div className="welcome-stage__title-section">
-        <h2 className="welcome-stage__title">Download a model for MoVoice</h2>
+        <h2 className="welcome-stage__title">Choose a model for MōVoice</h2>
         <p className="welcome-stage__description">You can change it later in Settings.</p>
       </div>
       <div className="welcome-stage__body welcome-stage__body--static">
-        <div className="welcome-model-list">
-          {models.map((model) => (
-            <article
-              key={model.definition.id}
-              className="welcome-model-tile welcome-no-drag"
-              data-disabled={(downloadingModelId !== null && downloadingModelId !== model.definition.id) || (warmingUpModelId !== null && warmingUpModelId !== model.definition.id) ? 'true' : undefined}
-              data-downloaded={model.isDownloaded ? 'true' : undefined}
-            >
-              <div className="welcome-model-tile__info">
-                <h3 className="welcome-model-card__name">{model.definition.label}</h3>
-                <p className="welcome-model-tile__description">{model.definition.description}</p>
-                <div className="welcome-model-tile__scores">
-                  <ScorePips score={model.definition.speedScore} label="Speed" />
-                  <ScorePips score={model.definition.accuracyScore} label="Accuracy" />
-                </div>
-                <div className="welcome-model-tile__tags">
-                  <span className="welcome-model-tile__tag">
-                    {model.definition.isMultilingual ? 'Polyglot' : 'English'}
-                  </span>
-                  {model.definition.isRealtime && (
-                    <span className="welcome-model-tile__tag">
-                      Real-time
-                    </span>
-                  )}
-                </div>
-              </div>
-              <div className="welcome-model-tile__statusbar">
-                <span className="welcome-model-tile__size">{formatModelSize(model.definition.fileSizeBytes)}</span>
-                <span className="welcome-model-tile__tools">
-                  {model.downloadProgress !== null && model.downloadProgress < 1 && (
-                    <>
-                      <span
-                        className="welcome-model-tile__progress-pct"
-                        aria-label={`Downloading ${String(Math.round(model.downloadProgress * 100))}%`}
-                      >
-                        {Math.round(model.downloadProgress * 100)}%
-                      </span>
-                      <button
-                        type="button"
-                        className="welcome-model-tile__icon-btn welcome-model-tile__icon-btn--danger welcome-no-drag"
-                        onClick={() => { void onDelete(model.definition.id); }}
-                        aria-label={`Cancel download of ${model.definition.label}`}
-                      >
-                        <X size={14} aria-hidden="true" />
-                      </button>
-                    </>
-                  )}
-                  {((model.downloadProgress !== null && model.downloadProgress >= 1) || warmingUpModelId === model.definition.id) && (
-                    <>
-                      <span className="welcome-model-tile__preparing-label">Preparing...</span>
-                      <Loader2
-                        size={14}
-                        className="welcome-model-tile__warmup-spinner"
-                        aria-hidden="true"
-                      />
-                    </>
-                  )}
-                  {model.downloadProgress === null && warmingUpModelId !== model.definition.id && !model.isDownloaded && (
-                    <button
-                      type="button"
-                      className="welcome-model-tile__download-btn welcome-no-drag"
-                      disabled={downloadingModelId !== null}
-                      onClick={() => {
-                        void onDownload(model.definition.id);
-                      }}
-                      aria-label={`Download ${model.definition.label}`}
-                    >
-                      Download
-                    </button>
-                  )}
-                  {model.downloadProgress === null && warmingUpModelId !== model.definition.id && model.isDownloaded && (
-                    <button
-                      type="button"
-                      className="welcome-model-tile__icon-btn welcome-model-tile__icon-btn--danger welcome-no-drag"
-                      disabled={downloadingModelId !== null}
-                      onClick={() => {
-                        void onDelete(model.definition.id);
-                      }}
-                      aria-label={`Cancel ${model.definition.label}`}
-                    >
-                      <X size={14} aria-hidden="true" />
-                    </button>
-                  )}
+        <div className="welcome-model-list" role="radiogroup" aria-label="Model">
+          {models.map((model) => {
+            const modelId = model.definition.id;
+            const isSelected = selectedModelId === modelId;
+            const isDisabled = (downloadingModelId !== null && downloadingModelId !== modelId)
+              || (warmingUpModelId !== null && warmingUpModelId !== modelId);
+
+            return (
+              <article
+                key={modelId}
+                className="welcome-model-tile welcome-no-drag"
+                data-disabled={isDisabled ? 'true' : undefined}
+                data-downloaded={model.isDownloaded ? 'true' : undefined}
+                data-selected={isSelected ? 'true' : undefined}
+                onClick={() => {
+                  if (!isDisabled) onSelectModel(modelId);
+                }}
+              >
+                <span className="welcome-model-radio">
+                  <input
+                    type="radio"
+                    className="welcome-model-radio__input welcome-no-drag"
+                    name="welcome-model"
+                    value={modelId}
+                    checked={isSelected}
+                    disabled={isDisabled}
+                    onChange={() => {
+                      onSelectModel(modelId);
+                    }}
+                    aria-label={`Select ${model.definition.label}`}
+                  />
                 </span>
-              </div>
-            </article>
-          ))}
+                <div className="welcome-model-tile__info">
+                  <h3 className="welcome-model-card__name">{model.definition.label}</h3>
+                  <p className="welcome-model-tile__description">{model.definition.description}</p>
+                  <div className="welcome-model-tile__scores">
+                    <ScorePips score={model.definition.speedScore} label="Speed" />
+                    <ScorePips score={model.definition.accuracyScore} label="Accuracy" />
+                  </div>
+                  <div className="welcome-model-tile__tags">
+                    <span className="welcome-model-tile__tag">
+                      {model.definition.isMultilingual ? 'Polyglot' : 'English'}
+                    </span>
+                    {model.definition.isRealtime && (
+                      <span className="welcome-model-tile__tag">
+                        Real-time
+                      </span>
+                    )}
+                    {model.isDownloaded && (
+                      <span className="welcome-model-tile__tag" data-state="ready">
+                        Ready
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="welcome-model-tile__statusbar">
+                  <span className="welcome-model-tile__size">{formatModelSize(model.definition.fileSizeBytes)}</span>
+                </div>
+              </article>
+            );
+          })}
         </div>
         <div className="welcome-model-actions">
           {downloadErrors.size > 0 && (

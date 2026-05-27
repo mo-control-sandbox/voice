@@ -111,6 +111,9 @@
   --input:            oklch(82% 0 0deg);
   --ring:             oklch(70% 0.245 262.9deg);
 
+  --radiobutton-border:       oklch(78% 0 0deg);
+  --radiobutton-hover-border: oklch(60% 0 0deg);
+
   /* Sidebar */
   --sidebar:                    linear-gradient(135deg, #f5f6f6 0%, #f9f9fa 50%, #f5f6f6 100%);
   --sidebar-foreground:         oklch(14.5% 0 0deg);
@@ -214,6 +217,9 @@
   --border:           oklch(100% 0 0deg / 10%);
   --input:            oklch(100% 0 0deg / 15%);
   --ring:             oklch(67% 0.19 262deg / 80%);
+
+  --radiobutton-border:       oklch(60% 0 0deg);
+  --radiobutton-hover-border: oklch(75% 0 0deg);
 
   /* Sidebar */
   --sidebar:                    oklch(20% 0 0deg);
