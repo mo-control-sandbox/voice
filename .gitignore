@@ -14,6 +14,7 @@ gen/
 
 # IntelliJ IDEA modules and interim config files.
 *.iml
+.idea
 .idea/*.xml
 .idea/.name
 .idea/artifacts

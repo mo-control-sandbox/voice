@@ -24,6 +24,8 @@ export interface WelcomeControllerState {
   readonly stepIndex: number;
   readonly settingsLoaded: boolean;
   readonly models: readonly ModelEntry[];
+  readonly selectedModel: ModelEntry | null;
+  readonly selectedModelId: string;
   readonly downloadErrors: ReadonlyMap<string, string>;
   readonly downloadingModelId: string | null;
   readonly warmingUpModelId: string | null;
@@ -47,6 +49,8 @@ export interface WelcomeControllerActions {
   readonly moveToNextStep: () => void;
   readonly handleModelDownload: (id: string) => Promise<void>;
   readonly handleModelCancel: (id: string) => Promise<void>;
+  readonly handleModelSelection: (id: string) => void;
+  readonly handleSelectedModelContinue: () => Promise<void>;
   readonly handleRequestMicrophonePermission: () => Promise<void>;
   readonly handleOpenAccessibilitySettings: () => Promise<void>;
   readonly handleAudioDeviceChange: (deviceId: string) => Promise<void>;
@@ -73,9 +77,15 @@ export function useWelcomeController(): {
     }
   }, []);
 
+  const modelSelection = useModelSelection();
+  const { handleSelectedModelContinue, refreshModels } = modelSelection;
+
   const moveToNextStep = useCallback((): void => {
+    if (step === 'welcome-model') {
+      void handleSelectedModelContinue();
+    }
     dispatchWizard({ type: 'CONTINUE' });
-  }, []);
+  }, [handleSelectedModelContinue, step]);
 
   const scheduleAutoAdvance = useCallback((eventType: WizardEventType): void => {
     clearAutoAdvance();
@@ -85,7 +95,6 @@ export function useWelcomeController(): {
     }, AUTO_ADVANCE_DELAY_MS);
   }, [clearAutoAdvance]);
 
-  const modelSelection = useModelSelection();
   const microphonePermission = useMicrophonePermission({
     isStepActive: step === 'microphone-permission',
     clearAutoAdvance,
@@ -102,17 +111,24 @@ export function useWelcomeController(): {
   const shortcutReadiness = useShortcutReadiness({
     isFinalStep: step === 'final-shortcut',
   });
-  const { refreshModels } = modelSelection;
   const { loadSelectedAudioDeviceId } = microphoneSelection;
   const { loadShortcutKey } = shortcutReadiness;
   const { setMicrophoneStatus } = microphonePermission;
   const { setAccessibilityStatus } = accessibilityPermission;
 
   const canContinue = useMemo((): boolean => {
-    if (step === 'welcome-model') return modelSelection.hasReadyActiveModel;
+    if (step === 'welcome-model') {
+      return modelSelection.hasSelectedModel && modelSelection.downloadingModelId === null;
+    }
+    if (step === 'welcome-model-download') return modelSelection.hasReadySelectedModel;
     if (step === 'microphone-selection') return true;
     return false;
-  }, [modelSelection.hasReadyActiveModel, step]);
+  }, [
+    modelSelection.downloadingModelId,
+    modelSelection.hasReadySelectedModel,
+    modelSelection.hasSelectedModel,
+    step,
+  ]);
 
   const showContinue = step !== 'microphone-permission'
     && step !== 'accessibility-permission'
@@ -152,23 +168,6 @@ export function useWelcomeController(): {
   }, [setAccessibilityStatus, setMicrophoneStatus, step]);
 
   useEffect(() => {
-    if (step === 'welcome-model' && modelSelection.hasReadyActiveModel && modelSelection.downloadingModelId === null) {
-      scheduleAutoAdvance('MODEL_READY');
-      return;
-    }
-
-    if (step === 'welcome-model') {
-      clearAutoAdvance();
-    }
-  }, [
-    clearAutoAdvance,
-    modelSelection.downloadingModelId,
-    modelSelection.hasReadyActiveModel,
-    scheduleAutoAdvance,
-    step,
-  ]);
-
-  useEffect(() => {
     if (
       step === 'microphone-permission'
       && microphonePermission.microphoneStatus === PermissionStatus.PERMISSION_STATUS_GRANTED
@@ -205,6 +204,8 @@ export function useWelcomeController(): {
       stepIndex,
       settingsLoaded,
       models: modelSelection.models,
+      selectedModel: modelSelection.selectedModel,
+      selectedModelId: modelSelection.selectedModelId,
       downloadErrors: modelSelection.downloadErrors,
       downloadingModelId: modelSelection.downloadingModelId,
       warmingUpModelId: modelSelection.warmingUpModelId,
@@ -224,6 +225,8 @@ export function useWelcomeController(): {
       moveToNextStep,
       handleModelDownload: modelSelection.handleModelDownload,
       handleModelCancel: modelSelection.handleModelCancel,
+      handleModelSelection: modelSelection.handleModelSelection,
+      handleSelectedModelContinue: modelSelection.handleSelectedModelContinue,
       handleRequestMicrophonePermission,
       handleOpenAccessibilitySettings: accessibilityPermission.handleOpenAccessibilitySettings,
       handleAudioDeviceChange: microphoneSelection.handleAudioDeviceChange,
