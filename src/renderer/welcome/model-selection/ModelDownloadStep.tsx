@@ -131,7 +131,7 @@ export function ModelDownloadStep(props: ModelDownloadStepProps): React.JSX.Elem
                 )}
               </div>
             </div>
-            <p className="welcome-model-download__details">{detailItems.join(' | ')}</p>
+            <p className="welcome-model-download__details">{detailItems.join('\u00A0\u00A0•\u00A0\u00A0')}</p>
           </div>
         </div>
       </div>

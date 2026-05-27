@@ -338,6 +338,11 @@
   background-color: var(--success);
 }
 
+.dark .welcome-model-tile__tag[data-state="ready"] {
+  border-color: oklch(from var(--success) l c h / 40%);
+  background-color: oklch(from var(--success) l c h / 20%);
+}
+
 .welcome-model-tile__size {
   font-size: 0.75rem;
   line-height: 1.5;
@@ -525,7 +530,11 @@
 }
 
 .welcome-model-download[data-ready="true"] .welcome-model-download__progress-fill {
-  background: linear-gradient(90deg, color-mix(in oklch, var(--success) 86%, white), var(--success));
+  background: var(--success);
+}
+
+.dark .welcome-model-download[data-ready="true"] .welcome-model-download__progress-fill {
+  background: oklch(from var(--success) l c h / 70%)
 }
 
 .welcome-model-download__cancel-btn {
