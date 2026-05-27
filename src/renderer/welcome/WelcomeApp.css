@@ -455,7 +455,7 @@
   position: relative;
   display: flex;
   align-items: center;
-  gap: calc(var(--spacing) * 4);
+  gap: calc(var(--spacing) * 3);
 }
 
 .welcome-model-download__icon {
@@ -496,7 +496,7 @@
 .welcome-model-download__progress-container {
   display: flex;
   flex-direction: column;
-  margin-left: calc(var(--spacing) * 12);
+  margin-left: calc(var(--spacing) * 11);
 }
 
 .welcome-model-download__progress-row {
@@ -526,6 +526,34 @@
 
 .welcome-model-download[data-ready="true"] .welcome-model-download__progress-fill {
   background: linear-gradient(90deg, color-mix(in oklch, var(--success) 86%, white), var(--success));
+}
+
+.welcome-model-download__cancel-btn {
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-full);
+  background-color: transparent;
+  color: var(--destructive);
+}
+
+.welcome-model-download__cancel-btn:hover {
+  background-color: color-mix(in oklch, var(--destructive) 12%, var(--background));
+}
+
+.welcome-model-download__cancel-btn:focus-visible {
+  outline: 3px solid color-mix(in oklch, var(--destructive) 36%, transparent);
+  outline-offset: 2px;
+}
+
+.welcome-model-download__progress-actions {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--spacing) * .5);
 }
 
 .welcome-model-download__progress-value {

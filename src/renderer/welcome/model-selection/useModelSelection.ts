@@ -22,6 +22,10 @@ export function useModelSelection(): {
   readonly hasSelectedModel: boolean;
   readonly refreshModels: () => Promise<void>;
   readonly handleModelDownload: (id: string) => Promise<void>;
+  /**
+   * Stops an in-progress model download.
+   */
+  readonly handleModelDownloadCancel: (id: string) => Promise<void>;
   readonly handleModelCancel: (id: string) => Promise<void>;
   readonly handleModelSelection: (id: string) => void;
   readonly handleSelectedModelContinue: () => Promise<void>;
@@ -89,16 +93,22 @@ export function useModelSelection(): {
     await refreshModels();
   }, [downloadingModelId, refreshModels]);
 
-  const handleModelCancel = useCallback(async (id: string): Promise<void> => {
+  const handleModelDownloadCancel = useCallback(async (id: string): Promise<void> => {
     if (downloadingModelId === id) {
       modelRepository.cancelDownload(id);
       await refreshModels();
+    }
+  }, [downloadingModelId, refreshModels]);
+
+  const handleModelCancel = useCallback(async (id: string): Promise<void> => {
+    if (downloadingModelId === id) {
+      await handleModelDownloadCancel(id);
       return;
     }
     if (downloadingModelId !== null) return;
     await modelRepository.delete(id);
     await refreshModels();
-  }, [downloadingModelId, refreshModels]);
+  }, [downloadingModelId, handleModelDownloadCancel, refreshModels]);
 
   const handleModelSelection = useCallback((id: string): void => {
     if (downloadingModelId !== null) return;
@@ -136,6 +146,7 @@ export function useModelSelection(): {
     hasSelectedModel: selectedModel !== null,
     refreshModels,
     handleModelDownload,
+    handleModelDownloadCancel,
     handleModelCancel,
     handleModelSelection,
     handleSelectedModelContinue,

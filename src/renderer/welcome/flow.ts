@@ -8,7 +8,11 @@ export const WIZARD_STEPS = [
 ] as const;
 
 export type WizardStep = (typeof WIZARD_STEPS)[number];
-export type WizardEventType = 'CONTINUE' | 'MIC_GRANTED' | 'ACCESSIBILITY_GRANTED';
+export type WizardEventType =
+  | 'CONTINUE'
+  | 'MIC_GRANTED'
+  | 'ACCESSIBILITY_GRANTED'
+  | 'MODEL_DOWNLOAD_CANCELLED';
 
 export interface WizardEvent {
   readonly type: WizardEventType;
@@ -29,6 +33,9 @@ export function reduceWizard(state: WizardState, event: WizardEvent): WizardStat
       }
       return state;
     case 'welcome-model-download':
+      if (event.type === 'MODEL_DOWNLOAD_CANCELLED') {
+        return { step: 'welcome-model' };
+      }
       if (event.type === 'CONTINUE') {
         return { step: 'microphone-permission' };
       }

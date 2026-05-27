@@ -1,11 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
-import { AudioLines, CircleCheck } from 'lucide-react';
+import { AudioLines, CircleCheck, X } from 'lucide-react';
 import type { ModelEntry } from '@/types/models.ts';
 import { formatModelSize } from './formatModelSize';
 
 interface ModelDownloadStepProps {
   readonly model: ModelEntry | null;
   readonly downloadErrors: ReadonlyMap<string, string>;
+  /**
+   * Stops the active download for the given model.
+   */
+  readonly onCancelDownload: (id: string) => Promise<void>;
   readonly onRetry: () => Promise<void>;
 }
 
@@ -102,7 +106,7 @@ function useDownloadMetrics(
  * Displays the selected onboarding model while it downloads and becomes active.
  */
 export function ModelDownloadStep(props: ModelDownloadStepProps): React.JSX.Element {
-  const { model, downloadErrors, onRetry } = props;
+  const { model, downloadErrors, onCancelDownload, onRetry } = props;
   const progress = model === null ? 0 : clampProgress(model.downloadProgress, model.isDownloaded);
   const totalBytes = model?.definition.fileSizeBytes ?? 0;
   const downloadedBytes = Math.round(totalBytes * progress);
@@ -128,6 +132,9 @@ export function ModelDownloadStep(props: ModelDownloadStepProps): React.JSX.Elem
   const description = isReady
     ? 'Your model is downloaded and ready to use.'
     : 'Please wait while we download and prepare your model.';
+  const cancelDownloadModel = typeof model?.downloadProgress === 'number' && !model.isDownloaded
+    ? model
+    : null;
 
   return (
     <section className="welcome-stage">
@@ -188,7 +195,22 @@ export function ModelDownloadStep(props: ModelDownloadStepProps): React.JSX.Elem
                   style={{ width: `${String(percent)}%` }}
                 />
               </div>
-              <span className="welcome-model-download__progress-value">{percent}%</span>
+              <div className="welcome-model-download__progress-actions">
+                <span className="welcome-model-download__progress-value">{percent}%</span>
+                {cancelDownloadModel !== null && (
+                  <button
+                    type="button"
+                    className="welcome-model-download__cancel-btn welcome-no-drag"
+                    aria-label={`Cancel ${cancelDownloadModel.definition.label} download`}
+                    title="Cancel download"
+                    onClick={() => {
+                      void onCancelDownload(cancelDownloadModel.definition.id);
+                    }}
+                  >
+                    <X size={15} strokeWidth={2.5} aria-hidden="true" />
+                  </button>
+                )}
+              </div>
             </div>
             <p className="welcome-model-download__details">{detailItems.join(' | ')}</p>
           </div>

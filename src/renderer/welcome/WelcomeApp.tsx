@@ -34,6 +34,7 @@ export function WelcomeApp(): React.JSX.Element {
           <ModelDownloadStep
             model={state.selectedModel}
             downloadErrors={state.downloadErrors}
+            onCancelDownload={actions.handleModelDownloadCancel}
             onRetry={actions.handleSelectedModelContinue}
           />
         )}

@@ -48,6 +48,10 @@ export interface WelcomeControllerState {
 export interface WelcomeControllerActions {
   readonly moveToNextStep: () => void;
   readonly handleModelDownload: (id: string) => Promise<void>;
+  /**
+   * Stops an in-progress model download and returns to model selection.
+   */
+  readonly handleModelDownloadCancel: (id: string) => Promise<void>;
   readonly handleModelCancel: (id: string) => Promise<void>;
   readonly handleModelSelection: (id: string) => void;
   readonly handleSelectedModelContinue: () => Promise<void>;
@@ -78,7 +82,7 @@ export function useWelcomeController(): {
   }, []);
 
   const modelSelection = useModelSelection();
-  const { handleSelectedModelContinue, refreshModels } = modelSelection;
+  const { handleModelDownloadCancel, handleSelectedModelContinue, refreshModels } = modelSelection;
 
   const moveToNextStep = useCallback((): void => {
     if (step === 'welcome-model') {
@@ -86,6 +90,13 @@ export function useWelcomeController(): {
     }
     dispatchWizard({ type: 'CONTINUE' });
   }, [handleSelectedModelContinue, step]);
+
+  const handleSelectedModelDownloadCancel = useCallback(async (id: string): Promise<void> => {
+    await handleModelDownloadCancel(id);
+    if (step === 'welcome-model-download') {
+      dispatchWizard({ type: 'MODEL_DOWNLOAD_CANCELLED' });
+    }
+  }, [handleModelDownloadCancel, step]);
 
   const scheduleAutoAdvance = useCallback((eventType: WizardEventType): void => {
     clearAutoAdvance();
@@ -224,6 +235,7 @@ export function useWelcomeController(): {
     actions: {
       moveToNextStep,
       handleModelDownload: modelSelection.handleModelDownload,
+      handleModelDownloadCancel: handleSelectedModelDownloadCancel,
       handleModelCancel: modelSelection.handleModelCancel,
       handleModelSelection: modelSelection.handleModelSelection,
       handleSelectedModelContinue: modelSelection.handleSelectedModelContinue,
