@@ -17,7 +17,7 @@ export class WelcomeWindow {
         url: rendererWindowUrl('welcome'),
         size,
         minimumSize: size,
-        title: 'MoVoice Initial Configuration',
+        title: 'MōVoice Initial Configuration',
         resizable: false,
         windowTitleVisible: false,
         windowTitlebarVisible: false,

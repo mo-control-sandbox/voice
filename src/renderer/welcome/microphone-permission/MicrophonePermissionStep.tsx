@@ -21,7 +21,7 @@ export function MicrophonePermissionStep(props: MicrophonePermissionStepProps): 
       <div className="welcome-stage__title-section">
         <h2 className="welcome-stage__title">Allow microphone access</h2>
         <p className="welcome-stage__description">
-          MoVoice needs your microphone to capture speech.
+          MōVoice needs your microphone to capture speech.
         </p>
       </div>
       <div className="welcome-stage__body welcome-stage__body--permission">
@@ -46,7 +46,7 @@ export function MicrophonePermissionStep(props: MicrophonePermissionStepProps): 
           <img
             className="welcome-permission-guide__image"
             src={microphonePermissionPreview}
-            alt="macOS dialog asking to allow microphone access for MoVoice"
+            alt="macOS dialog asking to allow microphone access for MōVoice"
           />
           {microphoneStatus !== PermissionStatus.PERMISSION_STATUS_GRANTED && (
             <button

@@ -61,7 +61,7 @@ export function DashboardPage(): React.JSX.Element {
             <span className="stat-card__title">Sessions Recorded</span>
           </div>
           <span className="stat-card__value">{formatCount(stats.totalSessions)}</span>
-          <span className="stat-card__desc">MoVoice sessions completed</span>
+          <span className="stat-card__desc">MōVoice sessions completed</span>
         </div>
 
         <div className="stat-card" data-accent="words">
@@ -83,7 +83,7 @@ export function DashboardPage(): React.JSX.Element {
             <span className="stat-card__title">Words Per Minute</span>
           </div>
           <span className="stat-card__value">{wpmValue}</span>
-          <span className="stat-card__desc">MoVoice vs. typing by hand</span>
+          <span className="stat-card__desc">MōVoice vs. typing by hand</span>
         </div>
 
         <div className="stat-card" data-accent="keystrokes">

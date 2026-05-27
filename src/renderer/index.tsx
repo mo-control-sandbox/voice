@@ -20,10 +20,10 @@ const APP_BY_WINDOW: Record<UiRendererWindowKind, () => React.JSX.Element> = {
 };
 
 const TITLE_BY_WINDOW: Record<RendererWindowKind, string> = {
-  about: 'About MoVoice',
-  app: 'MoVoice',
-  background: 'MoVoice Background',
-  welcome: 'Welcome to MoVoice',
+  about: 'About MōVoice',
+  app: 'MōVoice',
+  background: 'MōVoice Background',
+  welcome: 'Welcome to MōVoice',
 };
 
 function parseRendererWindowKind(searchParams: URLSearchParams): RendererWindowKind | null {
@@ -37,7 +37,7 @@ function parseRendererWindowKind(searchParams: URLSearchParams): RendererWindowK
 const rendererWindowKind = parseRendererWindowKind(new URLSearchParams(window.location.search));
 document.documentElement.dataset.rendererWindow = rendererWindowKind ?? 'unknown';
 document.body.dataset.rendererWindow = rendererWindowKind ?? 'unknown';
-document.title = rendererWindowKind === null ? 'MoVoice' : TITLE_BY_WINDOW[rendererWindowKind];
+document.title = rendererWindowKind === null ? 'MōVoice' : TITLE_BY_WINDOW[rendererWindowKind];
 
 initTheme();
 
