@@ -11,3 +11,15 @@ gen/
 
 # macOS metadata.
 .DS_Store
+
+# IntelliJ IDEA modules and interim config files.
+*.iml
+.idea/*.xml
+.idea/.name
+.idea/artifacts
+.idea/libraries
+.idea/modules
+.idea/shelf
+
+!.idea/codeStyles/
+!.idea/copyright/
