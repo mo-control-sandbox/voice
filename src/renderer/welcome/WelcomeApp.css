@@ -193,7 +193,6 @@
   padding: var(--card-padding);
   gap: calc(var(--spacing) * 2);
   width: 100%;
-  cursor: pointer;
   transition: border-color var(--duration-fast) var(--ease-out),
               background-color var(--duration-fast) var(--ease-out),
               box-shadow var(--duration-fast) var(--ease-out),
@@ -570,6 +569,7 @@
   font-weight: 600;
   line-height: 1.5;
   text-align: right;
+  min-width: calc(var(--spacing) * 9);
 }
 
 .welcome-model-download__details {
