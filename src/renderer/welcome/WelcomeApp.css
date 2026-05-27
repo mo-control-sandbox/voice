@@ -528,14 +528,6 @@
   transition: width var(--duration-deliberate) var(--ease-linear);
 }
 
-.welcome-model-download[data-ready="true"] .welcome-model-download__progress-fill {
-  background: var(--success);
-}
-
-.dark .welcome-model-download[data-ready="true"] .welcome-model-download__progress-fill {
-  background: oklch(from var(--success) l c h / 70%)
-}
-
 .welcome-model-download__cancel-btn {
   width: 20px;
   height: 20px;
@@ -547,6 +539,7 @@
   border-radius: var(--radius-full);
   background-color: transparent;
   color: var(--destructive);
+  margin-left: 2px;
 }
 
 .welcome-model-download__cancel-btn:hover {
@@ -554,8 +547,8 @@
 }
 
 .welcome-model-download__cancel-btn:focus-visible {
-  outline: 3px solid color-mix(in oklch, var(--destructive) 36%, transparent);
-  outline-offset: 2px;
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-outline-offset);
 }
 
 .welcome-model-download__progress-actions {
@@ -642,10 +635,6 @@
   gap: calc(var(--spacing) * 3);
 }
 
-.welcome-status-container {
-  margin-bottom: calc(var(--spacing) * 3);
-}
-
 .welcome-status {
   display: flex;
   align-items: center;
@@ -656,6 +645,7 @@
   border: 1px solid var(--border);
   background-color: color-mix(in oklch, var(--secondary) 55%, var(--background));
   color: var(--muted-foreground);
+  margin-bottom: calc(var(--spacing) * 3);
   transition: transform var(--duration-normal) var(--ease-spring),
               background-color var(--duration-normal) var(--ease-out),
               color var(--duration-normal) var(--ease-out);
