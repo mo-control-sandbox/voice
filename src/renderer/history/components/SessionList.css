@@ -39,8 +39,8 @@
   align-items: center;
   justify-content: center;
   text-align: center;
-  gap: calc(var(--spacing) * 3);       /* 12px */
-  padding: calc(var(--spacing) * 12) calc(var(--spacing) * 6); /* 48px 24px */
+  gap: calc(var(--spacing) * 3);
+  padding: calc(var(--spacing) * 22) calc(var(--spacing) * 6);
 }
 
 .empty-history__icon {
@@ -57,7 +57,7 @@
 }
 
 .empty-history__hint {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   line-height: 1.5;
   color: var(--muted-foreground);
   max-width: 200px;
