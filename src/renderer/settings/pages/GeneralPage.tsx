@@ -1,4 +1,5 @@
 import { useRef } from 'react';
+import { formatShortcutLabel } from '@/utils/shortcutDisplay.ts';
 import { Switch } from '../components/Switch';
 import { PREDEFINED_SHORTCUTS, useGeneralController } from '../controllers/useGeneralController';
 import './GeneralPage.css';
@@ -41,7 +42,8 @@ export function GeneralPage({ onOpenPermissions }: GeneralPageProps): React.JSX.
   const captureRef = useRef<HTMLButtonElement>(null);
 
   const isPredefined = PREDEFINED_SHORTCUTS.some((shortcut) => shortcut.value === shortcutKey);
-  const customLabel = !isPredefined && shortcutKey !== '' ? shortcutKey : null;
+  const shortcutLabel = formatShortcutLabel(shortcutKey);
+  const customLabel = !isPredefined && shortcutKey !== '' ? shortcutLabel : null;
   const micPermissionTitle = isMicPermissionDenied
     ? 'Microphone access is off'
     : 'Microphone access is needed';
@@ -209,7 +211,7 @@ export function GeneralPage({ onOpenPermissions }: GeneralPageProps): React.JSX.
               </div>
               {shortcutKey !== '' && (
                 <span className="shortcut-summary">
-                  Active shortcut: <span className="shortcut-summary__value">{shortcutKey}</span>
+                  Active shortcut: <span className="shortcut-summary__value">{shortcutLabel}</span>
                 </span>
               )}
             </div>

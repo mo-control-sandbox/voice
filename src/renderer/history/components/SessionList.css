@@ -62,3 +62,8 @@
   color: var(--muted-foreground);
   max-width: 200px;
 }
+
+.empty-history__shortcut {
+  color: var(--foreground);
+  font-weight: 500;
+}
