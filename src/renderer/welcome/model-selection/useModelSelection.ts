@@ -22,9 +22,6 @@ export function useModelSelection(): {
   readonly hasSelectedModel: boolean;
   readonly refreshModels: () => Promise<void>;
   readonly handleModelDownload: (id: string) => Promise<void>;
-  /**
-   * Stops an in-progress model download.
-   */
   readonly handleModelDownloadCancel: (id: string) => Promise<void>;
   readonly handleModelCancel: (id: string) => Promise<void>;
   readonly handleModelSelection: (id: string) => void;

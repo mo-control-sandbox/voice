@@ -5,9 +5,6 @@ import { formatModelSize } from './formatModelSize';
 interface ModelDownloadStepProps {
   readonly model: ModelEntry | null;
   readonly downloadErrors: ReadonlyMap<string, string>;
-  /**
-   * Stops the active download for the given model.
-   */
   readonly onCancelDownload: (id: string) => Promise<void>;
   readonly onRetry: () => Promise<void>;
 }

@@ -48,9 +48,6 @@ export interface WelcomeControllerState {
 export interface WelcomeControllerActions {
   readonly moveToNextStep: () => void;
   readonly handleModelDownload: (id: string) => Promise<void>;
-  /**
-   * Stops an in-progress model download and returns to model selection.
-   */
   readonly handleModelDownloadCancel: (id: string) => Promise<void>;
   readonly handleModelCancel: (id: string) => Promise<void>;
   readonly handleModelSelection: (id: string) => void;
