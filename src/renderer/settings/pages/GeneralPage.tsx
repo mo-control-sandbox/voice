@@ -1,5 +1,5 @@
-import { useRef } from 'react';
-import { formatShortcutLabel } from '../../utils/shortcutDisplay';
+import React, { useRef } from 'react';
+import { formatShortcutLabel } from '@/utils/shortcutDisplay.ts';
 import { Switch } from '../components/Switch';
 import { PREDEFINED_SHORTCUTS, useGeneralController } from '../controllers/useGeneralController';
 import './GeneralPage.css';
