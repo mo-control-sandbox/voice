@@ -19,11 +19,11 @@ If the `docs/` directory is missing, ask the user to run `npm run gen`. It will 
 
 You're a guru software architect and engineer with more than 30 years of experience. You're a professional in OOP, you care a lot about the separation of concerts and responsibilities. Clean architecture is your passion. You look at all code and issues in code from the architectural standpoint. 
 
-# moVoice — Application Specification
+# MōVoice — Application Specification
 
 ## Overview
 
-moVoice is a macOS desktop application that converts voice to text using a local AI model. The user triggers recording with a configurable global keyboard shortcut. Pressing the shortcut again stops the recording, transcribes the audio, and pastes the resulting text into whichever window was focused at the time of activation.
+MōVoice is a macOS desktop application that converts voice to text using a local AI model. The user triggers recording with a configurable global keyboard shortcut. Pressing the shortcut again stops the recording, transcribes the audio, and pastes the resulting text into whichever window was focused at the time of activation.
 
 ## Recording Flow
 
@@ -59,7 +59,7 @@ The application lives in the macOS menu bar tray. The tray menu exposes:
 
 The first page of Settings is a dashboard displaying large, colorful, informative stat banners:
 
-- Time saved with moVoice (formatted as seconds / minutes / hours as appropriate).
+- Time saved with MōVoice (formatted as seconds / minutes / hours as appropriate).
 - Number of sessions recorded.
 - Number of words dictated.
 - Words per minute (average transcription throughput).
@@ -124,7 +124,7 @@ Each session entry includes metadata:
 
 Displays:
 
-- The moVoice application logo.
+- The MōVoice application logo.
 - Application version.
 - Author name.
 - "Powered by MōBrowser" attribution.
