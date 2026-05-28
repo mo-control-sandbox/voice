@@ -217,6 +217,11 @@
   cursor: default;
 }
 
+.welcome-model-tile:focus-visible {
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-outline-offset);
+}
+
 .welcome-model-radio {
   display: inline-flex;
   align-items: center;
@@ -238,23 +243,18 @@
               background var(--duration-fast) var(--ease-out);
 }
 
-.welcome-model-radio__input:checked {
+.welcome-model-radio__input[data-checked="true"] {
   background: white;
   border: 5px solid var(--primary);
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 35%),
               0 0 0 3px color-mix(in oklch, var(--primary) 16%, transparent);
 }
 
-.welcome-model-radio__input:disabled {
+.welcome-model-tile[data-disabled="true"] .welcome-model-radio__input {
   cursor: not-allowed;
 }
 
-.welcome-model-radio__input:focus-visible {
-  outline: var(--focus-outline);
-  outline-offset: var(--focus-outline-offset);
-}
-
-.welcome-model-tile:hover .welcome-model-radio__input:not(:checked) {
+.welcome-model-tile:hover .welcome-model-radio__input:not([data-checked="true"]) {
   border-color: var(--radiobutton-hover-border);
 }
 

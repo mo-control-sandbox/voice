@@ -1,3 +1,4 @@
+import { useRef, type KeyboardEvent } from 'react';
 import type { ModelEntry } from '@/types/models.ts';
 import { formatModelSize } from './formatModelSize';
 
@@ -41,6 +42,46 @@ export function ModelSelectionStep(props: ModelSelectionStepProps): React.JSX.El
     downloadErrors,
     onSelectModel,
   } = props;
+  const radioRefs = useRef(new Map<string, HTMLElement>());
+
+  function isModelDisabled(model: ModelEntry): boolean {
+    const modelId = model.definition.id;
+    return (downloadingModelId !== null && downloadingModelId !== modelId)
+      || (warmingUpModelId !== null && warmingUpModelId !== modelId);
+  }
+
+  function focusRelativeModel(currentModelId: string, direction: -1 | 1): void {
+    const enabledModels = models.filter((model) => !isModelDisabled(model));
+    if (enabledModels.length === 0) return;
+
+    const currentIndex = enabledModels.findIndex((model) => model.definition.id === currentModelId);
+    const startIndex = currentIndex === -1 ? 0 : currentIndex;
+    const nextIndex = (startIndex + direction + enabledModels.length) % enabledModels.length;
+    const nextModel = enabledModels[nextIndex];
+    const nextModelId = nextModel.definition.id;
+
+    onSelectModel(nextModelId);
+    radioRefs.current.get(nextModelId)?.focus();
+  }
+
+  function handleModelKeyDown(event: KeyboardEvent<HTMLElement>, modelId: string): void {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      onSelectModel(modelId);
+      return;
+    }
+
+    if (event.key === 'ArrowDown' || event.key === 'ArrowRight') {
+      event.preventDefault();
+      focusRelativeModel(modelId, 1);
+      return;
+    }
+
+    if (event.key === 'ArrowUp' || event.key === 'ArrowLeft') {
+      event.preventDefault();
+      focusRelativeModel(modelId, -1);
+    }
+  }
 
   return (
     <section className="welcome-stage">
@@ -53,32 +94,39 @@ export function ModelSelectionStep(props: ModelSelectionStepProps): React.JSX.El
           {models.map((model) => {
             const modelId = model.definition.id;
             const isSelected = selectedModelId === modelId;
-            const isDisabled = (downloadingModelId !== null && downloadingModelId !== modelId)
-              || (warmingUpModelId !== null && warmingUpModelId !== modelId);
+            const isDisabled = isModelDisabled(model);
 
             return (
               <article
+                ref={(node) => {
+                  if (node === null) {
+                    radioRefs.current.delete(modelId);
+                    return;
+                  }
+                  radioRefs.current.set(modelId, node);
+                }}
                 key={modelId}
                 className="welcome-model-tile welcome-no-drag"
                 data-disabled={isDisabled ? 'true' : undefined}
                 data-downloaded={model.isDownloaded ? 'true' : undefined}
                 data-selected={isSelected ? 'true' : undefined}
-                onClick={() => {
-                  if (!isDisabled) onSelectModel(modelId);
+                role="radio"
+                aria-checked={isSelected}
+                tabIndex={isDisabled ? -1 : 0}
+                onClick={(event) => {
+                  if (isDisabled) return;
+                  event.currentTarget.focus();
+                  onSelectModel(modelId);
+                }}
+                onKeyDown={(event) => {
+                  if (!isDisabled) handleModelKeyDown(event, modelId);
                 }}
               >
                 <span className="welcome-model-radio">
-                  <input
-                    type="radio"
+                  <span
                     className="welcome-model-radio__input welcome-no-drag"
-                    name="welcome-model"
-                    value={modelId}
-                    checked={isSelected}
-                    disabled={isDisabled}
-                    onChange={() => {
-                      onSelectModel(modelId);
-                    }}
-                    aria-label={`Select ${model.definition.label}`}
+                    data-checked={isSelected ? 'true' : undefined}
+                    aria-hidden="true"
                   />
                 </span>
                 <div className="welcome-model-tile__info">
