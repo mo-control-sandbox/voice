@@ -57,7 +57,7 @@
 }
 
 .empty-history__hint {
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   line-height: 1.5;
   color: var(--muted-foreground);
   max-width: 200px;
