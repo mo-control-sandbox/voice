@@ -19,7 +19,7 @@ export class ApplicationWindow {
         url: rendererWindowUrl('app'),
         size,
         minimumSize: size,
-        title: 'MoVoice',
+        title: 'MōVoice',
         resizable: false,
         windowTitleVisible: false,
         windowTitlebarVisible: false,

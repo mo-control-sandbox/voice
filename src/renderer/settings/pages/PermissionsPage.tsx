@@ -12,12 +12,12 @@ interface PermissionsPageProps {
 const PERMISSION_META: Partial<Record<PermissionType, PermissionMeta>> = {
   [PermissionType.PERMISSION_TYPE_MICROPHONE]: {
     label: 'Microphone',
-    description: 'Allow microphone access so MoVoice can capture your voice.',
+    description: 'Allow microphone access so MōVoice can capture your voice.',
     icon: Mic,
   },
   [PermissionType.PERMISSION_TYPE_ACCESSIBILITY]: {
     label: 'Accessibility',
-    description: 'Allow Accessibility so MoVoice can paste text into other apps.',
+    description: 'Allow Accessibility so MōVoice can paste text into other apps.',
     icon: Keyboard,
   },
 };
@@ -56,7 +56,7 @@ export function PermissionsPage(props: PermissionsPageProps): React.JSX.Element 
         <div className="permissions-page__title-block">
           <h1 className="permissions-page__heading">Permissions</h1>
           <p className="permissions-page__description">
-            macOS permissions required for MoVoice to record your voice and paste text into other apps.
+            macOS permissions required for MōVoice to record your voice and paste text into other apps.
           </p>
           {(needsMicrophonePermission || needsAccessibilityPermission) && (
             <p className="permissions-page__setup-hint">

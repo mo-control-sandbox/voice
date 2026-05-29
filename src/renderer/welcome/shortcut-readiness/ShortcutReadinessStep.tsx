@@ -28,7 +28,7 @@ export function ShortcutReadinessStep(props: ShortcutReadinessStepProps): React.
         </span>
         <h2 className="welcome-stage__title">You are ready to speak</h2>
         <p className="welcome-final-stage__close-hint">
-          Everything is configured. Close this window and start using MoVoice right away.
+          Everything is configured. Close this window and start using MōVoice right away.
         </p>
       </div>
       <div className="welcome-stage__body welcome-stage__body-final-stage">

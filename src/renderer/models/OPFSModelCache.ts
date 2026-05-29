@@ -224,7 +224,7 @@ export class OPFSModelCache {
     try {
       await Promise.race([loadModel(), unhandledRejection]);
       if (postDownloadStageStart !== undefined) {
-        console.log(`[moVoice] Post-100% stage: ${(performance.now() - postDownloadStageStart).toFixed(0)}ms`);
+        console.log(`[MōVoice] Post-100% stage: ${(performance.now() - postDownloadStageStart).toFixed(0)}ms`);
       }
     } catch (error) {
       await this.removeModelDir(repo);

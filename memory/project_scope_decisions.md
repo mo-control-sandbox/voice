@@ -1,5 +1,5 @@
 ---
-name: moVoice scope decisions
+name: MōVoice scope decisions
 description: Explicit features excluded from the current implementation scope
 type: project
 ---

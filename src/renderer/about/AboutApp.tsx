@@ -20,12 +20,12 @@ export function AboutApp({ embedded = false }: AboutAppProps = {}): React.JSX.El
           <img
             className="about-window__icon"
             src={appIconUrl}
-            alt="MoVoice application icon"
+            alt="MōVoice application icon"
           />
         </button>
 
         <div className="about-window__identity">
-          <span className="about-window__name">MoVoice</span>
+          <span className="about-window__name">MōVoice</span>
           <span className="about-window__version">Version 1.0.0</span>
         </div>
 

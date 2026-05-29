@@ -1,5 +1,6 @@
 import { WIZARD_STEPS } from './flow';
 import { useWelcomeController } from './useWelcomeController';
+import { ModelDownloadStep } from './model-selection/ModelDownloadStep';
 import { ModelSelectionStep } from './model-selection/ModelSelectionStep';
 import { MicrophonePermissionStep } from './microphone-permission/MicrophonePermissionStep';
 import { AccessibilityPermissionStep } from './accessibility-permission/AccessibilityPermissionStep';
@@ -21,11 +22,20 @@ export function WelcomeApp(): React.JSX.Element {
         {state.step === 'welcome-model' && (
           <ModelSelectionStep
             models={state.models}
+            selectedModelId={state.selectedModelId}
             downloadingModelId={state.downloadingModelId}
             warmingUpModelId={state.warmingUpModelId}
             downloadErrors={state.downloadErrors}
-            onDownload={actions.handleModelDownload}
-            onDelete={actions.handleModelCancel}
+            onSelectModel={actions.handleModelSelection}
+          />
+        )}
+
+        {state.step === 'welcome-model-download' && (
+          <ModelDownloadStep
+            model={state.selectedModel}
+            downloadErrors={state.downloadErrors}
+            onCancelDownload={actions.handleModelDownloadCancel}
+            onRetry={actions.handleSelectedModelContinue}
           />
         )}
 

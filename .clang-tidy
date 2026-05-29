@@ -1,5 +1,5 @@
 ---
-# clang-tidy configuration for moVoice native module.
+# clang-tidy configuration for MōVoice native module.
 # Focus on correctness and bug-finding checks for Objective-C++ code.
 
 Checks: >
