@@ -34,7 +34,7 @@
   border-right: 1px solid var(--sidebar-border-right);
   border-radius: var(--radius-xl);
   backdrop-filter: blur(36px) saturate(1.5);
-  box-shadow: var(--radius-2xl);
+  box-shadow: var(--shadow-2xl);
   margin: calc(var(--spacing) * 2) 0 calc(var(--spacing) * 2) calc(var(--spacing) * 2);
 }
 

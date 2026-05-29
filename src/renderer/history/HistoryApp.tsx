@@ -1,11 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { SessionRecordProto } from '../gen/history';
 import { SessionList } from './components/SessionList';
 import { SessionDetail } from './components/SessionDetail';
 import { HistoryService } from './HistoryService';
+import { SettingsService } from '../settings/services/SettingsService';
 import './HistoryApp.css';
 
+const DEFAULT_SHORTCUT_KEY = 'CommandOrControl+Shift+Space';
 const historyService = new HistoryService();
+const settingsService = new SettingsService();
 
 interface HistoryAppProps {
   readonly embedded?: boolean;
@@ -17,19 +20,26 @@ interface HistoryAppProps {
 export function HistoryApp({ embedded = false }: HistoryAppProps = {}): React.JSX.Element {
   const [sessions, setSessions] = useState<SessionRecordProto[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [shortcutKey, setShortcutKey] = useState(DEFAULT_SHORTCUT_KEY);
 
-  async function fetchSessions(): Promise<void> {
+  const fetchSessions = useCallback(async (): Promise<void> => {
     const response = await historyService.getSessions();
     setSessions(response.sessions);
-  }
+  }, []);
+
+  const fetchShortcutKey = useCallback(async (): Promise<void> => {
+    const settings = await settingsService.getSettings();
+    setShortcutKey(settings.shortcutKey);
+  }, []);
 
   useEffect(() => {
     void fetchSessions();
+    void fetchShortcutKey();
 
     return historyService.subscribeToHistoryChanges(async () => {
       await fetchSessions();
     });
-  }, []);
+  }, [fetchSessions, fetchShortcutKey]);
 
   function handleDelete(id: string): void {
     void historyService.deleteSession(id).then(() => {
@@ -47,6 +57,7 @@ export function HistoryApp({ embedded = false }: HistoryAppProps = {}): React.JS
           <SessionList
             sessions={sessions}
             selectedId={selectedId}
+            shortcutKey={shortcutKey}
             onSelect={setSelectedId}
             onDelete={handleDelete}
           />
