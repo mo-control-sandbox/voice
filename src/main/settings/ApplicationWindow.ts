@@ -4,7 +4,7 @@ import type { DockManager } from '../system/DockManager';
 import { rendererWindowUrl } from '../RendererWindowUrl';
 import { SingletonWindow } from '../windowing/SingletonWindow';
 
-export type SettingsSectionId = 'dashboard' | 'history' | 'general' | 'models' | 'permissions' | 'about';
+export type SettingsSectionId = 'dashboard' | 'history' | 'settings' | 'models' | 'permissions' | 'about';
 
 /**
  * Manages the main application window.

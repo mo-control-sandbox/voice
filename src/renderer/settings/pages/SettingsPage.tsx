@@ -1,17 +1,17 @@
-import React, { useRef } from 'react';
-import { formatShortcutLabel } from '@/utils/shortcutDisplay.ts';
+import { useRef } from 'react';
 import { Switch } from '../components/Switch';
-import { PREDEFINED_SHORTCUTS, useGeneralController } from '../controllers/useGeneralController';
-import './GeneralPage.css';
+import { formatShortcutLabel } from '@/utils/shortcutDisplay.ts';
+import { PREDEFINED_SHORTCUTS, useSettingsController } from '../controllers/useSettingsController';
+import './SettingsPage.css';
 
-interface GeneralPageProps {
+interface SettingsPageProps {
   readonly onOpenPermissions: () => void;
 }
 
 /**
- * General settings -- audio input, global shortcut, and privacy preferences.
+ * Settings page for audio input, global shortcut, and privacy preferences.
  */
-export function GeneralPage({ onOpenPermissions }: GeneralPageProps): React.JSX.Element {
+export function SettingsPage({ onOpenPermissions }: SettingsPageProps): React.JSX.Element {
   const {
     state: {
       devices,
@@ -37,7 +37,7 @@ export function GeneralPage({ onOpenPermissions }: GeneralPageProps): React.JSX.
       handleShowWindowOnAppLaunch,
       handleMicPermissionAction,
     },
-  } = useGeneralController();
+  } = useSettingsController();
 
   const captureRef = useRef<HTMLButtonElement>(null);
 
@@ -54,12 +54,12 @@ export function GeneralPage({ onOpenPermissions }: GeneralPageProps): React.JSX.
   const isMicPermissionButtonDisabled = isMicPermissionActionLoading || isMicPermissionPolling;
 
   return (
-    <div className="general-page">
-      <h1 className="general-page__heading">General</h1>
+    <div className="settings-page">
+      <h1 className="settings-page__heading">Settings</h1>
 
-      <section className="general-section">
-        <span className="general-section__label">Privacy</span>
-        <div className="general-section__card">
+      <section className="settings-section">
+        <span className="settings-section__label">Privacy</span>
+        <div className="settings-section__card">
           <div className="toggle-row">
             <label htmlFor="save-transcripts" className="toggle-row__label">
               Save transcripts
@@ -87,9 +87,9 @@ export function GeneralPage({ onOpenPermissions }: GeneralPageProps): React.JSX.
         </div>
       </section>
 
-      <section className="general-section">
-        <span className="general-section__label">Behavior</span>
-        <div className="general-section__card">
+      <section className="settings-section">
+        <span className="settings-section__label">Behavior</span>
+        <div className="settings-section__card">
           <div className="toggle-row">
             <label htmlFor="show-window-on-app-launch" className="toggle-row__label">
               Show this window on app launch
@@ -105,22 +105,22 @@ export function GeneralPage({ onOpenPermissions }: GeneralPageProps): React.JSX.
         </div>
       </section>
 
-      <section className="general-section">
-        <span className="general-section__label">Input</span>
+      <section className="settings-section">
+        <span className="settings-section__label">Input</span>
         {isMicLoading ? (
-          <div className="general-skeleton" />
+          <div className="settings-skeleton" />
         ) : !isMicPermissionGranted ? (
-          <div className="general-permission-card">
-            <div className="general-permission-card__text">
-              <span className="general-permission-card__title">{micPermissionTitle}</span>
-              <span className="general-permission-card__description">
+          <div className="settings-permission-card">
+            <div className="settings-permission-card__text">
+              <span className="settings-permission-card__title">{micPermissionTitle}</span>
+              <span className="settings-permission-card__description">
                 {micPermissionDescription}
               </span>
             </div>
-            <div className="general-permission-card__action">
+            <div className="settings-permission-card__action">
               <button
                 type="button"
-                className="general-permission-card__btn"
+                className="settings-permission-card__btn"
                 disabled={isMicPermissionButtonDisabled}
                 onClick={() => {
                   void handleMicPermissionAction();
@@ -131,17 +131,17 @@ export function GeneralPage({ onOpenPermissions }: GeneralPageProps): React.JSX.
             </div>
           </div>
         ) : devices.length === 0 ? (
-          <div className="general-permission-card">
-            <div className="general-permission-card__text">
-              <span className="general-permission-card__title">No microphone devices available</span>
-              <span className="general-permission-card__description">
+          <div className="settings-permission-card">
+            <div className="settings-permission-card__text">
+              <span className="settings-permission-card__title">No microphone devices available</span>
+              <span className="settings-permission-card__description">
                 Open the Permissions page and allow microphone access, then return here.
               </span>
             </div>
-            <div className="general-permission-card__action">
+            <div className="settings-permission-card__action">
               <button
                 type="button"
-                className="general-permission-card__btn"
+                className="settings-permission-card__btn"
                 onClick={onOpenPermissions}
               >
                 Open Permissions...
@@ -149,8 +149,8 @@ export function GeneralPage({ onOpenPermissions }: GeneralPageProps): React.JSX.
             </div>
           </div>
         ) : (
-          <div className="general-section__card">
-            <div className="general-field">
+          <div className="settings-section__card">
+            <div className="settings-field">
               <label htmlFor="mic-select" className="toggle-row__label">Microphone</label>
               <select
                 id="mic-select"
@@ -170,12 +170,12 @@ export function GeneralPage({ onOpenPermissions }: GeneralPageProps): React.JSX.
         )}
       </section>
 
-      <section className="general-section">
-        <span className="general-section__label">Shortcut</span>
+      <section className="settings-section">
+        <span className="settings-section__label">Shortcut</span>
         {isShortcutLoading ? (
-          <div className="general-skeleton" />
+          <div className="settings-skeleton" />
         ) : (
-          <div className="general-section__card">
+          <div className="settings-section__card">
             <div className="shortcut-section">
               <div className="shortcut-presets">
                 {PREDEFINED_SHORTCUTS.map((shortcut) => (
