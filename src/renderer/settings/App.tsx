@@ -85,7 +85,6 @@ function SettingsShell(): React.JSX.Element {
             <Route path="/" element={<Navigate to={initialPath} replace />} />
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/history" element={<HistoryApp embedded />} />
-            <Route path="/general" element={<Navigate to={getSettingsPagePath('settings')} replace />} />
             <Route
               path="/settings"
               element={<SettingsPage onOpenPermissions={() => { void navigate(getSettingsPagePath('permissions')); }} />}
