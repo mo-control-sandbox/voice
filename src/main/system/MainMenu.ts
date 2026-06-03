@@ -33,7 +33,7 @@ export class MainMenu {
         'separator',
         new MenuItem({
           id: 'openSettings',
-          label: 'Settings',
+          label: 'Settings...',
           shortcut: 'CommandOrControl+,',
           action: () => { this.applicationWindow.showSection('settings'); },
         }),
