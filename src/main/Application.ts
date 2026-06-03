@@ -10,6 +10,7 @@ import { RecordingWorkerWindow } from './recording/RecordingWorkerWindow';
 import { OverlayWindow } from './recording/OverlayWindow';
 import { ApplicationWindow } from './settings/ApplicationWindow';
 import { WelcomeWindow } from './welcome/WelcomeWindow';
+import { MainMenu } from './system/MainMenu';
 import { ReadinessCoordinator } from './readiness/ReadinessCoordinator';
 import { Permissions, registerPermissionsIpc } from './system/Permissions';
 import { registerRecordingIpc } from './recording/RecordingSessionController';
@@ -42,6 +43,7 @@ export class Application {
   private readonly dockManager = new DockManager();
   private readonly applicationWindow = new ApplicationWindow(this.dockManager);
   private readonly welcomeWindow = new WelcomeWindow(this.dockManager);
+  private readonly mainMenu = new MainMenu(this.applicationWindow);
   private readonly shortcutManager = new ShortcutManager();
   private readonly clipboard = new Clipboard();
   private readonly trayController = new TrayController(
@@ -58,6 +60,7 @@ export class Application {
   async initialize(): Promise<void> {
     await this.historyStore.initialize();
     this.recordingWorkerWindow.initialize();
+    this.mainMenu.create();
     let initialWelcomeAutoShowHandled = false;
     this.readiness.onChange((isReady) => {
       if (!initialWelcomeAutoShowHandled) {
