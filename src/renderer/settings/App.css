@@ -38,6 +38,10 @@
   margin: calc(var(--spacing) * 2) 0 calc(var(--spacing) * 2) calc(var(--spacing) * 2);
 }
 
+.dark .settings-sidebar {
+  border: 1px solid var(--sidebar-border);
+}
+
 .settings-sidebar__nav {
   display: flex;
   flex-direction: column;
