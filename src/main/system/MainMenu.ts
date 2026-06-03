@@ -32,8 +32,8 @@ export class MainMenu {
         }),
         'separator',
         new MenuItem({
-          id: 'openPreferences',
-          label: 'Preferences',
+          id: 'openSettings',
+          label: 'Settings',
           shortcut: 'CommandOrControl+,',
           action: () => { this.applicationWindow.showSection('settings'); },
         }),
