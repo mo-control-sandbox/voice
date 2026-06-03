@@ -11,9 +11,9 @@ import {
 import { AboutApp } from '../about/AboutApp';
 import { HistoryApp } from '../history/HistoryApp';
 import { DashboardPage } from './pages/DashboardPage';
-import { GeneralPage } from './pages/GeneralPage';
 import { ModelsPage } from './pages/ModelsPage';
 import { PermissionsPage } from './pages/PermissionsPage';
+import { SettingsPage } from './pages/SettingsPage';
 import {
   getSettingsPagePath,
   type SettingsPageId,
@@ -24,7 +24,7 @@ import './App.css';
 const NAV_ITEMS = [
   { id: 'dashboard' as const, label: 'Dashboard', Icon: LayoutDashboard },
   { id: 'history' as const, label: 'History', Icon: History },
-  { id: 'general' as const, label: 'General', Icon: Sliders },
+  { id: 'settings' as const, label: 'Settings', Icon: Sliders },
   { id: 'models' as const, label: 'Models', Icon: BrainCircuit },
   { id: 'permissions' as const, label: 'Permissions', Icon: ShieldCheck },
   { id: 'about' as const, label: 'About', Icon: CircleHelp },
@@ -86,8 +86,8 @@ function SettingsShell(): React.JSX.Element {
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/history" element={<HistoryApp embedded />} />
             <Route
-              path="/general"
-              element={<GeneralPage onOpenPermissions={() => { void navigate(getSettingsPagePath('permissions')); }} />}
+              path="/settings"
+              element={<SettingsPage onOpenPermissions={() => { void navigate(getSettingsPagePath('permissions')); }} />}
             />
             <Route path="/models" element={<ModelsPage needsModel={requirements.needsModel} />} />
             <Route

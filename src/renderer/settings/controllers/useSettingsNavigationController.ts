@@ -1,5 +1,5 @@
-export type SettingsPageId = 'dashboard' | 'history' | 'general' | 'models' | 'permissions' | 'about';
-export const SETTINGS_PAGE_IDS: readonly SettingsPageId[] = ['dashboard', 'history', 'general', 'models', 'permissions', 'about'];
+export type SettingsPageId = 'dashboard' | 'history' | 'settings' | 'models' | 'permissions' | 'about';
+export const SETTINGS_PAGE_IDS: readonly SettingsPageId[] = ['dashboard', 'history', 'settings', 'models', 'permissions', 'about'];
 
 /**
  * Converts a settings page id to a hash-router pathname.

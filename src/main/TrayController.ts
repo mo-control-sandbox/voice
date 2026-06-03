@@ -87,14 +87,14 @@ export class TrayController {
     return [
       new MenuItem({
         id: 'openHistory',
-        label: 'History',
+        label: 'History...',
         action: () => { this.applicationWindow.showSection('history'); },
       }),
       'separator',
       new MenuItem({
         id: 'openSettings',
-        label: 'Settings',
-        action: () => { this.applicationWindow.showSection('general'); },
+        label: 'Settings...',
+        action: () => { this.applicationWindow.showSection('settings'); },
       }),
       new MenuItem({
         id: 'openAbout',

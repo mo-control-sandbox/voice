@@ -46,9 +46,9 @@ function buildAccelerator(event: KeyboardEvent): string | null {
 }
 
 /**
- * View state exposed by the General settings controller.
+ * View state exposed by the settings page controller.
  */
-export interface GeneralControllerState {
+export interface SettingsControllerState {
   readonly devices: readonly AudioInputDevice[];
   readonly selectedDeviceId: string;
   readonly shortcutKey: string;
@@ -65,9 +65,9 @@ export interface GeneralControllerState {
 }
 
 /**
- * Actions exposed by the General settings controller.
+ * Actions exposed by the settings page controller.
  */
-export interface GeneralControllerActions {
+export interface SettingsControllerActions {
   readonly setIsCapturing: (capturing: boolean) => void;
   readonly saveShortcut: (accelerator: string) => Promise<void>;
   readonly handleDeviceChange: (deviceId: string) => Promise<void>;
@@ -78,11 +78,11 @@ export interface GeneralControllerActions {
 }
 
 /**
- * Owns orchestration for the General settings page.
+ * Owns orchestration for the settings page.
  */
-export function useGeneralController(): {
-  readonly state: GeneralControllerState;
-  readonly actions: GeneralControllerActions;
+export function useSettingsController(): {
+  readonly state: SettingsControllerState;
+  readonly actions: SettingsControllerActions;
 } {
   const [devices, setDevices] = useState<readonly AudioInputDevice[]>([]);
   const [selectedDeviceId, setSelectedDeviceId] = useState('');
