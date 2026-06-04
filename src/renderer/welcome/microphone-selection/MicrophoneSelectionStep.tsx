@@ -31,7 +31,7 @@ export function MicrophoneSelectionStep(props: MicrophoneSelectionStepProps): Re
           )}
           {!audioDevicesLoading && audioDevices.length === 0 && (
             <p className="welcome-input-card__hint">
-              No microphone devices detected.
+              No microphones detected.
             </p>
           )}
           {!audioDevicesLoading && audioDevices.length > 0 && (
