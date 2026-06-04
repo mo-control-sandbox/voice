@@ -32,6 +32,9 @@ export async function getAudioInputDevices(): Promise<readonly AudioInputDevice[
   return devices
     .filter((device) => device.kind === 'audioinput')
     .filter((device) => device.deviceId.trim() !== '')
+    // The MediaDevices API provides no flag to distinguish virtual from physical
+    // devices; label inspection is the only option available in the renderer process.
+    .filter((device) => !device.label.includes('(Virtual)'))
     .map((device, index) => ({
       deviceId: device.deviceId,
       label: device.label.trim() !== '' ? device.label : `Microphone ${String(index + 1)}`,

@@ -174,7 +174,6 @@ export function SettingsPage({ onOpenPermissions }: SettingsPageProps): React.JS
                   void handleDeviceChange(event.target.value);
                 }}
               >
-                <option value="">System default</option>
                 {devices.map((device) => (
                   <option key={device.deviceId} value={device.deviceId}>{device.label}</option>
                 ))}
