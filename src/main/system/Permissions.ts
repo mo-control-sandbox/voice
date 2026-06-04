@@ -7,7 +7,7 @@ import {
   type RequestPermissionsParams,
 } from '@mobrowser/api';
 import { PermissionStatus, PermissionType, type PermissionStatusProto, type PermissionTypeRequest } from '../gen/permissions';
-import { PermissionsService as createPermissionsService, type PermissionsService as PermissionsServiceInterface } from '../gen/ipc_service';
+import { PermissionsServiceDescriptor, type PermissionsService as PermissionsServiceInterface } from '../gen/ipc_service';
 
 /**
  * Translates MōVoice permission types to MōBrowser application permissions.
@@ -75,7 +75,7 @@ export function registerPermissionsIpc(
   permissions: Permissions,
   onPermissionsChanged?: () => void,
 ): void {
-  ipc.registerService(createPermissionsService(new IpcPermissionsService(permissions, onPermissionsChanged)));
+  ipc.registerService(PermissionsServiceDescriptor, new IpcPermissionsService(permissions, onPermissionsChanged));
 }
 
 class IpcPermissionsService implements PermissionsServiceInterface {

@@ -1,5 +1,5 @@
 import { ipc, prefs } from '@mobrowser/api';
-import { SettingsService as createSettingsService, type SettingsService as SettingsServiceInterface } from '../gen/ipc_service';
+import { SettingsServiceDescriptor, type SettingsService as SettingsServiceInterface } from '../gen/ipc_service';
 import type {
   GetSettingsRequest,
   SetActiveModelIdRequest,
@@ -151,7 +151,7 @@ export function registerSettingsIpc(
   shortcutManager: ShortcutManager,
   onModelReadyChanged?: () => void,
 ): void {
-  ipc.registerService(createSettingsService(new SettingsService(settings, shortcutManager, onModelReadyChanged)));
+  ipc.registerService(SettingsServiceDescriptor, new SettingsService(settings, shortcutManager, onModelReadyChanged));
 }
 
 class SettingsService implements SettingsServiceInterface {

@@ -1,12 +1,12 @@
 import { desktop, ipc } from '@mobrowser/api';
-import { DesktopService as createDesktopService, type DesktopService as DesktopServiceInterface } from '../gen/ipc_service';
+import { DesktopServiceDescriptor, type DesktopService as DesktopServiceInterface } from '../gen/ipc_service';
 import type { OpenUrlRequest } from '../gen/desktop';
 
 /**
  * Registers the Desktop IPC service in the main process.
  */
 export function registerDesktopIpc(): void {
-  ipc.registerService(createDesktopService(new DesktopService()));
+  ipc.registerService(DesktopServiceDescriptor, new DesktopService());
 }
 
 class DesktopService implements DesktopServiceInterface {
