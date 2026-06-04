@@ -20,8 +20,11 @@ export class AudioPipeline {
    *   use the device native rate (batch path resamples via OfflineAudioContext).
    */
   async start(deviceId: string, sampleRate?: number): Promise<void> {
+    const audioConstraint = deviceId.trim() !== ''
+      ? { deviceId: { exact: deviceId } }
+      : true;
     this.stream = await navigator.mediaDevices.getUserMedia({
-      audio: { deviceId: { exact: deviceId } },
+      audio: audioConstraint,
       video: false,
     });
 
