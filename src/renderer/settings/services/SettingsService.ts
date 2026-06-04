@@ -36,6 +36,11 @@ export class SettingsService {
     await ipc.settings.SetShowWindowOnAppLaunch({ value });
   }
 
+  /** Registers or unregisters the application as a login item. */
+  async setOpenAtLogin(value: boolean): Promise<void> {
+    await ipc.settings.SetOpenAtLogin({ value });
+  }
+
   /** Persists the selected audio input device. */
   async setAudioInputDevice(deviceId: string): Promise<void> {
     await ipc.settings.SetAudioInputDevice({ deviceId });

@@ -20,6 +20,7 @@ export function SettingsPage({ onOpenPermissions }: SettingsPageProps): React.JS
       saveTranscripts,
       saveAudio,
       showWindowOnAppLaunch,
+      openAtLogin,
       isCapturing,
       isShortcutLoading,
       isMicLoading,
@@ -35,6 +36,7 @@ export function SettingsPage({ onOpenPermissions }: SettingsPageProps): React.JS
       handleSaveTranscripts,
       handleSaveAudio,
       handleShowWindowOnAppLaunch,
+      handleOpenAtLogin,
       handleMicPermissionAction,
     },
   } = useSettingsController();
@@ -99,6 +101,18 @@ export function SettingsPage({ onOpenPermissions }: SettingsPageProps): React.JS
               checked={showWindowOnAppLaunch}
               onChange={(value) => {
                 void handleShowWindowOnAppLaunch(value);
+              }}
+            />
+          </div>
+          <div className="toggle-row">
+            <label htmlFor="open-at-login" className="toggle-row__label">
+              Open at login
+            </label>
+            <Switch
+              id="open-at-login"
+              checked={openAtLogin}
+              onChange={(value) => {
+                void handleOpenAtLogin(value);
               }}
             />
           </div>
