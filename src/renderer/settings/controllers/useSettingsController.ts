@@ -165,7 +165,8 @@ export function useSettingsController(): {
         setMicPermissionStatus(micStatus);
         if (micStatus === PermissionStatus.PERMISSION_STATUS_GRANTED) {
           const deviceList = await loadAudioDevices();
-          if (!cancelledRef.current && savedDeviceId === '' && deviceList.length > 0) {
+          const deviceAbsent = savedDeviceId === '' || !deviceList.some((d) => d.deviceId === savedDeviceId);
+          if (!cancelledRef.current && deviceAbsent && deviceList.length > 0) {
             const firstId = deviceList[0].deviceId;
             setSelectedDeviceId(firstId);
             await settingsService.setAudioInputDevice(firstId);
