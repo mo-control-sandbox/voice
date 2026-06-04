@@ -15,17 +15,15 @@ export class AudioPipeline {
   /**
    * Starts microphone capture.
    *
-   * @param deviceId - MediaDevices deviceId for the audio input.
-   *   Pass an empty string (or omit) to use the system default.
    * @param sampleRate - AudioContext sample rate. Pass 16000 for streaming
    *   backends so the OS resamples before chunks reach the worklet; omit to
    *   use the device native rate (batch path resamples via OfflineAudioContext).
    */
-  async start(deviceId = '', sampleRate?: number): Promise<void> {
-    const audioConstraint: MediaTrackConstraints = deviceId !== ''
-      ? { deviceId: { exact: deviceId } }
-      : {};
-    this.stream = await navigator.mediaDevices.getUserMedia({ audio: audioConstraint, video: false });
+  async start(deviceId: string, sampleRate?: number): Promise<void> {
+    this.stream = await navigator.mediaDevices.getUserMedia({
+      audio: { deviceId: { exact: deviceId } },
+      video: false,
+    });
 
     const contextOptions = sampleRate !== undefined ? { sampleRate } : undefined;
     this.audioContext = new AudioContext(contextOptions);

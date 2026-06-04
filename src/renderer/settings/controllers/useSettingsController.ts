@@ -109,14 +109,16 @@ export function useSettingsController(): {
     return status;
   }
 
-  async function loadAudioDevices(): Promise<void> {
+  async function loadAudioDevices(): Promise<readonly AudioInputDevice[]> {
     try {
       const deviceList = await getAudioInputDevices();
-      if (cancelledRef.current) return;
+      if (cancelledRef.current) return [];
       setDevices(deviceList);
+      return deviceList;
     } catch {
-      if (cancelledRef.current) return;
+      if (cancelledRef.current) return [];
       setDevices([]);
+      return [];
     }
   }
 
@@ -162,7 +164,12 @@ export function useSettingsController(): {
         setSelectedDeviceId(savedDeviceId);
         setMicPermissionStatus(micStatus);
         if (micStatus === PermissionStatus.PERMISSION_STATUS_GRANTED) {
-          await loadAudioDevices();
+          const deviceList = await loadAudioDevices();
+          if (!cancelledRef.current && savedDeviceId === '' && deviceList.length > 0) {
+            const firstId = deviceList[0].deviceId;
+            setSelectedDeviceId(firstId);
+            await settingsService.setAudioInputDevice(firstId);
+          }
         } else {
           setDevices([]);
         }

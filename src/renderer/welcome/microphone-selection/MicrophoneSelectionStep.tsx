@@ -31,7 +31,7 @@ export function MicrophoneSelectionStep(props: MicrophoneSelectionStepProps): Re
           )}
           {!audioDevicesLoading && audioDevices.length === 0 && (
             <p className="welcome-input-card__hint">
-              No specific microphone detected. You can continue with the system default input.
+              No microphone devices detected.
             </p>
           )}
           {!audioDevicesLoading && audioDevices.length > 0 && (
@@ -45,7 +45,6 @@ export function MicrophoneSelectionStep(props: MicrophoneSelectionStepProps): Re
                   void onAudioDeviceChange(event.target.value);
                 }}
               >
-                <option value="">System default</option>
                 {audioDevices.map((device) => (
                   <option key={device.deviceId} value={device.deviceId}>{device.label}</option>
                 ))}

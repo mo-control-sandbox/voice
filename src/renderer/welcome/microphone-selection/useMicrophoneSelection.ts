@@ -38,9 +38,10 @@ export function useMicrophoneSelection(params: {
       setAudioDevices(devices);
       if (devices.length > 0) {
         const selectedExists = devices.some((device) => device.deviceId === selectedAudioDeviceId);
-        if (!selectedExists && selectedAudioDeviceId !== '') {
-          setSelectedAudioDeviceId('');
-          await settingsService.setAudioInputDevice('');
+        if (!selectedExists) {
+          const firstId = devices[0].deviceId;
+          setSelectedAudioDeviceId(firstId);
+          await settingsService.setAudioInputDevice(firstId);
         }
       }
     } finally {
