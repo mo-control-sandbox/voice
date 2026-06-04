@@ -106,7 +106,7 @@
 .about-window__mobrowser-card .about-window__icon {
   width: 44px;
   height: 44px;
-  margin-top: 7px;
+  margin-top: 8px;
 }
 
 .about-window__powered-by-label {
@@ -116,8 +116,8 @@
 }
 
 .about-window__mobrowser-name {
-  font-size: 1.125rem;
-  line-height: 1.09;
+  font-size: 1rem;
+  line-height: 1.22;
   font-weight: 700;
 }
 
