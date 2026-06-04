@@ -100,7 +100,7 @@ export function useSettingsController(): {
   const [isShortcutLoading, setIsShortcutLoading] = useState(true);
   const [isMicLoading, setIsMicLoading] = useState(true);
   const [isMicPermissionActionLoading, setIsMicPermissionActionLoading] = useState(false);
-  const cancelledRef = useRef(false);
+  const cancelledRef = useRef<boolean>(false);
 
   async function refreshMicPermissionStatus(): Promise<PermissionStatus> {
     const response = await permissionsService.refreshPermissions();
@@ -166,7 +166,7 @@ export function useSettingsController(): {
         if (micStatus === PermissionStatus.PERMISSION_STATUS_GRANTED) {
           const deviceList = await loadAudioDevices();
           const deviceAbsent = savedDeviceId === '' || !deviceList.some((d) => d.deviceId === savedDeviceId);
-          if (!cancelledRef.current && deviceAbsent && deviceList.length > 0) {
+          if (deviceAbsent && deviceList.length > 0) {
             const firstId = deviceList[0].deviceId;
             setSelectedDeviceId(firstId);
             await settingsService.setAudioInputDevice(firstId);
