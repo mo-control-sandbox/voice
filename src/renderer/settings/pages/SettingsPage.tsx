@@ -63,18 +63,6 @@ export function SettingsPage({ onOpenPermissions }: SettingsPageProps): React.JS
         <span className="settings-section__label">Behavior</span>
         <div className="settings-section__card">
           <div className="toggle-row">
-            <label htmlFor="show-window-on-app-launch" className="toggle-row__label">
-              Show dashboard on launch
-            </label>
-            <Switch
-              id="show-window-on-app-launch"
-              checked={showWindowOnAppLaunch}
-              onChange={(value) => {
-                void handleShowWindowOnAppLaunch(value);
-              }}
-            />
-          </div>
-          <div className="toggle-row">
             <label htmlFor="open-at-login" className="toggle-row__label">
               Launch at login
             </label>
@@ -83,6 +71,18 @@ export function SettingsPage({ onOpenPermissions }: SettingsPageProps): React.JS
               checked={openAtLogin}
               onChange={(value) => {
                 void handleOpenAtLogin(value);
+              }}
+            />
+          </div>
+          <div className="toggle-row">
+            <label htmlFor="show-window-on-app-launch" className="toggle-row__label">
+              Show dashboard on launch
+            </label>
+            <Switch
+              id="show-window-on-app-launch"
+              checked={showWindowOnAppLaunch}
+              onChange={(value) => {
+                void handleShowWindowOnAppLaunch(value);
               }}
             />
           </div>
