@@ -149,7 +149,7 @@
   font-size: 0.75rem;
   line-height: 1.5;
   color: var(--muted-foreground);
-  padding-block-end: calc(var(--spacing) * 5);    /* 32px */
+  padding-block-end: calc(var(--spacing) * 5);
 }
 
 .about-window__copyright button {
