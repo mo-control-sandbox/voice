@@ -76,7 +76,7 @@ export function SettingsPage({ onOpenPermissions }: SettingsPageProps): React.JS
           </div>
           <div className="toggle-row">
             <label htmlFor="show-window-on-app-launch" className="toggle-row__label">
-              Show dashboard on launch
+              Show Dashboard on launch
             </label>
             <Switch
               id="show-window-on-app-launch"
