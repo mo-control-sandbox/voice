@@ -39,6 +39,10 @@ message SettingsProto {
    * Controls whether the main window should be shown when the app launches.
    */
   bool show_window_on_app_launch = 8;
+  /**
+   * Controls whether the application should open at operating system's login.
+   */
+  bool open_at_login = 9;
 }
 
 /**
@@ -149,6 +153,10 @@ service SettingsService {
    * Persists launch-window visibility preference.
    */
   rpc SetShowWindowOnAppLaunch(SetBooleanSettingRequest) returns (google.protobuf.Empty);
+  /**
+   * Registers or unregisters the application as a login item.
+   */
+  rpc SetOpenAtLogin(SetBooleanSettingRequest) returns (google.protobuf.Empty);
   /**
    * Marks onboarding as completed.
    */

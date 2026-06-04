@@ -1,7 +1,7 @@
 import { ipc } from '@mobrowser/api';
 import { Mutex } from 'async-mutex';
 import {
-  RecordingService as createRecordingService,
+  RecordingServiceDescriptor,
   type RecordingService as RecordingServiceInterface,
 } from '../gen/ipc_service';
 import type { AppendAudioChunkRequest, CancelRecordingRequest, PastePartialTranscriptionRequest, StopRecordingRequest, SubmitTranscriptionRequest } from '../gen/recording';
@@ -227,7 +227,7 @@ export class RecordingSessionController {
  * Registers the Recording IPC service.
  */
 export function registerRecordingIpc(controller: RecordingSessionController): void {
-  ipc.registerService(createRecordingService(new RecordingService(controller)));
+  ipc.registerService(RecordingServiceDescriptor, new RecordingService(controller));
 }
 
 class RecordingService implements RecordingServiceInterface {

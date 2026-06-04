@@ -1,5 +1,5 @@
 import { ipc } from '@mobrowser/api';
-import { StatsService as createStatsService, type StatsService as StatsServiceInterface } from '../gen/ipc_service';
+import { StatsServiceDescriptor, type StatsService as StatsServiceInterface } from '../gen/ipc_service';
 import type { DashboardStats } from '../gen/settings';
 import type { GetStatsRequest } from '../gen/stats';
 import type { TranscriptionSession } from '../sessions/History';
@@ -47,7 +47,7 @@ export function calculate(sessions: TranscriptionSession[]): DashboardStats {
  * Registers the Stats IPC service so the renderer can request dashboard metrics.
  */
 export function registerStatsIpc(historyStore: { getSessions(): TranscriptionSession[] }): void {
-  ipc.registerService(createStatsService(new StatsService(historyStore)));
+  ipc.registerService(StatsServiceDescriptor, new StatsService(historyStore));
 }
 
 class StatsService implements StatsServiceInterface {

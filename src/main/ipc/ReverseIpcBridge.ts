@@ -1,5 +1,5 @@
 import { ipc } from '@mobrowser/api';
-import { ReverseIpcBridgeService as createReverseIpcBridgeService, type ReverseIpcBridgeService as ReverseIpcBridgeServiceInterface } from '../gen/ipc_service';
+import { ReverseIpcBridgeServiceDescriptor, type ReverseIpcBridgeService as ReverseIpcBridgeServiceInterface } from '../gen/ipc_service';
 import { RecordingPhase } from '../gen/reverse_ipc_bridge';
 import type { PollHistoryRevisionRequest, PollRecordingRequest } from '../gen/reverse_ipc_bridge';
 import type { History } from '../sessions/History';
@@ -10,7 +10,7 @@ import type { RecordingSessionController } from '../recording/RecordingSessionCo
  * endpoints for renderer signal channels.
  */
 export function registerReverseIpcBridge(controller: RecordingSessionController, historyStore: History): void {
-  ipc.registerService(createReverseIpcBridgeService(new ReverseIpcBridgeService(controller, historyStore)));
+  ipc.registerService(ReverseIpcBridgeServiceDescriptor, new ReverseIpcBridgeService(controller, historyStore));
 }
 
 class ReverseIpcBridgeService implements ReverseIpcBridgeServiceInterface {

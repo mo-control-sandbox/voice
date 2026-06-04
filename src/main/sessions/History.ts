@@ -2,7 +2,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { app, desktop, ipc } from '@mobrowser/api';
 import { Mutex } from 'async-mutex';
-import { HistoryService as createHistoryService, type HistoryService as HistoryServiceInterface } from '../gen/ipc_service';
+import { HistoryServiceDescriptor, type HistoryService as HistoryServiceInterface } from '../gen/ipc_service';
 import type { AudioChunkRequest, DeleteSessionRequest, GetSessionsRequest, SessionIdRequest } from '../gen/history';
 import type { SessionStorage } from '../sessions/SessionStorage';
 
@@ -140,7 +140,7 @@ function isFileMissingError(value: unknown): value is NodeJS.ErrnoException {
  * Registers the history IPC service.
  */
 export function registerHistoryIpc(historyStore: History, sessionStorage: SessionStorage): void {
-  ipc.registerService(createHistoryService(new HistoryService(historyStore, sessionStorage)));
+  ipc.registerService(HistoryServiceDescriptor, new HistoryService(historyStore, sessionStorage));
 }
 
 class HistoryService implements HistoryServiceInterface {

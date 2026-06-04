@@ -20,6 +20,7 @@ export function SettingsPage({ onOpenPermissions }: SettingsPageProps): React.JS
       saveTranscripts,
       saveAudio,
       showWindowOnAppLaunch,
+      openAtLogin,
       isCapturing,
       isShortcutLoading,
       isMicLoading,
@@ -35,6 +36,7 @@ export function SettingsPage({ onOpenPermissions }: SettingsPageProps): React.JS
       handleSaveTranscripts,
       handleSaveAudio,
       handleShowWindowOnAppLaunch,
+      handleOpenAtLogin,
       handleMicPermissionAction,
     },
   } = useSettingsController();
@@ -56,6 +58,36 @@ export function SettingsPage({ onOpenPermissions }: SettingsPageProps): React.JS
   return (
     <div className="settings-page">
       <h1 className="settings-page__heading">Settings</h1>
+
+      <section className="settings-section">
+        <span className="settings-section__label">Behavior</span>
+        <div className="settings-section__card">
+          <div className="toggle-row">
+            <label htmlFor="open-at-login" className="toggle-row__label">
+              Launch at login
+            </label>
+            <Switch
+              id="open-at-login"
+              checked={openAtLogin}
+              onChange={(value) => {
+                void handleOpenAtLogin(value);
+              }}
+            />
+          </div>
+          <div className="toggle-row">
+            <label htmlFor="show-window-on-app-launch" className="toggle-row__label">
+              Show dashboard on launch
+            </label>
+            <Switch
+              id="show-window-on-app-launch"
+              checked={showWindowOnAppLaunch}
+              onChange={(value) => {
+                void handleShowWindowOnAppLaunch(value);
+              }}
+            />
+          </div>
+        </div>
+      </section>
 
       <section className="settings-section">
         <span className="settings-section__label">Privacy</span>
@@ -81,24 +113,6 @@ export function SettingsPage({ onOpenPermissions }: SettingsPageProps): React.JS
               checked={saveAudio}
               onChange={(value) => {
                 void handleSaveAudio(value);
-              }}
-            />
-          </div>
-        </div>
-      </section>
-
-      <section className="settings-section">
-        <span className="settings-section__label">Behavior</span>
-        <div className="settings-section__card">
-          <div className="toggle-row">
-            <label htmlFor="show-window-on-app-launch" className="toggle-row__label">
-              Show this window on app launch
-            </label>
-            <Switch
-              id="show-window-on-app-launch"
-              checked={showWindowOnAppLaunch}
-              onChange={(value) => {
-                void handleShowWindowOnAppLaunch(value);
               }}
             />
           </div>
