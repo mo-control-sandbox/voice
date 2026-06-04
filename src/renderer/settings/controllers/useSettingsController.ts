@@ -55,6 +55,7 @@ export interface SettingsControllerState {
   readonly saveTranscripts: boolean;
   readonly saveAudio: boolean;
   readonly showWindowOnAppLaunch: boolean;
+  readonly openAtLogin: boolean;
   readonly isCapturing: boolean;
   readonly isShortcutLoading: boolean;
   readonly isMicLoading: boolean;
@@ -74,6 +75,7 @@ export interface SettingsControllerActions {
   readonly handleSaveTranscripts: (value: boolean) => Promise<void>;
   readonly handleSaveAudio: (value: boolean) => Promise<void>;
   readonly handleShowWindowOnAppLaunch: (value: boolean) => Promise<void>;
+  readonly handleOpenAtLogin: (value: boolean) => Promise<void>;
   readonly handleMicPermissionAction: () => Promise<void>;
 }
 
@@ -94,6 +96,7 @@ export function useSettingsController(): {
   const [saveTranscripts, setSaveTranscripts] = useState(true);
   const [saveAudio, setSaveAudio] = useState(true);
   const [showWindowOnAppLaunch, setShowWindowOnAppLaunch] = useState(false);
+  const [openAtLogin, setOpenAtLogin] = useState(false);
   const [isShortcutLoading, setIsShortcutLoading] = useState(true);
   const [isMicLoading, setIsMicLoading] = useState(true);
   const [isMicPermissionActionLoading, setIsMicPermissionActionLoading] = useState(false);
@@ -144,6 +147,7 @@ export function useSettingsController(): {
           setSaveTranscripts(settings.saveTranscripts);
           setSaveAudio(settings.saveAudio);
           setShowWindowOnAppLaunch(settings.showWindowOnAppLaunch);
+          setOpenAtLogin(settings.openAtLogin);
           setIsShortcutLoading(false);
           return settings.audioInputDeviceId;
         });
@@ -243,6 +247,11 @@ export function useSettingsController(): {
     await settingsService.setShowWindowOnAppLaunch(value);
   }
 
+  async function handleOpenAtLogin(value: boolean): Promise<void> {
+    setOpenAtLogin(value);
+    await settingsService.setOpenAtLogin(value);
+  }
+
   async function handleMicPermissionAction(): Promise<void> {
     setIsMicPermissionActionLoading(true);
     try {
@@ -270,6 +279,7 @@ export function useSettingsController(): {
       saveTranscripts,
       saveAudio,
       showWindowOnAppLaunch,
+      openAtLogin,
       isCapturing,
       isShortcutLoading,
       isMicLoading,
@@ -285,6 +295,7 @@ export function useSettingsController(): {
       handleSaveTranscripts,
       handleSaveAudio,
       handleShowWindowOnAppLaunch,
+      handleOpenAtLogin,
       handleMicPermissionAction,
     },
   };

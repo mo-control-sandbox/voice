@@ -1,5 +1,5 @@
-import { ipc, prefs } from '@mobrowser/api';
-import { SettingsService as createSettingsService, type SettingsService as SettingsServiceInterface } from '../gen/ipc_service';
+import { app, ipc, prefs } from '@mobrowser/api';
+import { SettingsServiceDescriptor, type SettingsService as SettingsServiceInterface } from '../gen/ipc_service';
 import type {
   GetSettingsRequest,
   SetActiveModelIdRequest,
@@ -21,6 +21,7 @@ const DEFAULTS: SettingsProto = {
   activeModelId: '',
   primaryLanguage: 'auto',
   showWindowOnAppLaunch: true,
+  openAtLogin: false,
 };
 
 /**
@@ -42,6 +43,7 @@ export class SettingsStore {
       activeModelId: prefs.getString('activeModelId', DEFAULTS.activeModelId),
       primaryLanguage: prefs.getString('primaryLanguage', DEFAULTS.primaryLanguage),
       showWindowOnAppLaunch: prefs.getBoolean('showWindowOnAppLaunch', DEFAULTS.showWindowOnAppLaunch),
+      openAtLogin: app.loginItemSettings.openAtLogin,
     };
   }
 
@@ -67,6 +69,13 @@ export class SettingsStore {
   setShowWindowOnAppLaunch(value: boolean): void {
     prefs.setBoolean('showWindowOnAppLaunch', value);
     prefs.persist();
+  }
+
+  /**
+   * Registers or unregisters the application as a login item.
+   */
+  setOpenAtLogin(value: boolean): void {
+    app.setLoginItemSettings({ openAtLogin: value });
   }
 
   /**
@@ -151,7 +160,7 @@ export function registerSettingsIpc(
   shortcutManager: ShortcutManager,
   onModelReadyChanged?: () => void,
 ): void {
-  ipc.registerService(createSettingsService(new SettingsService(settings, shortcutManager, onModelReadyChanged)));
+  ipc.registerService(SettingsServiceDescriptor, new SettingsService(settings, shortcutManager, onModelReadyChanged));
 }
 
 class SettingsService implements SettingsServiceInterface {
@@ -208,6 +217,11 @@ class SettingsService implements SettingsServiceInterface {
 
   SetShowWindowOnAppLaunch(request: SetBooleanSettingRequest): Promise<Empty> {
     this.settings.setShowWindowOnAppLaunch(request.value);
+    return Promise.resolve({});
+  }
+
+  SetOpenAtLogin(request: SetBooleanSettingRequest): Promise<Empty> {
+    this.settings.setOpenAtLogin(request.value);
     return Promise.resolve({});
   }
 
