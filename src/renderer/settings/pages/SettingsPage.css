@@ -327,7 +327,7 @@
 
 .shortcut-summary__value {
   background-color: var(--accent);
-  padding: calc(var(--spacing) * 1);
+  padding: calc(var(--spacing) * 1) calc(var(--spacing) * 2);
   border-radius: var(--radius-sm);
   font-size: 0.6875rem;
   letter-spacing: 0.06em;

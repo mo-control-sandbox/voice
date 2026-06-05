@@ -114,6 +114,8 @@
   --radiobutton-border:       oklch(78% 0 0deg);
   --radiobutton-hover-border: oklch(60% 0 0deg);
 
+  --link: oklch(54.6% 0.245 262.9deg);
+
   /* Sidebar */
   --sidebar:                    linear-gradient(135deg, #f5f6f6 0%, #f9f9fa 50%, #f5f6f6 100%);
   --sidebar-foreground:         oklch(14.5% 0 0deg);
@@ -220,6 +222,8 @@
 
   --radiobutton-border:       oklch(60% 0 0deg);
   --radiobutton-hover-border: oklch(75% 0 0deg);
+
+  --link: oklch(69% 0.18 258.62deg);
 
   /* Sidebar */
   --sidebar:                    oklch(20% 0 0deg);
