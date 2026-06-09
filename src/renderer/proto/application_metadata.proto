@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+/**
+ * Application metadata exposed by the main process.
+ */
+message ApplicationMetadata {
+  /**
+   * Current application version.
+   */
+  string version = 1;
+}
+
+/**
+ * Application metadata contract owned by the main process.
+ */
+service ApplicationMetadataService {
+  /**
+   * Returns metadata from the application shell configuration.
+   */
+  rpc GetApplicationMetadata(google.protobuf.Empty) returns (ApplicationMetadata);
+}
