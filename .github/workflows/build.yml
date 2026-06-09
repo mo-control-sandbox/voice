@@ -108,3 +108,24 @@ jobs:
         with:
           name: MoVoice-macos
           path: build/dist/mac-arm64/pack/*.dmg
+
+  release:
+    name: Create GitHub Release Draft
+    runs-on: ubuntu-latest
+    needs: [build]
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist/
+
+      - name: Create GitHub Release draft
+        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3.0.0
+        with:
+          files: dist/MoVoice-macos/*
+          tag_name: ${{ github.ref_name }}
+          name: "${{ github.ref_name }}"
+          draft: true
