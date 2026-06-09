@@ -6,7 +6,7 @@ import type { ReadinessCoordinator } from './readiness/ReadinessCoordinator';
 import type { WelcomeWindow } from './welcome/WelcomeWindow';
 
 /**
- * Manages the menu-bar tray icon for MōVoice.
+ * Manages the menu-bar tray icon for MoVoice.
  */
 export class TrayController {
   private readonly tray: Tray;

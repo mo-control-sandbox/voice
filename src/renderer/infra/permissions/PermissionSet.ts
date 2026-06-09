@@ -1,7 +1,7 @@
 import { PermissionStatus, PermissionType, type PermissionStatusProto } from '../../gen/permissions';
 
 /**
- * Required permission types for MōVoice recording and text insertion workflows.
+ * Required permission types for MoVoice recording and text insertion workflows.
  */
 export const REQUIRED_PERMISSION_TYPES = [
   PermissionType.PERMISSION_TYPE_MICROPHONE,

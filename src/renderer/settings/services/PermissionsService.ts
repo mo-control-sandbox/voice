@@ -9,7 +9,7 @@ import type { PermissionType, PermissionsResponse } from '../../gen/permissions'
  */
 export class PermissionsService {
   /**
-   * Returns the current status of all macOS permissions required by MōVoice.
+   * Returns the current status of all macOS permissions required by MoVoice.
    */
   async getPermissions(): Promise<PermissionsResponse> {
     return ipc.permissions.GetPermissions({});

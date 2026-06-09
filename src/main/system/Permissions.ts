@@ -10,7 +10,7 @@ import { PermissionStatus, PermissionType, type PermissionStatusProto, type Perm
 import { PermissionsServiceDescriptor, type PermissionsService as PermissionsServiceInterface } from '../gen/ipc_service';
 
 /**
- * Translates MōVoice permission types to MōBrowser application permissions.
+ * Translates MoVoice permission types to MoBrowser application permissions.
  */
 export class Permissions {
   /**
