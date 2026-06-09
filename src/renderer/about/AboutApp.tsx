@@ -1,4 +1,5 @@
 import './AboutApp.css';
+import { useEffect, useState } from 'react';
 import appIconUrl from './assets/app-icon.webp';
 import mobrowserIconUrl from './assets/mobrowser-icon.webp';
 import { ipc } from '../gen/ipc';
@@ -28,6 +29,29 @@ function openPrivacy(): void {
 }
 
 export function AboutApp({ embedded = false }: AboutAppProps = {}): React.JSX.Element {
+  const [version, setVersion] = useState('');
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadApplicationMetadata(): Promise<void> {
+      const metadata = await ipc.applicationMetadata.GetApplicationMetadata({});
+      if (isMounted) {
+        setVersion(metadata.version);
+      }
+    }
+
+    void loadApplicationMetadata().catch(() => {
+      if (isMounted) {
+        setVersion('');
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   return (
     <div className={`about-window ${embedded ? 'about-window--embedded' : ''}`}>
       <div className="about-window__content">
@@ -41,7 +65,7 @@ export function AboutApp({ embedded = false }: AboutAppProps = {}): React.JSX.El
           </button>
           <div className="about-window__identity">
             <span className="about-window__name">MōVoice</span>
-            <span className="about-window__version">Version 1.0.0 (Apple Silicon)</span>
+            {version !== '' && <span className="about-window__version">Version {version} (Apple Silicon)</span>}
           </div>
         </div>
         <div className="about-window__mobrowser-card">

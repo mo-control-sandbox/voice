@@ -19,6 +19,7 @@ import { registerSettingsIpc } from './settings/SettingsStore';
 import { registerStatsIpc } from './settings/StatsCalculator';
 import { registerHistoryIpc } from './sessions/History';
 import { registerDesktopIpc } from './system/DesktopService';
+import { registerApplicationMetadataIpc } from './system/ApplicationMetadataService';
 
 /**
  * The application entry point.
@@ -79,6 +80,7 @@ export class Application {
       this.recordingController.handleShortcutTrigger();
     });
 
+    registerApplicationMetadataIpc();
     registerDesktopIpc();
     registerPermissionsIpc(this.permissions, () => {
       void this.readiness.recompute();
