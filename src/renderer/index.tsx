@@ -1,5 +1,7 @@
+import './instrument';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import * as Sentry from '@sentry/react';
 import { AboutApp } from './about/AboutApp';
 import { startTranscriptionRuntime } from './recording/transcription/TranscriptionRuntime';
 import './index.css';
@@ -53,7 +55,11 @@ if (rendererWindowKind === 'background') {
   const SelectedApp = rendererWindowKind === null ? null : APP_BY_WINDOW[rendererWindowKind];
   const appElement = SelectedApp === null ? <></> : React.createElement(SelectedApp);
 
-  ReactDOM.createRoot(rootElement).render(
+  ReactDOM.createRoot(rootElement, {
+    onCaughtError: Sentry.reactErrorHandler(),
+    onRecoverableError: Sentry.reactErrorHandler(),
+    onUncaughtError: Sentry.reactErrorHandler(),
+  }).render(
     <React.StrictMode>
       {appElement}
     </React.StrictMode>,

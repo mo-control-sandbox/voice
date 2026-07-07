@@ -1,6 +1,16 @@
+import { builtinModules } from "node:module"
 import path from "path"
 import react from "@vitejs/plugin-react"
 import { defineConfig, type UserConfig } from "vite"
+
+const mainProcessExternals = [
+  "mobrowser",
+  "import-in-the-middle",
+  "module-details-from-path",
+  "require-in-the-middle",
+  ...builtinModules,
+  ...builtinModules.map((name) => `node:${name}`),
+]
 
 export default defineConfig(({ mode }) => {
   if (mode === "main") {
@@ -26,12 +36,7 @@ function defineMainConfig(): UserConfig {
         fileName: () => "index.js",
       },
       rollupOptions: {
-        external: [
-          "mobrowser",
-          "node:crypto",
-          "node:fs",
-          "node:path",
-        ],
+        external: mainProcessExternals,
       },
     },
     resolve: {
