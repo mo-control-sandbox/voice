@@ -1,9 +1,15 @@
+import { builtinModules } from "node:module"
 import path from "path"
 import react from "@vitejs/plugin-react"
 import { defineConfig, type UserConfig } from "vite"
 
 const buildTimeDefines = {
   SENTRY_DSN: JSON.stringify(process.env.SENTRY_DSN ?? ""),
+}
+
+// Sentry needs real Node.js built-ins in the main process, not bundled browser stubs.
+function getNodeBuiltinExternals(): string[] {
+  return builtinModules.flatMap((name) => [name, `node:${name}`])
 }
 
 export default defineConfig(({ mode }) => {
@@ -36,9 +42,7 @@ function defineMainConfig(): UserConfig {
           "import-in-the-middle",
           "module-details-from-path",
           "require-in-the-middle",
-          "node:crypto",
-          "node:fs",
-          "node:path",
+          ...getNodeBuiltinExternals(),
         ],
       },
     },
