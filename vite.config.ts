@@ -6,6 +6,7 @@ import mobrowserConfig from "./mobrowser.conf.json" with { type: "json" }
 
 const mainProcessExternals = [
   "mobrowser",
+  // Keep Sentry's runtime helpers and Node built-ins out of the main bundle.
   "import-in-the-middle",
   "module-details-from-path",
   "require-in-the-middle",
