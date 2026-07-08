@@ -17,7 +17,7 @@ if (SENTRY_DSN !== '' && app.packaged) {
     ],
   });
   Sentry.setTag('process', 'main');
-  // Send one info event per production start to avoid telemetry corruption.
+  // Send only one event per production launch to avoid stats duplication.
   Sentry.captureMessage('app.launch', 'info');
 
   Sentry.startSession();
