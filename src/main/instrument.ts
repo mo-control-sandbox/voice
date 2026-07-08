@@ -1,3 +1,4 @@
+import { app } from '@mobrowser/api';
 import * as Sentry from '@sentry/node';
 import packageJson from '../../package.json';
 
@@ -5,7 +6,7 @@ const SENTRY_DSN = 'https://98438641f3fb15aa82986c5e12065c84@o4511693799227392.i
 
 Sentry.init({
   dsn: SENTRY_DSN,
-  environment: process.env.NODE_ENV ?? 'development',
+  environment: app.packaged ? 'production' : 'development',
   release: `${packageJson.name}@${packageJson.version}`,
   defaultIntegrations: false,
   integrations: [
