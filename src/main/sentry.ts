@@ -1,9 +1,7 @@
 import { app } from '@mobrowser/api';
 import * as Sentry from '@sentry/node';
 
-declare const __SENTRY_DSN__: string;
-
-const SENTRY_DSN = __SENTRY_DSN__;
+declare const SENTRY_DSN: string;
 
 if (SENTRY_DSN !== '' && app.packaged) {
   Sentry.init({
