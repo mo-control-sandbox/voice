@@ -8,7 +8,7 @@ const RENDERER_INTEGRATIONS = Sentry.getDefaultIntegrations({}).filter(
 
 Sentry.init({
   dsn: SENTRY_DSN,
-  environment: import.meta.env.MODE,
+  environment: import.meta.env.DEV ? 'development' : 'production',
   release: `${packageJson.name}@${packageJson.version}`,
   defaultIntegrations: false,
   integrations: RENDERER_INTEGRATIONS,
