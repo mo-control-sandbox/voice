@@ -1,4 +1,4 @@
-import './instrument';
+import './sentry';
 import * as Sentry from '@sentry/node';
 import { Application } from './Application';
 

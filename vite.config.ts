@@ -2,6 +2,7 @@ import { builtinModules } from "node:module"
 import path from "path"
 import react from "@vitejs/plugin-react"
 import { defineConfig, type UserConfig } from "vite"
+import mobrowserConfig from "./mobrowser.conf.json" with { type: "json" }
 
 const mainProcessExternals = [
   "mobrowser",
@@ -11,6 +12,18 @@ const mainProcessExternals = [
   ...builtinModules,
   ...builtinModules.map((name) => `node:${name}`),
 ]
+
+const appVersion = mobrowserConfig.app.version
+const appRelease = [
+  appVersion.major,
+  appVersion.minor,
+  appVersion.patch,
+].join(".")
+
+const buildTimeDefines = {
+  __SENTRY_DSN__: JSON.stringify(process.env.SENTRY_DSN ?? ""),
+  __SENTRY_RELEASE__: JSON.stringify(`${mobrowserConfig.app.name}@${appRelease}`),
+}
 
 export default defineConfig(({ mode }) => {
   if (mode === "main") {
@@ -25,6 +38,7 @@ export default defineConfig(({ mode }) => {
 function defineMainConfig(): UserConfig {
   return {
     root: path.resolve(__dirname, "./src/main"),
+    define: buildTimeDefines,
     build: {
       target: "esnext",
       outDir: path.resolve(__dirname, "./out/main"),
@@ -58,6 +72,7 @@ function defineMainConfig(): UserConfig {
 function defineRendererConfig(): UserConfig {
   return {
     root: path.resolve(__dirname, "./src/renderer"),
+    define: buildTimeDefines,
     plugins: [react()],
     build: {
       outDir: path.resolve(__dirname, "./out/renderer"),
