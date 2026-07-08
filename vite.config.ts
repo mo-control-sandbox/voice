@@ -2,16 +2,6 @@ import path from "path"
 import react from "@vitejs/plugin-react"
 import { defineConfig, type UserConfig } from "vite"
 
-const mainProcessExternals = [
-  "mobrowser",
-  "import-in-the-middle",
-  "module-details-from-path",
-  "require-in-the-middle",
-  "node:crypto",
-  "node:fs",
-  "node:path",
-]
-
 const buildTimeDefines = {
   SENTRY_DSN: JSON.stringify(process.env.SENTRY_DSN ?? ""),
 }
@@ -41,7 +31,15 @@ function defineMainConfig(): UserConfig {
         fileName: () => "index.js",
       },
       rollupOptions: {
-        external: mainProcessExternals,
+        external: [
+          "mobrowser",
+          "import-in-the-middle",
+          "module-details-from-path",
+          "require-in-the-middle",
+          "node:crypto",
+          "node:fs",
+          "node:path",
+        ],
       },
     },
     resolve: {
