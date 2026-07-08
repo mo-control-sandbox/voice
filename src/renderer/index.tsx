@@ -1,5 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import * as Sentry from '@sentry/react';
+import { initializeSentry } from './sentry';
 import { AboutApp } from './about/AboutApp';
 import { startTranscriptionRuntime } from './recording/transcription/TranscriptionRuntime';
 import './index.css';
@@ -39,6 +41,8 @@ document.documentElement.dataset.rendererWindow = rendererWindowKind ?? 'unknown
 document.body.dataset.rendererWindow = rendererWindowKind ?? 'unknown';
 document.title = rendererWindowKind === null ? 'MōVoice' : TITLE_BY_WINDOW[rendererWindowKind];
 
+await initializeSentry();
+
 initTheme();
 
 const rootElement = document.getElementById('root');
@@ -53,7 +57,11 @@ if (rendererWindowKind === 'background') {
   const SelectedApp = rendererWindowKind === null ? null : APP_BY_WINDOW[rendererWindowKind];
   const appElement = SelectedApp === null ? <></> : React.createElement(SelectedApp);
 
-  ReactDOM.createRoot(rootElement).render(
+  ReactDOM.createRoot(rootElement, {
+    onCaughtError: Sentry.reactErrorHandler(),
+    onRecoverableError: Sentry.reactErrorHandler(),
+    onUncaughtError: Sentry.reactErrorHandler(),
+  }).render(
     <React.StrictMode>
       {appElement}
     </React.StrictMode>,

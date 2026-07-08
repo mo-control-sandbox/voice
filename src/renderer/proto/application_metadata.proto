@@ -7,9 +7,14 @@ import "google/protobuf/empty.proto";
  */
 message ApplicationMetadata {
   /**
+   * Current application name.
+   */
+  string name = 1;
+
+  /**
    * Current application version.
    */
-  string version = 1;
+  string version = 2;
 }
 
 /**

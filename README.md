@@ -55,5 +55,8 @@ npm install
 npm run build
 ```
 
+Production Sentry telemetry is included only when `SENTRY_DSN` is set during the build.
+Release builds read it from the `SENTRY_DSN` GitHub Actions secret.
+
 If you need to sign and notarize the application, see the [.github/workflows/build.yml](.github/workflows/build.yml) 
 for a ready-to-use script that works on macOS and Windows.

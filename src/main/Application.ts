@@ -60,6 +60,9 @@ export class Application {
    */
   async initialize(): Promise<void> {
     await this.historyStore.initialize();
+    // Register this before renderer windows are created,
+    // because renderer startup reads app metadata.
+    registerApplicationMetadataIpc();
     this.recordingWorkerWindow.initialize();
     this.mainMenu.create();
     let initialWelcomeAutoShowHandled = false;
@@ -80,7 +83,6 @@ export class Application {
       this.recordingController.handleShortcutTrigger();
     });
 
-    registerApplicationMetadataIpc();
     registerDesktopIpc();
     registerPermissionsIpc(this.permissions, () => {
       void this.readiness.recompute();

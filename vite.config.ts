@@ -2,6 +2,10 @@ import path from "path"
 import react from "@vitejs/plugin-react"
 import { defineConfig, type UserConfig } from "vite"
 
+const buildTimeDefines = {
+  SENTRY_DSN: JSON.stringify(process.env.SENTRY_DSN ?? ""),
+}
+
 export default defineConfig(({ mode }) => {
   if (mode === "main") {
     return defineMainConfig()
@@ -15,6 +19,7 @@ export default defineConfig(({ mode }) => {
 function defineMainConfig(): UserConfig {
   return {
     root: path.resolve(__dirname, "./src/main"),
+    define: buildTimeDefines,
     build: {
       target: "esnext",
       outDir: path.resolve(__dirname, "./out/main"),
@@ -28,9 +33,10 @@ function defineMainConfig(): UserConfig {
       rollupOptions: {
         external: [
           "mobrowser",
-          "node:crypto",
-          "node:fs",
-          "node:path",
+          "import-in-the-middle",
+          "module-details-from-path",
+          "require-in-the-middle",
+          /^node:.*/,
         ],
       },
     },
@@ -53,6 +59,7 @@ function defineMainConfig(): UserConfig {
 function defineRendererConfig(): UserConfig {
   return {
     root: path.resolve(__dirname, "./src/renderer"),
+    define: buildTimeDefines,
     plugins: [react()],
     build: {
       outDir: path.resolve(__dirname, "./out/renderer"),
