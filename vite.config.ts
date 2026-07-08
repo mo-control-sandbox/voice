@@ -1,29 +1,19 @@
-import { builtinModules } from "node:module"
 import path from "path"
 import react from "@vitejs/plugin-react"
 import { defineConfig, type UserConfig } from "vite"
-import mobrowserConfig from "./mobrowser.conf.json" with { type: "json" }
 
 const mainProcessExternals = [
   "mobrowser",
-  // Keep Sentry's runtime helpers and Node built-ins out of the main bundle.
   "import-in-the-middle",
   "module-details-from-path",
   "require-in-the-middle",
-  ...builtinModules,
-  ...builtinModules.map((name) => `node:${name}`),
+  "node:crypto",
+  "node:fs",
+  "node:path",
 ]
-
-const appVersion = mobrowserConfig.app.version
-const appRelease = [
-  appVersion.major,
-  appVersion.minor,
-  appVersion.patch,
-].join(".")
 
 const buildTimeDefines = {
   __SENTRY_DSN__: JSON.stringify(process.env.SENTRY_DSN ?? ""),
-  __SENTRY_RELEASE__: JSON.stringify(`${mobrowserConfig.app.name}@${appRelease}`),
 }
 
 export default defineConfig(({ mode }) => {

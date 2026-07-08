@@ -1,7 +1,7 @@
-import './sentry';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import * as Sentry from '@sentry/react';
+import { initializeSentry } from './sentry';
 import { AboutApp } from './about/AboutApp';
 import { startTranscriptionRuntime } from './recording/transcription/TranscriptionRuntime';
 import './index.css';
@@ -40,6 +40,8 @@ const rendererWindowKind = parseRendererWindowKind(new URLSearchParams(window.lo
 document.documentElement.dataset.rendererWindow = rendererWindowKind ?? 'unknown';
 document.body.dataset.rendererWindow = rendererWindowKind ?? 'unknown';
 document.title = rendererWindowKind === null ? 'MōVoice' : TITLE_BY_WINDOW[rendererWindowKind];
+
+await initializeSentry();
 
 initTheme();
 

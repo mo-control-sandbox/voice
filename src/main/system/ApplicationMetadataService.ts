@@ -16,6 +16,9 @@ class ApplicationMetadataService implements ApplicationMetadataServiceInterface 
    * Returns metadata from the application shell configuration.
    */
   GetApplicationMetadata() {
-    return Promise.resolve({ version: app.version });
+    return Promise.resolve({
+      name: app.name,
+      version: app.version,
+    });
   }
 }
