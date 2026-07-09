@@ -41,7 +41,9 @@ document.documentElement.dataset.rendererWindow = rendererWindowKind ?? 'unknown
 document.body.dataset.rendererWindow = rendererWindowKind ?? 'unknown';
 document.title = rendererWindowKind === null ? 'MōVoice' : TITLE_BY_WINDOW[rendererWindowKind];
 
-await initializeSentry();
+void initializeSentry().catch((error: unknown) => {
+  console.warn('[Sentry] init failed:', error);
+});
 
 initTheme();
 
